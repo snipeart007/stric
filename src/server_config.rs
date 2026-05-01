@@ -1,0 +1,10 @@
+use std::net::SocketAddr;
+
+use quinn::rustls::pki_types::{CertificateDer, PrivateKeyDer};
+
+pub struct ServerConfig {
+    pub certs: Vec<CertificateDer<'static>>,
+    pub key: PrivateKeyDer<'static>,
+    pub socket_addr: SocketAddr,
+    pub alpn_protocol_names: Vec<Vec<u8>>,
+}
