@@ -7,4 +7,5 @@ pub struct ServerConfig {
     pub key: PrivateKeyDer<'static>,
     pub socket_addr: SocketAddr,
     pub alpn_protocol_names: Vec<Vec<u8>>,
+    pub error_channel_len: usize
 }

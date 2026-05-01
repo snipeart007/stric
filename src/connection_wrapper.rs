@@ -6,6 +6,8 @@ pub struct ConnectionWrapper<ConnectionMetadata: Send + Sync + 'static> {
 
 pub struct ConnectionContext {
     pub uuid: u64,
+    // Whether to keep the connection alive using Heartbeat pings
+    pub keep_alive: bool,
     // Initiate UniStream from Client-side
     pub client_uni: bool,
     // Initiate BiStream from Client-side

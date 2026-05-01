@@ -1,9 +1,9 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::{Arc, Mutex}};
 
 use crate::connection_wrapper::ConnectionWrapper;
 
 pub struct ConnectionManager<ConnectionMetadata: Send + Sync + 'static> {
-    pub store: HashMap<u64, ConnectionWrapper<ConnectionMetadata>>,
+    pub store: HashMap<u64, Arc<Mutex<ConnectionWrapper<ConnectionMetadata>>>>,
 }
 
 impl<ConnectionMetadata: Send + Sync + 'static> ConnectionManager<ConnectionMetadata> {
