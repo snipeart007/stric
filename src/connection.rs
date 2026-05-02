@@ -5,12 +5,12 @@ use std::{
 
 use crate::connection_wrapper::{ConnectionContext, ConnectionWrapper};
 
-pub struct ConnectionManager<ConnectionMetadata: Send + Sync + 'static> {
+pub struct ConnectionManager<ConnectionMetadata: Default + Send + Sync + 'static> {
     pub store: HashMap<u64, Arc<Mutex<ConnectionWrapper<ConnectionMetadata>>>>,
     pub default_conn_context: ConnectionContext,
 }
 
-impl<ConnectionMetadata: Send + Sync + 'static> ConnectionManager<ConnectionMetadata> {
+impl<ConnectionMetadata: Default + Send + Sync + 'static> ConnectionManager<ConnectionMetadata> {
     pub fn new(default_conn_context: ConnectionContext) -> Self {
         Self {
             store: HashMap::new(),
@@ -18,7 +18,7 @@ impl<ConnectionMetadata: Send + Sync + 'static> ConnectionManager<ConnectionMeta
         }
     }
 
-    pub fn set_client_uni(&mut self, uuid: u64, val: bool) -> Result<(), anyhow::Error> {
+    pub fn set_client_uni(&self, uuid: u64, val: bool) -> Result<(), anyhow::Error> {
         let connection = self
             .store
             .get(&uuid)
@@ -33,7 +33,7 @@ impl<ConnectionMetadata: Send + Sync + 'static> ConnectionManager<ConnectionMeta
         Ok(())
     }
 
-    pub fn set_client_bi(&mut self, uuid: u64, val: bool) -> Result<(), anyhow::Error> {
+    pub fn set_client_bi(&self, uuid: u64, val: bool) -> Result<(), anyhow::Error> {
         let connection = self
             .store
             .get(&uuid)
@@ -48,7 +48,7 @@ impl<ConnectionMetadata: Send + Sync + 'static> ConnectionManager<ConnectionMeta
         Ok(())
     }
 
-    pub fn set_server_uni(&mut self, uuid: u64, val: bool) -> Result<(), anyhow::Error> {
+    pub fn set_server_uni(&self, uuid: u64, val: bool) -> Result<(), anyhow::Error> {
         let connection = self
             .store
             .get(&uuid)
@@ -63,7 +63,7 @@ impl<ConnectionMetadata: Send + Sync + 'static> ConnectionManager<ConnectionMeta
         Ok(())
     }
 
-    pub fn set_server_bi(&mut self, uuid: u64, val: bool) -> Result<(), anyhow::Error> {
+    pub fn set_server_bi(&self, uuid: u64, val: bool) -> Result<(), anyhow::Error> {
         let connection = self
             .store
             .get(&uuid)
@@ -76,6 +76,19 @@ impl<ConnectionMetadata: Send + Sync + 'static> ConnectionManager<ConnectionMeta
         value.context.server_bi = val;
 
         Ok(())
+    }
+
+    pub fn add_connection(&mut self, connection: quinn::Connection) -> Arc<Mutex<ConnectionWrapper<ConnectionMetadata>>> {
+        let k = connection.stable_id() as u64;
+        let wrapper = ConnectionWrapper {
+            conn: connection,
+            context: self.default_conn_context,
+            metadata: ConnectionMetadata::default()
+        };
+        let v = Arc::new(Mutex::new(wrapper));
+        let res = v.clone();
+        self.store.insert(k, v);
+        res
     }
 }
 

@@ -4,6 +4,7 @@ pub struct ConnectionWrapper<ConnectionMetadata: Send + Sync + 'static> {
     pub metadata: ConnectionMetadata,
 }
 
+#[derive(Clone, Copy)]
 pub struct ConnectionContext {
     pub uuid: u64,
     // Whether to keep the connection alive using Heartbeat pings
