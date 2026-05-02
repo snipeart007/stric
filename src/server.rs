@@ -31,7 +31,7 @@ impl<ConnectionMetadata: Send + Sync + 'static> ServerInstance<ConnectionMetadat
         let (error_tx, mut error_rx) = mpsc::channel::<anyhow::Error>(config.error_channel_len);
         Ok(Self {
             endpoint,
-            conn_manager: Arc::new(RwLock::new(ConnectionManager::new())),
+            conn_manager: Arc::new(RwLock::new(ConnectionManager::new(config.default_conn_context))),
             conn_handler: None,
             error_rx,
             error_tx,
@@ -58,6 +58,12 @@ impl<ConnectionMetadata: Send + Sync + 'static> ServerInstance<ConnectionMetadat
         conn_handler: Option<ConnectionHandlerFn>,
         error_tx: Sender<anyhow::Error>,
     ) {
-        // TODO
+        let Ok(connection) = incoming.await.map_err(|e| {
+            let _ = error_tx.try_send(e.into()); // Send error to channel
+        }) else {
+            return; // Exit the green thread
+        };
+
+        
     }
 }
