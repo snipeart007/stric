@@ -1,9 +1,8 @@
 use std::sync::{Arc, RwLock};
 
 use crate::{
-    connection::{ConnectionManager, ConnectionManagerError},
-    handler_types::ConnectionHandlerFn,
-    server_config::ServerConfig,
+    connection::ConnectionManager, connection_wrapper::ConnectionWrapper,
+    handler_types::ConnectionHandlerFn, server_config::ServerConfig,
 };
 use quinn::rustls::ServerConfig as RustlsServerConfig;
 use tokio::sync::mpsc::{self, Receiver, Sender};
@@ -11,7 +10,7 @@ use tokio::sync::mpsc::{self, Receiver, Sender};
 pub struct ServerInstance<ConnectionMetadata: Default + Send + Sync + 'static> {
     pub endpoint: quinn::Endpoint,
     pub conn_manager: Arc<RwLock<ConnectionManager<ConnectionMetadata>>>,
-    pub conn_handler: Option<ConnectionHandlerFn>,
+    pub conn_handler: Option<ConnectionHandlerFn<ConnectionMetadata>>,
     pub error_tx: Sender<anyhow::Error>,
     pub error_rx: Receiver<anyhow::Error>,
 }
@@ -59,42 +58,49 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
     pub async fn handle_incoming(
         incoming: quinn::Incoming,
         manager_lock: Arc<RwLock<ConnectionManager<ConnectionMetadata>>>,
-        conn_handler: Option<ConnectionHandlerFn>,
+        conn_handler: Option<ConnectionHandlerFn<ConnectionMetadata>>,
         error_tx: Sender<anyhow::Error>,
     ) {
-        let Ok(mut connection) = incoming.await.map_err(|e| {
+        let Ok(connection) = incoming.await.map_err(|e| {
             let _ = error_tx.try_send(e.into()); // Send error to channel
         }) else {
             return; // Exit the green thread
         };
         let k = connection.stable_id() as u64;
-        {
-            let Ok(mut manager) = manager_lock.write().map_err(|_| {
+
+        let context = {
+            let Ok(manager_read) = manager_lock.read().map_err(|_| {
                 let _ = error_tx.try_send(ServerError::ConnManagerPoisoned.into()); // Send error to channel
             }) else {
                 return; // Exit the green thread
             };
+            let mut context = manager_read.default_conn_context.clone();
+            context.uuid = k;
+            context
+        };
 
-            let wrapper_res = manager.add_connection(connection);
-            let Ok(wrapper) = wrapper_res.lock().map_err(|_| {
-                // TODO: Create a method inside ConnectionManger to handle removal
-                let _ = error_tx.try_send(
-                    ConnectionManagerError::ThreadPanickedWhileConnectionMutexGuard.into(),
-                ); // Send error to channel
-                manager.store.remove(&k);
-            }) else {
-                return;
-            };
-            connection = (*wrapper).conn.clone();
-        }
+        let metadata = ConnectionMetadata::default();
+
+        let mut wrapper = ConnectionWrapper {
+            conn: connection,
+            context,
+            metadata,
+        };
 
         if let Some(func) = conn_handler {
-            // Call func and return err onto error_tx
-            if let Err(e) = func(connection).await {
+            if let Err(e) = func(&mut wrapper).await {
                 let _ = error_tx.try_send(e);
                 return;
             }
         }
+
+        let Ok(mut manager_write) = manager_lock.write().map_err(|_| {
+            let _ = error_tx.try_send(ServerError::ConnManagerPoisoned.into()); // Send error to channel
+        }) else {
+            return; // Exit the green thread
+        };
+
+        manager_write.add_connection(wrapper);
     }
 }
 

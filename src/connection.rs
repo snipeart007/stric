@@ -78,17 +78,8 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ConnectionManager<Conn
         Ok(())
     }
 
-    pub fn add_connection(&mut self, connection: quinn::Connection) -> Arc<Mutex<ConnectionWrapper<ConnectionMetadata>>> {
-        let k = connection.stable_id() as u64;
-        let wrapper = ConnectionWrapper {
-            conn: connection,
-            context: self.default_conn_context,
-            metadata: ConnectionMetadata::default()
-        };
-        let v = Arc::new(Mutex::new(wrapper));
-        let res = v.clone();
-        self.store.insert(k, v);
-        res
+    pub fn add_connection(&mut self, wrapper: ConnectionWrapper<ConnectionMetadata>) {
+        self.store.insert(wrapper.context.uuid, Arc::new(Mutex::new(wrapper)));
     }
 }
 

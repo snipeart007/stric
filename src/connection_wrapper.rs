@@ -1,4 +1,5 @@
-pub struct ConnectionWrapper<ConnectionMetadata: Send + Sync + 'static> {
+#[derive(Clone)]
+pub struct ConnectionWrapper<ConnectionMetadata: Default + Send + Sync + 'static> {
     pub conn: quinn::Connection,
     pub context: ConnectionContext,
     pub metadata: ConnectionMetadata,
@@ -18,3 +19,11 @@ pub struct ConnectionContext {
     // Initiate BiStream from Server-side
     pub server_bi: bool,
 }
+
+impl Default for ConnectionContext {
+    fn default() -> Self {
+        ConnectionContext { uuid: 0, keep_alive: false, client_uni: false, client_bi: false, server_uni: false, server_bi: false }
+    }
+}
+
+
