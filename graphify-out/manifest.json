@@ -1,0 +1,34 @@
+{
+  "/home/snipeart007/repos/stric/src/server_config.rs": {
+    "mtime": 1777743143.6572435,
+    "hash": "76718c7e42d109866397910f852f823d"
+  },
+  "/home/snipeart007/repos/stric/src/stream.rs": {
+    "mtime": 1777743143.6572435,
+    "hash": "d104b40d7f20f76bf3f756cf80585191"
+  },
+  "/home/snipeart007/repos/stric/src/connection_wrapper.rs": {
+    "mtime": 1777807577.9522567,
+    "hash": "d493d4a7405666e68fe56abf7c219de7"
+  },
+  "/home/snipeart007/repos/stric/src/lib.rs": {
+    "mtime": 1777745351.095473,
+    "hash": "fb956a8a239dd94f9891bf4c03bc8452"
+  },
+  "/home/snipeart007/repos/stric/src/connection.rs": {
+    "mtime": 1777807961.4206846,
+    "hash": "a2311491998cd21cdcf2d6d50ef374b8"
+  },
+  "/home/snipeart007/repos/stric/src/server.rs": {
+    "mtime": 1777808494.3857393,
+    "hash": "1c972c29d924e38b33265d4a0bb3151b"
+  },
+  "/home/snipeart007/repos/stric/src/handler_types.rs": {
+    "mtime": 1777808283.4798448,
+    "hash": "721b850407ef5279e6425d62e52e435f"
+  },
+  "/home/snipeart007/repos/stric/GEMINI.md": {
+    "mtime": 1777743143.6532435,
+    "hash": "8ee39dcfe68a23b3797b02648930d699"
+  }
+}
