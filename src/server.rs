@@ -16,11 +16,12 @@ pub struct ServerInstance<ConnectionMetadata: Default + Send + Sync + 'static> {
     pub conn_manager: Arc<RwLock<ConnectionManager<ConnectionMetadata>>>,
     pub conn_handler: Option<ConnectionHandlerFn<ConnectionMetadata>>,
     pub error_tx: Sender<anyhow::Error>,
-    pub error_rx: Receiver<anyhow::Error>,
 }
 
 impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<ConnectionMetadata> {
-    pub fn new(config: ServerConfig) -> Result<ServerInstance<ConnectionMetadata>, anyhow::Error> {
+    pub fn new(
+        config: ServerConfig,
+    ) -> Result<(ServerInstance<ConnectionMetadata>, Receiver<anyhow::Error>), anyhow::Error> {
         let mut server_config = RustlsServerConfig::builder()
             .with_no_client_auth()
             .with_single_cert(config.certs, config.key)?;
@@ -34,15 +35,17 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
         let endpoint = quinn::Endpoint::server(quinn_config, config.socket_addr)?;
 
         let (error_tx, error_rx) = mpsc::channel::<anyhow::Error>(config.error_channel_len);
-        Ok(Self {
-            endpoint,
-            conn_manager: Arc::new(RwLock::new(ConnectionManager::new(
-                config.default_conn_context,
-            ))),
-            conn_handler: None,
+        Ok((
+            Self {
+                endpoint,
+                conn_manager: Arc::new(RwLock::new(ConnectionManager::new(
+                    config.default_conn_context,
+                ))),
+                conn_handler: None,
+                error_tx,
+            },
             error_rx,
-            error_tx,
-        })
+        ))
     }
 
     pub fn register_connection_handler(

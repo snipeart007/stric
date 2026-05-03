@@ -35,16 +35,16 @@
     {
       "label": "server_config.rs",
       "file_type": "code",
-      "source_file": "server_config.rs",
+      "source_file": "src/server_config.rs",
       "source_location": "L1",
-      "id": "server_config_rs",
+      "id": "src_server_config_rs",
       "community": 9,
       "norm_label": "server_config.rs"
     },
     {
       "label": "ServerConfig",
       "file_type": "code",
-      "source_file": "server_config.rs",
+      "source_file": "src/server_config.rs",
       "source_location": "L7",
       "id": "src_server_config_serverconfig",
       "community": 9,
@@ -53,106 +53,106 @@
     {
       "label": "stream.rs",
       "file_type": "code",
-      "source_file": "stream.rs",
+      "source_file": "src/stream.rs",
       "source_location": "L1",
-      "id": "stream_rs",
-      "community": 3,
+      "id": "src_stream_rs",
+      "community": 4,
       "norm_label": "stream.rs"
     },
     {
       "label": "ServerUniStream",
       "file_type": "code",
-      "source_file": "stream.rs",
+      "source_file": "src/stream.rs",
       "source_location": "L1",
       "id": "src_stream_serverunistream",
-      "community": 3,
+      "community": 4,
       "norm_label": "serverunistream"
     },
     {
       "label": "ClientUniStream",
       "file_type": "code",
-      "source_file": "stream.rs",
+      "source_file": "src/stream.rs",
       "source_location": "L5",
       "id": "src_stream_clientunistream",
-      "community": 3,
+      "community": 4,
       "norm_label": "clientunistream"
     },
     {
       "label": "BiStream",
       "file_type": "code",
-      "source_file": "stream.rs",
+      "source_file": "src/stream.rs",
       "source_location": "L9",
       "id": "src_stream_bistream",
-      "community": 3,
+      "community": 4,
       "norm_label": "bistream"
     },
     {
       "label": "connection_wrapper.rs",
       "file_type": "code",
-      "source_file": "connection_wrapper.rs",
+      "source_file": "src/connection_wrapper.rs",
       "source_location": "L1",
-      "id": "connection_wrapper_rs",
-      "community": 4,
+      "id": "src_connection_wrapper_rs",
+      "community": 5,
       "norm_label": "connection_wrapper.rs"
     },
     {
       "label": "ConnectionWrapper",
       "file_type": "code",
-      "source_file": "connection_wrapper.rs",
+      "source_file": "src/connection_wrapper.rs",
       "source_location": "L2",
       "id": "src_connection_wrapper_connectionwrapper",
-      "community": 4,
+      "community": 5,
       "norm_label": "connectionwrapper"
     },
     {
       "label": "ConnectionContext",
       "file_type": "code",
-      "source_file": "connection_wrapper.rs",
+      "source_file": "src/connection_wrapper.rs",
       "source_location": "L9",
       "id": "src_connection_wrapper_connectioncontext",
-      "community": 4,
+      "community": 5,
       "norm_label": "connectioncontext"
     },
     {
       "label": ".default()",
       "file_type": "code",
-      "source_file": "connection_wrapper.rs",
+      "source_file": "src/connection_wrapper.rs",
       "source_location": "L24",
       "id": "src_connection_wrapper_connectioncontext_default",
-      "community": 4,
+      "community": 2,
       "norm_label": ".default()"
     },
     {
       "label": "lib.rs",
       "file_type": "code",
-      "source_file": "lib.rs",
+      "source_file": "src/lib.rs",
       "source_location": "L1",
-      "id": "lib_rs",
-      "community": 5,
+      "id": "src_lib_rs",
+      "community": 7,
       "norm_label": "lib.rs"
     },
     {
       "label": "add()",
       "file_type": "code",
-      "source_file": "lib.rs",
+      "source_file": "src/lib.rs",
       "source_location": "L7",
       "id": "src_lib_add",
-      "community": 5,
+      "community": 7,
       "norm_label": "add()"
     },
     {
       "label": "connection.rs",
       "file_type": "code",
-      "source_file": "connection.rs",
+      "source_file": "src/connection.rs",
       "source_location": "L1",
-      "id": "connection_rs",
+      "id": "src_connection_rs",
       "community": 6,
       "norm_label": "connection.rs"
     },
     {
       "label": "ConnectionManager",
       "file_type": "code",
-      "source_file": "connection.rs",
+      "source_file": "src/connection.rs",
       "source_location": "L6",
       "id": "src_connection_connectionmanager",
       "community": 6,
@@ -161,7 +161,7 @@
     {
       "label": "ConnectionManager<ConnectionMetadata>",
       "file_type": "code",
-      "source_file": "connection.rs",
+      "source_file": "src/connection.rs",
       "source_location": "L11",
       "id": "src_connection_connectionmanager_connectionmetadata",
       "community": 1,
@@ -170,7 +170,7 @@
     {
       "label": ".new()",
       "file_type": "code",
-      "source_file": "connection.rs",
+      "source_file": "src/connection.rs",
       "source_location": "L12",
       "id": "src_connection_connectionmanager_connectionmetadata_new",
       "community": 1,
@@ -179,7 +179,7 @@
     {
       "label": ".set_client_uni()",
       "file_type": "code",
-      "source_file": "connection.rs",
+      "source_file": "src/connection.rs",
       "source_location": "L19",
       "id": "src_connection_connectionmanager_connectionmetadata_set_client_uni",
       "community": 1,
@@ -188,7 +188,7 @@
     {
       "label": ".set_client_bi()",
       "file_type": "code",
-      "source_file": "connection.rs",
+      "source_file": "src/connection.rs",
       "source_location": "L32",
       "id": "src_connection_connectionmanager_connectionmetadata_set_client_bi",
       "community": 1,
@@ -197,7 +197,7 @@
     {
       "label": ".set_server_uni()",
       "file_type": "code",
-      "source_file": "connection.rs",
+      "source_file": "src/connection.rs",
       "source_location": "L45",
       "id": "src_connection_connectionmanager_connectionmetadata_set_server_uni",
       "community": 1,
@@ -206,7 +206,7 @@
     {
       "label": ".set_server_bi()",
       "file_type": "code",
-      "source_file": "connection.rs",
+      "source_file": "src/connection.rs",
       "source_location": "L58",
       "id": "src_connection_connectionmanager_connectionmetadata_set_server_bi",
       "community": 1,
@@ -215,7 +215,7 @@
     {
       "label": ".add_connection()",
       "file_type": "code",
-      "source_file": "connection.rs",
+      "source_file": "src/connection.rs",
       "source_location": "L71",
       "id": "src_connection_connectionmanager_connectionmetadata_add_connection",
       "community": 1,
@@ -224,7 +224,7 @@
     {
       "label": ".get_connection()",
       "file_type": "code",
-      "source_file": "connection.rs",
+      "source_file": "src/connection.rs",
       "source_location": "L76",
       "id": "src_connection_connectionmanager_connectionmetadata_get_connection",
       "community": 1,
@@ -233,7 +233,7 @@
     {
       "label": "ConnectionManagerError",
       "file_type": "code",
-      "source_file": "connection.rs",
+      "source_file": "src/connection.rs",
       "source_location": "L88",
       "id": "src_connection_connectionmanagererror",
       "community": 6,
@@ -242,26 +242,26 @@
     {
       "label": "server.rs",
       "file_type": "code",
-      "source_file": "server.rs",
+      "source_file": "src/server.rs",
       "source_location": "L1",
-      "id": "server_rs",
-      "community": 7,
+      "id": "src_server_rs",
+      "community": 8,
       "norm_label": "server.rs"
     },
     {
       "label": "ServerInstance",
       "file_type": "code",
-      "source_file": "server.rs",
+      "source_file": "src/server.rs",
       "source_location": "L14",
       "id": "src_server_serverinstance",
-      "community": 7,
+      "community": 8,
       "norm_label": "serverinstance"
     },
     {
       "label": "ServerInstance<ConnectionMetadata>",
       "file_type": "code",
-      "source_file": "server.rs",
-      "source_location": "L22",
+      "source_file": "src/server.rs",
+      "source_location": "L21",
       "id": "src_server_serverinstance_connectionmetadata",
       "community": 0,
       "norm_label": "serverinstance<connectionmetadata>"
@@ -269,8 +269,8 @@
     {
       "label": ".new()",
       "file_type": "code",
-      "source_file": "server.rs",
-      "source_location": "L23",
+      "source_file": "src/server.rs",
+      "source_location": "L22",
       "id": "src_server_serverinstance_connectionmetadata_new",
       "community": 0,
       "norm_label": ".new()"
@@ -278,8 +278,8 @@
     {
       "label": ".register_connection_handler()",
       "file_type": "code",
-      "source_file": "server.rs",
-      "source_location": "L48",
+      "source_file": "src/server.rs",
+      "source_location": "L51",
       "id": "src_server_serverinstance_connectionmetadata_register_connection_handler",
       "community": 0,
       "norm_label": ".register_connection_handler()"
@@ -287,8 +287,8 @@
     {
       "label": ".get_manager_read_lock()",
       "file_type": "code",
-      "source_file": "server.rs",
-      "source_location": "L55",
+      "source_file": "src/server.rs",
+      "source_location": "L58",
       "id": "src_server_serverinstance_connectionmetadata_get_manager_read_lock",
       "community": 0,
       "norm_label": ".get_manager_read_lock()"
@@ -296,8 +296,8 @@
     {
       "label": ".get_manager_write_lock()",
       "file_type": "code",
-      "source_file": "server.rs",
-      "source_location": "L61",
+      "source_file": "src/server.rs",
+      "source_location": "L64",
       "id": "src_server_serverinstance_connectionmetadata_get_manager_write_lock",
       "community": 0,
       "norm_label": ".get_manager_write_lock()"
@@ -305,8 +305,8 @@
     {
       "label": ".listen_connections()",
       "file_type": "code",
-      "source_file": "server.rs",
-      "source_location": "L67",
+      "source_file": "src/server.rs",
+      "source_location": "L70",
       "id": "src_server_serverinstance_connectionmetadata_listen_connections",
       "community": 0,
       "norm_label": ".listen_connections()"
@@ -314,8 +314,8 @@
     {
       "label": ".handle_incoming()",
       "file_type": "code",
-      "source_file": "server.rs",
-      "source_location": "L82",
+      "source_file": "src/server.rs",
+      "source_location": "L85",
       "id": "src_server_serverinstance_connectionmetadata_handle_incoming",
       "community": 0,
       "norm_label": ".handle_incoming()"
@@ -323,8 +323,8 @@
     {
       "label": ".get_unistream()",
       "file_type": "code",
-      "source_file": "server.rs",
-      "source_location": "L121",
+      "source_file": "src/server.rs",
+      "source_location": "L124",
       "id": "src_server_serverinstance_connectionmetadata_get_unistream",
       "community": 0,
       "norm_label": ".get_unistream()"
@@ -332,8 +332,8 @@
     {
       "label": ".get_bistream()",
       "file_type": "code",
-      "source_file": "server.rs",
-      "source_location": "L128",
+      "source_file": "src/server.rs",
+      "source_location": "L131",
       "id": "src_server_serverinstance_connectionmetadata_get_bistream",
       "community": 0,
       "norm_label": ".get_bistream()"
@@ -341,27 +341,153 @@
     {
       "label": "ServerError",
       "file_type": "code",
-      "source_file": "server.rs",
-      "source_location": "L141",
+      "source_file": "src/server.rs",
+      "source_location": "L144",
       "id": "src_server_servererror",
-      "community": 7,
+      "community": 8,
       "norm_label": "servererror"
+    },
+    {
+      "label": "handler_types.rs",
+      "file_type": "code",
+      "source_file": "src/handler_types.rs",
+      "source_location": "L1",
+      "id": "src_handler_types_rs",
+      "community": 11,
+      "norm_label": "handler_types.rs"
+    },
+    {
+      "label": "integration_test.rs",
+      "file_type": "code",
+      "source_file": "tests/integration_test.rs",
+      "source_location": "L1",
+      "id": "tests_integration_test_rs",
+      "community": 2,
+      "norm_label": "integration_test.rs"
+    },
+    {
+      "label": "setup_crypto()",
+      "file_type": "code",
+      "source_file": "tests/integration_test.rs",
+      "source_location": "L8",
+      "id": "tests_integration_test_setup_crypto",
+      "community": 2,
+      "norm_label": "setup_crypto()"
+    },
+    {
+      "label": "test_server_connection_lifecycle()",
+      "file_type": "code",
+      "source_file": "tests/integration_test.rs",
+      "source_location": "L13",
+      "id": "tests_integration_test_test_server_connection_lifecycle",
+      "community": 2,
+      "norm_label": "test_server_connection_lifecycle()"
+    },
+    {
+      "label": "test_connection_manager_updates()",
+      "file_type": "code",
+      "source_file": "tests/integration_test.rs",
+      "source_location": "L102",
+      "id": "tests_integration_test_test_connection_manager_updates",
+      "community": 2,
+      "norm_label": "test_connection_manager_updates()"
+    },
+    {
+      "label": "test_error_channel_and_handler_failure()",
+      "file_type": "code",
+      "source_file": "tests/integration_test.rs",
+      "source_location": "L171",
+      "id": "tests_integration_test_test_error_channel_and_handler_failure",
+      "community": 2,
+      "norm_label": "test_error_channel_and_handler_failure()"
+    },
+    {
+      "label": "MyMetadata",
+      "file_type": "code",
+      "source_file": "tests/integration_test.rs",
+      "source_location": "L235",
+      "id": "tests_integration_test_mymetadata",
+      "community": 2,
+      "norm_label": "mymetadata"
+    },
+    {
+      "label": "test_custom_metadata()",
+      "file_type": "code",
+      "source_file": "tests/integration_test.rs",
+      "source_location": "L240",
+      "id": "tests_integration_test_test_custom_metadata",
+      "community": 2,
+      "norm_label": "test_custom_metadata()"
+    },
+    {
+      "label": "server_config.rs",
+      "file_type": "code",
+      "source_file": "server_config.rs",
+      "source_location": "L1",
+      "community": 9,
+      "norm_label": "server_config.rs",
+      "id": "server_config_rs"
+    },
+    {
+      "label": "stream.rs",
+      "file_type": "code",
+      "source_file": "stream.rs",
+      "source_location": "L1",
+      "community": 4,
+      "norm_label": "stream.rs",
+      "id": "stream_rs"
+    },
+    {
+      "label": "connection_wrapper.rs",
+      "file_type": "code",
+      "source_file": "connection_wrapper.rs",
+      "source_location": "L1",
+      "community": 5,
+      "norm_label": "connection_wrapper.rs",
+      "id": "connection_wrapper_rs"
+    },
+    {
+      "label": "lib.rs",
+      "file_type": "code",
+      "source_file": "lib.rs",
+      "source_location": "L1",
+      "community": 7,
+      "norm_label": "lib.rs",
+      "id": "lib_rs"
+    },
+    {
+      "label": "connection.rs",
+      "file_type": "code",
+      "source_file": "connection.rs",
+      "source_location": "L1",
+      "community": 6,
+      "norm_label": "connection.rs",
+      "id": "connection_rs"
+    },
+    {
+      "label": "server.rs",
+      "file_type": "code",
+      "source_file": "server.rs",
+      "source_location": "L1",
+      "community": 8,
+      "norm_label": "server.rs",
+      "id": "server_rs"
     },
     {
       "label": "handler_types.rs",
       "file_type": "code",
       "source_file": "handler_types.rs",
       "source_location": "L1",
-      "id": "handler_types_rs",
-      "community": 10,
-      "norm_label": "handler_types.rs"
+      "community": 12,
+      "norm_label": "handler_types.rs",
+      "id": "handler_types_rs"
     },
     {
       "label": "it_works()",
       "file_type": "code",
       "source_file": "lib.rs",
       "source_location": "L16",
-      "community": 5,
+      "community": 7,
       "norm_label": "it_works()",
       "id": "src_lib_it_works"
     },
@@ -377,7 +503,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 3,
       "norm_label": "serverconfig",
       "id": "server_config_serverconfig"
     },
@@ -393,7 +519,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 8,
+      "community": 10,
       "norm_label": "serverunistream",
       "id": "stream_serverunistream"
     },
@@ -409,7 +535,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 8,
+      "community": 10,
       "norm_label": "clientunistream",
       "id": "stream_clientunistream"
     },
@@ -425,7 +551,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 8,
+      "community": 10,
       "norm_label": "bistream",
       "id": "stream_bistream"
     },
@@ -441,7 +567,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 3,
       "norm_label": "connectionwrapper",
       "id": "connection_wrapper_connectionwrapper"
     },
@@ -457,7 +583,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 3,
       "norm_label": "connectioncontext",
       "id": "connection_wrapper_connectioncontext"
     },
@@ -473,7 +599,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 3,
       "norm_label": "connectionmanager",
       "id": "connection_connectionmanager"
     },
@@ -489,7 +615,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 3,
       "norm_label": "serverinstance",
       "id": "server_serverinstance"
     },
@@ -505,7 +631,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 2,
+      "community": 3,
       "norm_label": "connectionhandlerfn",
       "id": "handler_types_connectionhandlerfn"
     },
@@ -521,12 +647,22 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 11,
+      "community": 13,
       "norm_label": "graphify maintenance rules",
       "id": "gemini_graphify_rules"
     }
   ],
   "links": [
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/server_config.rs",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "src_server_config_rs",
+      "target": "src_server_config_serverconfig",
+      "confidence_score": 1.0
+    },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
@@ -536,6 +672,36 @@
       "confidence_score": 1.0,
       "source": "server_config_rs",
       "target": "src_server_config_serverconfig"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/stream.rs",
+      "source_location": "L1",
+      "weight": 1.0,
+      "source": "src_stream_rs",
+      "target": "src_stream_serverunistream",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/stream.rs",
+      "source_location": "L5",
+      "weight": 1.0,
+      "source": "src_stream_rs",
+      "target": "src_stream_clientunistream",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/stream.rs",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "src_stream_rs",
+      "target": "src_stream_bistream",
+      "confidence_score": 1.0
     },
     {
       "relation": "contains",
@@ -570,22 +736,32 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "src/connection_wrapper.rs",
+      "source_location": "L2",
+      "weight": 1.0,
+      "source": "src_connection_wrapper_rs",
+      "target": "src_connection_wrapper_connectionwrapper",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/connection_wrapper.rs",
+      "source_location": "L9",
+      "weight": 1.0,
+      "source": "src_connection_wrapper_rs",
+      "target": "src_connection_wrapper_connectioncontext",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "connection_wrapper.rs",
       "source_location": "L2",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "connection_wrapper_rs",
       "target": "src_connection_wrapper_connectionwrapper"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "connection_wrapper.rs",
-      "source_location": "L9",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "connection_wrapper_rs",
-      "target": "src_connection_wrapper_connectioncontext"
     },
     {
       "relation": "method",
@@ -596,6 +772,16 @@
       "confidence_score": 1.0,
       "source": "src_connection_wrapper_connectioncontext",
       "target": "src_connection_wrapper_connectioncontext_default"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "connection_wrapper.rs",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "connection_wrapper_rs",
+      "target": "src_connection_wrapper_connectioncontext"
     },
     {
       "relation": "calls",
@@ -609,6 +795,60 @@
       "target": "src_connection_wrapper_connectioncontext_default"
     },
     {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests/integration_test.rs",
+      "source_location": "L31",
+      "weight": 1.0,
+      "source": "tests_integration_test_test_server_connection_lifecycle",
+      "target": "src_connection_wrapper_connectioncontext_default"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests/integration_test.rs",
+      "source_location": "L117",
+      "weight": 1.0,
+      "source": "tests_integration_test_test_connection_manager_updates",
+      "target": "src_connection_wrapper_connectioncontext_default"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests/integration_test.rs",
+      "source_location": "L186",
+      "weight": 1.0,
+      "source": "tests_integration_test_test_error_channel_and_handler_failure",
+      "target": "src_connection_wrapper_connectioncontext_default"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "tests/integration_test.rs",
+      "source_location": "L255",
+      "weight": 1.0,
+      "source": "tests_integration_test_test_custom_metadata",
+      "target": "src_connection_wrapper_connectioncontext_default"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/lib.rs",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "src_lib_rs",
+      "target": "src_lib_add",
+      "confidence_score": 1.0
+    },
+    {
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "lib.rs",
@@ -617,16 +857,6 @@
       "confidence_score": 1.0,
       "source": "lib_rs",
       "target": "src_lib_add"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "lib.rs",
-      "source_location": "L16",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "lib_rs",
-      "target": "src_lib_it_works"
     },
     {
       "relation": "calls",
@@ -642,22 +872,32 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "src/connection.rs",
+      "source_location": "L6",
+      "weight": 1.0,
+      "source": "src_connection_rs",
+      "target": "src_connection_connectionmanager",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/connection.rs",
+      "source_location": "L88",
+      "weight": 1.0,
+      "source": "src_connection_rs",
+      "target": "src_connection_connectionmanagererror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "connection.rs",
       "source_location": "L8",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "connection_rs",
       "target": "src_connection_connectionmanager"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "connection.rs",
-      "source_location": "L87",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "connection_rs",
-      "target": "src_connection_connectionmanagererror"
     },
     {
       "relation": "method",
@@ -743,22 +983,42 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "connection.rs",
+      "source_location": "L87",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "connection_rs",
+      "target": "src_connection_connectionmanagererror"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/server.rs",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "src_server_rs",
+      "target": "src_server_serverinstance",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "src/server.rs",
+      "source_location": "L144",
+      "weight": 1.0,
+      "source": "src_server_rs",
+      "target": "src_server_servererror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "server.rs",
       "source_location": "L10",
       "weight": 1.0,
       "confidence_score": 1.0,
       "source": "server_rs",
       "target": "src_server_serverinstance"
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server.rs",
-      "source_location": "L108",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "server_rs",
-      "target": "src_server_servererror"
     },
     {
       "relation": "method",
@@ -894,6 +1154,130 @@
       "confidence_score": 1.0,
       "source": "src_server_serverinstance_connectionmetadata_listen_connections",
       "target": "src_server_serverinstance_connectionmetadata_handle_incoming"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "server.rs",
+      "source_location": "L108",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "server_rs",
+      "target": "src_server_servererror"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/integration_test.rs",
+      "source_location": "L8",
+      "weight": 1.0,
+      "source": "tests_integration_test_rs",
+      "target": "tests_integration_test_setup_crypto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/integration_test.rs",
+      "source_location": "L13",
+      "weight": 1.0,
+      "source": "tests_integration_test_rs",
+      "target": "tests_integration_test_test_server_connection_lifecycle",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/integration_test.rs",
+      "source_location": "L102",
+      "weight": 1.0,
+      "source": "tests_integration_test_rs",
+      "target": "tests_integration_test_test_connection_manager_updates",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/integration_test.rs",
+      "source_location": "L171",
+      "weight": 1.0,
+      "source": "tests_integration_test_rs",
+      "target": "tests_integration_test_test_error_channel_and_handler_failure",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/integration_test.rs",
+      "source_location": "L235",
+      "weight": 1.0,
+      "source": "tests_integration_test_rs",
+      "target": "tests_integration_test_mymetadata",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/integration_test.rs",
+      "source_location": "L240",
+      "weight": 1.0,
+      "source": "tests_integration_test_rs",
+      "target": "tests_integration_test_test_custom_metadata",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/integration_test.rs",
+      "source_location": "L14",
+      "weight": 1.0,
+      "source": "tests_integration_test_test_server_connection_lifecycle",
+      "target": "tests_integration_test_setup_crypto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/integration_test.rs",
+      "source_location": "L103",
+      "weight": 1.0,
+      "source": "tests_integration_test_test_connection_manager_updates",
+      "target": "tests_integration_test_setup_crypto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/integration_test.rs",
+      "source_location": "L172",
+      "weight": 1.0,
+      "source": "tests_integration_test_test_error_channel_and_handler_failure",
+      "target": "tests_integration_test_setup_crypto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "tests/integration_test.rs",
+      "source_location": "L241",
+      "weight": 1.0,
+      "source": "tests_integration_test_test_custom_metadata",
+      "target": "tests_integration_test_setup_crypto",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "lib.rs",
+      "source_location": "L16",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "lib_rs",
+      "target": "src_lib_it_works"
     },
     {
       "relation": "references",

@@ -20,12 +20,16 @@
     "hash": "56d772390340f65c0e36d9371c4e3b64"
   },
   "/home/snipeart007/repos/stric/src/server.rs": {
-    "mtime": 1777826020.5629382,
-    "hash": "9afe8867732717e07b1302e72ba9115e"
+    "mtime": 1777827712.309721,
+    "hash": "3202d04568ec26c7b88e382d6887f467"
   },
   "/home/snipeart007/repos/stric/src/handler_types.rs": {
     "mtime": 1777808283.4798448,
     "hash": "721b850407ef5279e6425d62e52e435f"
+  },
+  "/home/snipeart007/repos/stric/tests/integration_test.rs": {
+    "mtime": 1777827678.019627,
+    "hash": "e2216ec8118a84b02b16d78535e9d7db"
   },
   "/home/snipeart007/repos/stric/GEMINI.md": {
     "mtime": 1777743143.6532435,
