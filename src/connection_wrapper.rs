@@ -7,7 +7,7 @@ pub struct ConnectionWrapper<ConnectionMetadata: Default + Send + Sync + 'static
 
 #[derive(Clone, Copy)]
 pub struct ConnectionContext {
-    pub uuid: u64,
+    pub id: u64,
     // Whether to keep the connection alive using Heartbeat pings
     pub keep_alive: bool,
     // Initiate UniStream from Client-side
@@ -22,8 +22,13 @@ pub struct ConnectionContext {
 
 impl Default for ConnectionContext {
     fn default() -> Self {
-        ConnectionContext { uuid: 0, keep_alive: false, client_uni: false, client_bi: false, server_uni: false, server_bi: false }
+        ConnectionContext {
+            id: 0,
+            keep_alive: false,
+            client_uni: false,
+            client_bi: false,
+            server_uni: false,
+            server_bi: false,
+        }
     }
 }
-
-

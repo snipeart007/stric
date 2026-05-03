@@ -1,8 +1,12 @@
-use std::sync::{Arc, RwLock};
+use std::sync::Arc;
+use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use crate::{
-    connection::ConnectionManager, connection_wrapper::ConnectionWrapper,
-    handler_types::ConnectionHandlerFn, server_config::ServerConfig,
+    connection::ConnectionManager,
+    connection_wrapper::ConnectionWrapper,
+    handler_types::ConnectionHandlerFn,
+    server_config::ServerConfig,
+    stream::{BiStream, ServerUniStream},
 };
 use quinn::rustls::ServerConfig as RustlsServerConfig;
 use tokio::sync::mpsc::{self, Receiver, Sender};
@@ -40,6 +44,26 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
             error_tx,
         })
     }
+
+    pub fn register_connection_handler(
+        &mut self,
+        conn_handler: ConnectionHandlerFn<ConnectionMetadata>,
+    ) {
+        self.conn_handler = Some(conn_handler);
+    }
+
+    pub async fn get_manager_read_lock(
+        lock: &RwLock<ConnectionManager<ConnectionMetadata>>,
+    ) -> RwLockReadGuard<'_, ConnectionManager<ConnectionMetadata>> {
+        lock.read().await
+    }
+
+    pub async fn get_manager_write_lock(
+        lock: &RwLock<ConnectionManager<ConnectionMetadata>>,
+    ) -> RwLockWriteGuard<'_, ConnectionManager<ConnectionMetadata>> {
+        lock.write().await
+    }
+
     pub async fn listen_connections(&self) {
         while let Some(incoming) = self.endpoint.accept().await {
             let manager = self.conn_manager.clone();
@@ -69,13 +93,9 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
         let k = connection.stable_id() as u64;
 
         let context = {
-            let Ok(manager_read) = manager_lock.read().map_err(|_| {
-                let _ = error_tx.try_send(ServerError::ConnManagerPoisoned.into()); // Send error to channel
-            }) else {
-                return; // Exit the green thread
-            };
+            let manager_read = Self::get_manager_read_lock(&manager_lock).await;
             let mut context = manager_read.default_conn_context.clone();
-            context.uuid = k;
+            context.id = k;
             context
         };
 
@@ -94,18 +114,31 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
             }
         }
 
-        let Ok(mut manager_write) = manager_lock.write().map_err(|_| {
-            let _ = error_tx.try_send(ServerError::ConnManagerPoisoned.into()); // Send error to channel
-        }) else {
-            return; // Exit the green thread
-        };
-
+        let mut manager_write = Self::get_manager_write_lock(&manager_lock).await;
         manager_write.add_connection(wrapper);
+    }
+
+    pub async fn get_unistream(&self, id: &u64) -> Result<ServerUniStream, anyhow::Error> {
+        let manager_read = Self::get_manager_read_lock(&self.conn_manager).await;
+        let conn_wrapper = manager_read.get_connection(id).await?;
+        let stream = conn_wrapper.conn.open_uni().await?;
+        Ok(ServerUniStream { stream })
+    }
+
+    pub async fn get_bistream(&self, id: &u64) -> Result<BiStream, anyhow::Error> {
+        let manager_read = Self::get_manager_read_lock(&self.conn_manager).await;
+        let conn_wrapper = manager_read.get_connection(id).await?;
+        let (send_stream, recv_stream) = conn_wrapper.conn.open_bi().await?;
+        Ok(BiStream {
+            server_initiated: true,
+            send_stream,
+            recv_stream,
+        })
     }
 }
 
 #[derive(Debug, thiserror::Error)]
 pub enum ServerError {
-    #[error("ConnectionManger is poisoned")]
-    ConnManagerPoisoned,
+    #[error("Connection with given ID not found: {0}")]
+    ConnNotFound(u64),
 }

@@ -38,7 +38,7 @@
       "source_file": "server_config.rs",
       "source_location": "L1",
       "id": "server_config_rs",
-      "community": 8,
+      "community": 9,
       "norm_label": "server_config.rs"
     },
     {
@@ -47,7 +47,7 @@
       "source_file": "server_config.rs",
       "source_location": "L7",
       "id": "src_server_config_serverconfig",
-      "community": 8,
+      "community": 9,
       "norm_label": "serverconfig"
     },
     {
@@ -92,7 +92,7 @@
       "source_file": "connection_wrapper.rs",
       "source_location": "L1",
       "id": "connection_wrapper_rs",
-      "community": 0,
+      "community": 4,
       "norm_label": "connection_wrapper.rs"
     },
     {
@@ -101,7 +101,7 @@
       "source_file": "connection_wrapper.rs",
       "source_location": "L2",
       "id": "src_connection_wrapper_connectionwrapper",
-      "community": 0,
+      "community": 4,
       "norm_label": "connectionwrapper"
     },
     {
@@ -110,7 +110,7 @@
       "source_file": "connection_wrapper.rs",
       "source_location": "L9",
       "id": "src_connection_wrapper_connectioncontext",
-      "community": 0,
+      "community": 4,
       "norm_label": "connectioncontext"
     },
     {
@@ -119,7 +119,7 @@
       "source_file": "connection_wrapper.rs",
       "source_location": "L24",
       "id": "src_connection_wrapper_connectioncontext_default",
-      "community": 0,
+      "community": 4,
       "norm_label": ".default()"
     },
     {
@@ -128,7 +128,7 @@
       "source_file": "lib.rs",
       "source_location": "L1",
       "id": "lib_rs",
-      "community": 4,
+      "community": 5,
       "norm_label": "lib.rs"
     },
     {
@@ -137,17 +137,8 @@
       "source_file": "lib.rs",
       "source_location": "L7",
       "id": "src_lib_add",
-      "community": 4,
+      "community": 5,
       "norm_label": "add()"
-    },
-    {
-      "label": "it_works()",
-      "file_type": "code",
-      "source_file": "lib.rs",
-      "source_location": "L16",
-      "id": "src_lib_it_works",
-      "community": 4,
-      "norm_label": "it_works()"
     },
     {
       "label": "connection.rs",
@@ -155,23 +146,23 @@
       "source_file": "connection.rs",
       "source_location": "L1",
       "id": "connection_rs",
-      "community": 5,
+      "community": 6,
       "norm_label": "connection.rs"
     },
     {
       "label": "ConnectionManager",
       "file_type": "code",
       "source_file": "connection.rs",
-      "source_location": "L8",
+      "source_location": "L6",
       "id": "src_connection_connectionmanager",
-      "community": 5,
+      "community": 6,
       "norm_label": "connectionmanager"
     },
     {
       "label": "ConnectionManager<ConnectionMetadata>",
       "file_type": "code",
       "source_file": "connection.rs",
-      "source_location": "L13",
+      "source_location": "L11",
       "id": "src_connection_connectionmanager_connectionmetadata",
       "community": 1,
       "norm_label": "connectionmanager<connectionmetadata>"
@@ -180,7 +171,7 @@
       "label": ".new()",
       "file_type": "code",
       "source_file": "connection.rs",
-      "source_location": "L14",
+      "source_location": "L12",
       "id": "src_connection_connectionmanager_connectionmetadata_new",
       "community": 1,
       "norm_label": ".new()"
@@ -189,7 +180,7 @@
       "label": ".set_client_uni()",
       "file_type": "code",
       "source_file": "connection.rs",
-      "source_location": "L21",
+      "source_location": "L19",
       "id": "src_connection_connectionmanager_connectionmetadata_set_client_uni",
       "community": 1,
       "norm_label": ".set_client_uni()"
@@ -198,7 +189,7 @@
       "label": ".set_client_bi()",
       "file_type": "code",
       "source_file": "connection.rs",
-      "source_location": "L36",
+      "source_location": "L32",
       "id": "src_connection_connectionmanager_connectionmetadata_set_client_bi",
       "community": 1,
       "norm_label": ".set_client_bi()"
@@ -207,7 +198,7 @@
       "label": ".set_server_uni()",
       "file_type": "code",
       "source_file": "connection.rs",
-      "source_location": "L51",
+      "source_location": "L45",
       "id": "src_connection_connectionmanager_connectionmetadata_set_server_uni",
       "community": 1,
       "norm_label": ".set_server_uni()"
@@ -216,7 +207,7 @@
       "label": ".set_server_bi()",
       "file_type": "code",
       "source_file": "connection.rs",
-      "source_location": "L66",
+      "source_location": "L58",
       "id": "src_connection_connectionmanager_connectionmetadata_set_server_bi",
       "community": 1,
       "norm_label": ".set_server_bi()"
@@ -225,18 +216,27 @@
       "label": ".add_connection()",
       "file_type": "code",
       "source_file": "connection.rs",
-      "source_location": "L81",
+      "source_location": "L71",
       "id": "src_connection_connectionmanager_connectionmetadata_add_connection",
       "community": 1,
       "norm_label": ".add_connection()"
     },
     {
+      "label": ".get_connection()",
+      "file_type": "code",
+      "source_file": "connection.rs",
+      "source_location": "L76",
+      "id": "src_connection_connectionmanager_connectionmetadata_get_connection",
+      "community": 1,
+      "norm_label": ".get_connection()"
+    },
+    {
       "label": "ConnectionManagerError",
       "file_type": "code",
       "source_file": "connection.rs",
-      "source_location": "L87",
+      "source_location": "L88",
       "id": "src_connection_connectionmanagererror",
-      "community": 5,
+      "community": 6,
       "norm_label": "connectionmanagererror"
     },
     {
@@ -245,23 +245,23 @@
       "source_file": "server.rs",
       "source_location": "L1",
       "id": "server_rs",
-      "community": 6,
+      "community": 7,
       "norm_label": "server.rs"
     },
     {
       "label": "ServerInstance",
       "file_type": "code",
       "source_file": "server.rs",
-      "source_location": "L10",
+      "source_location": "L14",
       "id": "src_server_serverinstance",
-      "community": 6,
+      "community": 7,
       "norm_label": "serverinstance"
     },
     {
       "label": "ServerInstance<ConnectionMetadata>",
       "file_type": "code",
       "source_file": "server.rs",
-      "source_location": "L18",
+      "source_location": "L22",
       "id": "src_server_serverinstance_connectionmetadata",
       "community": 0,
       "norm_label": "serverinstance<connectionmetadata>"
@@ -270,16 +270,43 @@
       "label": ".new()",
       "file_type": "code",
       "source_file": "server.rs",
-      "source_location": "L19",
+      "source_location": "L23",
       "id": "src_server_serverinstance_connectionmetadata_new",
       "community": 0,
       "norm_label": ".new()"
     },
     {
+      "label": ".register_connection_handler()",
+      "file_type": "code",
+      "source_file": "server.rs",
+      "source_location": "L48",
+      "id": "src_server_serverinstance_connectionmetadata_register_connection_handler",
+      "community": 0,
+      "norm_label": ".register_connection_handler()"
+    },
+    {
+      "label": ".get_manager_read_lock()",
+      "file_type": "code",
+      "source_file": "server.rs",
+      "source_location": "L55",
+      "id": "src_server_serverinstance_connectionmetadata_get_manager_read_lock",
+      "community": 0,
+      "norm_label": ".get_manager_read_lock()"
+    },
+    {
+      "label": ".get_manager_write_lock()",
+      "file_type": "code",
+      "source_file": "server.rs",
+      "source_location": "L61",
+      "id": "src_server_serverinstance_connectionmetadata_get_manager_write_lock",
+      "community": 0,
+      "norm_label": ".get_manager_write_lock()"
+    },
+    {
       "label": ".listen_connections()",
       "file_type": "code",
       "source_file": "server.rs",
-      "source_location": "L43",
+      "source_location": "L67",
       "id": "src_server_serverinstance_connectionmetadata_listen_connections",
       "community": 0,
       "norm_label": ".listen_connections()"
@@ -288,18 +315,36 @@
       "label": ".handle_incoming()",
       "file_type": "code",
       "source_file": "server.rs",
-      "source_location": "L58",
+      "source_location": "L82",
       "id": "src_server_serverinstance_connectionmetadata_handle_incoming",
       "community": 0,
       "norm_label": ".handle_incoming()"
     },
     {
+      "label": ".get_unistream()",
+      "file_type": "code",
+      "source_file": "server.rs",
+      "source_location": "L121",
+      "id": "src_server_serverinstance_connectionmetadata_get_unistream",
+      "community": 0,
+      "norm_label": ".get_unistream()"
+    },
+    {
+      "label": ".get_bistream()",
+      "file_type": "code",
+      "source_file": "server.rs",
+      "source_location": "L128",
+      "id": "src_server_serverinstance_connectionmetadata_get_bistream",
+      "community": 0,
+      "norm_label": ".get_bistream()"
+    },
+    {
       "label": "ServerError",
       "file_type": "code",
       "source_file": "server.rs",
-      "source_location": "L108",
+      "source_location": "L141",
       "id": "src_server_servererror",
-      "community": 6,
+      "community": 7,
       "norm_label": "servererror"
     },
     {
@@ -308,8 +353,17 @@
       "source_file": "handler_types.rs",
       "source_location": "L1",
       "id": "handler_types_rs",
-      "community": 9,
+      "community": 10,
       "norm_label": "handler_types.rs"
+    },
+    {
+      "label": "it_works()",
+      "file_type": "code",
+      "source_file": "lib.rs",
+      "source_location": "L16",
+      "community": 5,
+      "norm_label": "it_works()",
+      "id": "src_lib_it_works"
     },
     {
       "label": "ServerConfig",
@@ -339,7 +393,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 8,
       "norm_label": "serverunistream",
       "id": "stream_serverunistream"
     },
@@ -355,7 +409,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 8,
       "norm_label": "clientunistream",
       "id": "stream_clientunistream"
     },
@@ -371,7 +425,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 7,
+      "community": 8,
       "norm_label": "bistream",
       "id": "stream_bistream"
     },
@@ -467,7 +521,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 10,
+      "community": 11,
       "norm_label": "graphify maintenance rules",
       "id": "gemini_graphify_rules"
     }
@@ -666,6 +720,16 @@
       "target": "src_connection_connectionmanager_connectionmetadata_add_connection"
     },
     {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "connection.rs",
+      "source_location": "L76",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_connection_connectionmanager_connectionmetadata",
+      "target": "src_connection_connectionmanager_connectionmetadata_get_connection"
+    },
+    {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
@@ -710,6 +774,36 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "server.rs",
+      "source_location": "L44",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_server_serverinstance_connectionmetadata",
+      "target": "src_server_serverinstance_connectionmetadata_register_connection_handler"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server.rs",
+      "source_location": "L55",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_server_serverinstance_connectionmetadata",
+      "target": "src_server_serverinstance_connectionmetadata_get_manager_read_lock"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server.rs",
+      "source_location": "L61",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_server_serverinstance_connectionmetadata",
+      "target": "src_server_serverinstance_connectionmetadata_get_manager_write_lock"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server.rs",
       "source_location": "L43",
       "weight": 1.0,
       "confidence_score": 1.0,
@@ -725,6 +819,70 @@
       "confidence_score": 1.0,
       "source": "src_server_serverinstance_connectionmetadata",
       "target": "src_server_serverinstance_connectionmetadata_handle_incoming"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server.rs",
+      "source_location": "L111",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_server_serverinstance_connectionmetadata",
+      "target": "src_server_serverinstance_connectionmetadata_get_unistream"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "server.rs",
+      "source_location": "L128",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_server_serverinstance_connectionmetadata",
+      "target": "src_server_serverinstance_connectionmetadata_get_bistream"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "server.rs",
+      "source_location": "L96",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_server_serverinstance_connectionmetadata_handle_incoming",
+      "target": "src_server_serverinstance_connectionmetadata_get_manager_read_lock"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "server.rs",
+      "source_location": "L122",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_server_serverinstance_connectionmetadata_get_unistream",
+      "target": "src_server_serverinstance_connectionmetadata_get_manager_read_lock"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "server.rs",
+      "source_location": "L129",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_server_serverinstance_connectionmetadata_get_bistream",
+      "target": "src_server_serverinstance_connectionmetadata_get_manager_read_lock"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "server.rs",
+      "source_location": "L117",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "source": "src_server_serverinstance_connectionmetadata_handle_incoming",
+      "target": "src_server_serverinstance_connectionmetadata_get_manager_write_lock"
     },
     {
       "relation": "calls",

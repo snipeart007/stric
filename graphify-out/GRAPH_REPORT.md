@@ -1,12 +1,12 @@
 # Graph Report - stric  (2026-05-03)
 
 ## Corpus Check
-- 7 files · ~891 words
+- 7 files · ~920 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 41 nodes · 34 edges · 10 communities detected
-- Extraction: 91% EXTRACTED · 9% INFERRED · 0% AMBIGUOUS · INFERRED: 3 edges (avg confidence: 0.87)
+- 47 nodes · 44 edges · 11 communities detected
+- Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 3 edges (avg confidence: 0.87)
 - Token cost: 0 input · 0 output
 
 ## Community Hubs (Navigation)
@@ -19,11 +19,12 @@
 - [[_COMMUNITY_Community 6|Community 6]]
 - [[_COMMUNITY_Community 7|Community 7]]
 - [[_COMMUNITY_Community 8|Community 8]]
-- [[_COMMUNITY_Community 10|Community 10]]
+- [[_COMMUNITY_Community 9|Community 9]]
+- [[_COMMUNITY_Community 11|Community 11]]
 
 ## God Nodes (most connected - your core abstractions)
-1. `ConnectionManager<ConnectionMetadata>` - 6 edges
-2. `ServerInstance<ConnectionMetadata>` - 3 edges
+1. `ServerInstance<ConnectionMetadata>` - 8 edges
+2. `ConnectionManager<ConnectionMetadata>` - 7 edges
 3. `ServerInstance` - 3 edges
 4. `ConnectionContext` - 2 edges
 5. `add()` - 2 edges
@@ -52,11 +53,11 @@
 ## Communities
 
 ### Community 0 - "Community 0"
-Cohesion: 0.29
-Nodes (3): ConnectionContext, ConnectionWrapper, ServerInstance<ConnectionMetadata>
+Cohesion: 0.36
+Nodes (1): ServerInstance<ConnectionMetadata>
 
 ### Community 1 - "Community 1"
-Cohesion: 0.33
+Cohesion: 0.29
 Nodes (1): ConnectionManager<ConnectionMetadata>
 
 ### Community 2 - "Community 2"
@@ -68,43 +69,51 @@ Cohesion: 0.5
 Nodes (3): BiStream, ClientUniStream, ServerUniStream
 
 ### Community 4 - "Community 4"
+Cohesion: 0.5
+Nodes (2): ConnectionContext, ConnectionWrapper
+
+### Community 5 - "Community 5"
 Cohesion: 1.0
 Nodes (2): add(), it_works()
 
-### Community 5 - "Community 5"
+### Community 6 - "Community 6"
 Cohesion: 0.67
 Nodes (2): ConnectionManager, ConnectionManagerError
 
-### Community 6 - "Community 6"
+### Community 7 - "Community 7"
 Cohesion: 0.67
 Nodes (2): ServerError, ServerInstance
 
-### Community 7 - "Community 7"
+### Community 8 - "Community 8"
 Cohesion: 0.67
 Nodes (3): BiStream, ClientUniStream, ServerUniStream
 
-### Community 8 - "Community 8"
+### Community 9 - "Community 9"
 Cohesion: 1.0
 Nodes (1): ServerConfig
 
-### Community 10 - "Community 10"
+### Community 11 - "Community 11"
 Cohesion: 1.0
 Nodes (1): Graphify Maintenance Rules
 
 ## Knowledge Gaps
 - **13 isolated node(s):** `ServerConfig`, `ServerUniStream`, `ClientUniStream`, `BiStream`, `ConnectionWrapper` (+8 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **Thin community `Community 1`** (7 nodes): `ConnectionManager<ConnectionMetadata>`, `.add_connection()`, `.new()`, `.set_client_bi()`, `.set_client_uni()`, `.set_server_bi()`, `.set_server_uni()`
+- **Thin community `Community 0`** (9 nodes): `ServerInstance<ConnectionMetadata>`, `.get_bistream()`, `.get_manager_read_lock()`, `.get_manager_write_lock()`, `.get_unistream()`, `.handle_incoming()`, `.listen_connections()`, `.new()`, `.register_connection_handler()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 4`** (3 nodes): `lib.rs`, `add()`, `it_works()`
+- **Thin community `Community 1`** (8 nodes): `ConnectionManager<ConnectionMetadata>`, `.add_connection()`, `.get_connection()`, `.new()`, `.set_client_bi()`, `.set_client_uni()`, `.set_server_bi()`, `.set_server_uni()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 5`** (3 nodes): `connection.rs`, `ConnectionManager`, `ConnectionManagerError`
+- **Thin community `Community 4`** (4 nodes): `connection_wrapper.rs`, `ConnectionContext`, `.default()`, `ConnectionWrapper`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 6`** (3 nodes): `server.rs`, `ServerError`, `ServerInstance`
+- **Thin community `Community 5`** (3 nodes): `lib.rs`, `add()`, `it_works()`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 8`** (2 nodes): `server_config.rs`, `ServerConfig`
+- **Thin community `Community 6`** (3 nodes): `connection.rs`, `ConnectionManager`, `ConnectionManagerError`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Community 10`** (1 nodes): `Graphify Maintenance Rules`
+- **Thin community `Community 7`** (3 nodes): `server.rs`, `ServerError`, `ServerInstance`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 9`** (2 nodes): `server_config.rs`, `ServerConfig`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Community 11`** (1 nodes): `Graphify Maintenance Rules`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 
 ## Suggested Questions
