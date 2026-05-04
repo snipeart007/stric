@@ -1,221 +1,184 @@
-# stric-tower Implementation Plan
+# stric-tower Implementation Plan: Axum-like API with Protobuf Wire Protocol
 
 ## Objective
-Create a new `stric-tower` crate that integrates the Tower ecosystem (`tower::Service`, `tower::Layer`) with `stric-core`. This will allow users to build highly concurrent, request-response based services using QUIC over our custom `stric-core` primitives (`BiStream`, `ConnectionWrapper`). The solution will rely on a generic wire protocol via length-prefixed messages (supporting both Protobuf and Serde) to enable type-safe RPC-like interactions.
+Revamp `stric-tower` to provide an ergonomic, `axum`-like front-facing API for high-performance QUIC services. The new API will abstract away manual `tower::Service` implementations, allowing users to write handlers as simple `async fn`s with Extractors and a `Router`. 
+
+Crucially, the underlying communication over the `BiStream` will use a **Protobuf-based wire protocol envelope** to encapsulate requests (routing paths, headers, payload format, and raw bytes) and responses (status, headers, and raw bytes).
 
 ## Architecture & Design
-- **Unary Communication (Stream-per-Request):** Idiomatic to QUIC, each Tower `Request` will open a new `BiStream` (or use an accepted one). The client writes the request and reads the response. The server reads the request, executes the `tower::Service`, writes the response, and finishes the stream.
-- **Custom BiStream Codec:** Since `stric-core::BiStream` does not natively implement `tokio::io::AsyncRead/Write`, we will define a custom `ServiceCodec` trait that leverages `BiStream`'s inherent `read_exact` and `write_all` methods for fast, manual framing (length-prefixed).
-- **Prost Integration:** A default `ProstCodec` will be provided for serializing and deserializing types that implement `prost::Message`.
-- **Serde Integration:** A `SerdeCodec` will be provided, featuring a format-agnostic design. Users can plug in any serialization format (e.g., JSON, Bincode, MessagePack, CBOR) to serialize/deserialize any types implementing `serde::Serialize` and `serde::Deserialize`.
-- **Agnostic to Connection Management:** `stric-tower` will wrap an existing `ConnectionWrapper` on the server and `quinn::Connection` on the client, leaving connection pooling or multi-connection routing up to the user.
 
-## Planned API Definitions
+### 1. Protobuf Wire Envelope
+To support path-based routing over QUIC streams (which lack HTTP headers natively), we define a standard Protobuf envelope.
 
-### 1. The Codec Trait
-A generic abstraction for converting raw `BiStream` bytes to/from strongly typed requests and responses.
+```protobuf
+// stric_tower_wire.proto
+syntax = "proto3";
+
+package stric_tower.wire;
+
+message RequestEnvelope {
+    string path = 1;
+    map<string, string> headers = 2;
+    bytes payload = 3;
+}
+
+message ResponseEnvelope {
+    uint32 status_code = 1;
+    map<string, string> headers = 2;
+    bytes payload = 3;
+}
+```
+*   **Transport:** The envelope itself is prefixed with a 4-byte length header over the `BiStream`.
+*   **Payload Independence:** The `payload` field contains the raw bytes. These bytes can be encoded/decoded by the specific Extractor used in the handler (e.g., JSON, Protobuf, Bincode).
+
+### 2. The `Request` and `Response` Types
+Internal abstractions representing the incoming and outgoing data, heavily inspired by `http::Request` and `http::Response`.
+
+```rust
+pub struct Request {
+    pub path: String,
+    pub headers: std::collections::HashMap<String, String>,
+    pub body: Vec<u8>,
+}
+
+pub struct Response {
+    pub status: u16,
+    pub headers: std::collections::HashMap<String, String>,
+    pub body: Vec<u8>,
+}
+```
+
+### 3. Extractors (`FromRequest`) and Responders (`IntoResponse`)
+To allow `async fn` handlers, we need traits to convert our internal `Request` into handler arguments, and handler return types into our `Response`.
 
 ```rust
 use async_trait::async_trait;
-use stric_core::stream::BiStream;
 
 #[async_trait]
-pub trait ServiceCodec<Req, Res>: Send + Sync + Clone + 'static {
-    type Error: std::error::Error + Send + Sync + 'static;
+pub trait FromRequest: Sized {
+    type Rejection: IntoResponse;
+    async fn from_request(req: &mut Request) -> Result<Self, Self::Rejection>;
+}
 
-    async fn encode_request(&self, req: Req, stream: &mut BiStream) -> Result<(), Self::Error>;
-    async fn decode_request(&self, stream: &mut BiStream) -> Result<Req, Self::Error>;
+pub trait IntoResponse {
+    fn into_response(self) -> Response;
+}
+```
+
+**Standard Extractors/Responders provided:**
+*   `Json<T>`: Uses `serde_json` to parse/serialize the `Request::body`.
+*   `Bincode<T>`: Uses `bincode`.
+*   `Protobuf<T>`: Uses `prost::Message`.
+*   `State<T>`: Extracts shared application state.
+*   `Bytes`: Raw payload extraction.
+
+### 4. The `Handler` Trait
+A trait implemented for `async fn`s of various arities.
+
+```rust
+pub trait Handler<T, S>: Clone + Send + Sized + 'static {
+    type Future: Future<Output = Response> + Send + 'static;
+    fn call(self, req: Request, state: S) -> Self::Future;
+}
+```
+*Implemented via macros for `async fn(E1, E2) -> R` where `E` implements `FromRequest` and `R` implements `IntoResponse`.*
+
+### 5. The `Router`
+A `tower::Service` implementation that maps paths to handlers.
+
+```rust
+pub struct Router<S = ()> {
+    routes: HashMap<String, BoxedHandler<S>>,
+    state: S,
+}
+
+impl<S: Clone + Send + Sync + 'static> Router<S> {
+    pub fn new() -> Self { ... }
     
-    async fn encode_response(&self, res: Res, stream: &mut BiStream) -> Result<(), Self::Error>;
-    async fn decode_response(&self, stream: &mut BiStream) -> Result<Res, Self::Error>;
-}
-```
-
-### 2. Built-in Codecs (Prost & Serde)
-Implementations of `ServiceCodec` using a simple 4-byte big-endian length prefix.
-
-```rust
-use prost::Message;
-use std::marker::PhantomData;
-use serde::{Serialize, de::DeserializeOwned};
-
-// --- Prost Codec ---
-#[derive(Clone, Default)]
-pub struct ProstCodec<Req, Res>(PhantomData<(Req, Res)>);
-
-impl<Req, Res> ProstCodec<Req, Res> {
-    pub fn new() -> Self {
-        Self(PhantomData)
-    }
-}
-// Implements ServiceCodec<Req, Res> using u32 length prefixes and prost::Message
-
-// --- Generic Serde Codec ---
-// A generic format trait to support JSON, Bincode, MessagePack, etc.
-pub trait SerdeFormat: Send + Sync + Clone + 'static {
-    fn serialize<T: Serialize>(item: &T) -> Result<Vec<u8>, anyhow::Error>;
-    fn deserialize<T: DeserializeOwned>(bytes: &[u8]) -> Result<T, anyhow::Error>;
-}
-
-#[derive(Clone, Default)]
-pub struct SerdeCodec<Req, Res, Format>(PhantomData<(Req, Res, Format)>);
-
-impl<Req, Res, Format> SerdeCodec<Req, Res, Format> {
-    pub fn new() -> Self {
-        Self(PhantomData)
-    }
-}
-// Implements ServiceCodec<Req, Res> for any Req/Res implementing Serialize/DeserializeOwned
-// using the provided Format.
-```
-
-### 3. Server-Side API
-We will provide a helper function or struct to build a `ConnectionHandlerFn` compatible with `stric-core::ServerInstance`.
-
-```rust
-use tower::Service;
-use stric_core::connection_wrapper::ConnectionWrapper;
-
-pub struct TowerConnectionHandler<S, C> {
-    service: S,
-    codec: C,
-}
-
-impl<S, C> TowerConnectionHandler<S, C> {
-    pub fn new(service: S, codec: C) -> Self { ... }
-
-    /// Creates an Arc'd handler closure suitable for `register_connection_handler`.
-    pub fn into_handler<M>(self) -> crate::ConnectionHandlerFn<M> 
-    where 
-        // appropriate trait bounds for Service, Request, Response, Codec, and Metadata
+    pub fn route<H, T>(mut self, path: &str, handler: H) -> Self
+    where
+        H: Handler<T, S>,
+        T: 'static,
     { ... }
+
+    pub fn with_state<S2>(self, state: S2) -> Router<S2> { ... }
+}
+
+impl<S: Clone + Send + Sync + 'static> tower::Service<Request> for Router<S> {
+    type Response = Response;
+    // ... routes incoming Request by `req.path` to the correct BoxedHandler.
 }
 ```
-Internally, the handler loops over `conn.accept_bi()`. For each stream, it spawns a Tokio task to:
-1. `codec.decode_request`
-2. `service.call(req).await`
-3. `codec.encode_response`
-4. `stream.finish()`
 
-### 4. Client-Side API
-A wrapper implementing `tower::Service` over a `quinn::Connection`.
-
-```rust
-pub struct TowerClientService<C, Req, Res> {
-    connection: quinn::Connection,
-    codec: C,
-    _marker: std::marker::PhantomData<(Req, Res)>,
-}
-
-impl<C, Req, Res> tower::Service<Req> for TowerClientService<C, Req, Res>
-where
-    // appropriate trait bounds
-{
-    type Response = Res;
-    type Error = anyhow::Error; // or specific ClientError
-    type Future = BoxFuture<'static, Result<Self::Response, Self::Error>>;
-
-    fn poll_ready(&mut self, cx: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
-        // Checks connection status
-    }
-
-    fn call(&mut self, req: Req) -> Self::Future {
-        // 1. conn.open_bi().await
-        // 2. codec.encode_request
-        // 3. codec.decode_response
-    }
-}
-```
+### 6. The `TowerConnectionHandler` Integration
+The glue code will decode the Protobuf `RequestEnvelope` from the stream, build the internal `Request`, pass it to the `Router` (`tower::Service`), and then encode the resulting `Response` back into a `ResponseEnvelope` Protobuf message over the stream.
 
 ## Front-Facing API Showcase
 
-Here is how a user will build a service with `stric-tower` utilizing `tower` layers, showcasing the generic Serde codec.
-
 ```rust
-// 1. Define Serde Types
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
+use stric_tower::{Router, Json, State, Server, extract::Path};
+use std::sync::Arc;
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct EchoRequest {
-    pub message: String,
+#[derive(Serialize, Deserialize)]
+struct EchoPayload {
+    msg: String,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct EchoResponse {
-    pub message: String,
+struct AppState {
+    counter: std::sync::atomic::AtomicUsize,
 }
 
-// 2. Define the Base Service
-#[derive(Clone)]
-struct EchoService;
-
-impl tower::Service<EchoRequest> for EchoService {
-    type Response = EchoResponse;
-    type Error = anyhow::Error;
-    type Future = futures::future::Ready<Result<Self::Response, Self::Error>>;
-
-    fn poll_ready(&mut self, _: &mut Context<'_>) -> Poll<Result<(), Self::Error>> {
-        Poll::Ready(Ok(()))
-    }
-
-    fn call(&mut self, req: EchoRequest) -> Self::Future {
-        futures::future::ready(Ok(EchoResponse { message: format!("Echo: {}", req.message) }))
-    }
+// Handler looks exactly like Axum!
+async fn echo_handler(
+    State(state): State<Arc<AppState>>,
+    Json(payload): Json<EchoPayload>,
+) -> Json<EchoPayload> {
+    state.counter.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    Json(EchoPayload {
+        msg: format!("Echo: {}", payload.msg),
+    })
 }
 
-// --- SERVER SETUP ---
-async fn run_server() {
-    // Wrap service in standard Tower layers
-    let service = tower::ServiceBuilder::new()
-        .timeout(std::time::Duration::from_secs(5))
-        .concurrency_limit(100)
-        .service(EchoService);
+#[tokio::main]
+async fn main() {
+    let state = Arc::new(AppState {
+        counter: std::sync::atomic::AtomicUsize::new(0),
+    });
 
-    // Use Serde with Bincode encoding (can swap BincodeFormat with JsonFormat, etc.)
-    let codec = SerdeCodec::<EchoRequest, EchoResponse, BincodeFormat>::new();
-    let handler = TowerConnectionHandler::new(service, codec).into_handler();
+    let app = Router::new()
+        .route("/echo", echo_handler)
+        .with_state(state);
 
-    // Attach to stric-core Server
-    let mut server = ServerInstance::new(config).unwrap();
-    server.register_connection_handler(handler);
-    server.listen_connections().await;
-}
-
-// --- CLIENT SETUP ---
-async fn run_client(connection: quinn::Connection) {
-    let codec = SerdeCodec::<EchoRequest, EchoResponse, BincodeFormat>::new();
+    // Build Server (abstracts away ServerInstance config boilerplate)
+    let addr = "127.0.0.1:4433".parse().unwrap();
+    let mut server = stric_tower::Server::bind(addr).unwrap();
     
-    // Create base client
-    let client = TowerClientService::new(connection, codec);
-
-    // Apply client-side layers
-    let mut layered_client = tower::ServiceBuilder::new()
-        .timeout(std::time::Duration::from_secs(3))
-        .service(client);
-
-    // Use the service
-    let req = EchoRequest { message: "Hello from Serde!".into() };
-    let res = layered_client.call(req).await.unwrap();
-    println!("Response: {}", res.message);
+    // Mount the router
+    server.serve(app).await;
 }
 ```
 
 ## Implementation Phases
 
-**Phase 1: Foundation (Codec & Errors)**
-- Set up `stric-tower` crate workspace and add dependencies (`tower`, `prost`, `serde`, `bincode`, `async-trait`, `stric-core`).
-- Implement `ServiceCodec` trait and custom error types.
-- Implement `ProstCodec` and generic `SerdeCodec` (with a format trait) using a 4-byte length prefix protocol. Write unit tests mocking `BiStream`.
+**Phase 1: Wire Protocol (Protobuf)**
+1.  Add `build.rs` and `prost-build` to compile `stric_tower_wire.proto`.
+2.  Implement stream read/write helpers in `stric-tower/src/codec.rs` specifically for reading/writing `RequestEnvelope` and `ResponseEnvelope` with a 4-byte length prefix.
 
-**Phase 2: Server-Side Tower Handler**
-- Implement `TowerConnectionHandler` to accept `tower::Service`.
-- Implement `into_handler` converting it to `stric-core`'s expected `ConnectionHandlerFn`.
-- Handle concurrent request spawning safely within the connection loop.
+**Phase 2: Core Types & Extractors**
+1.  Define `Request` and `Response` structs in `stric-tower/src/http.rs` (or similar).
+2.  Define `FromRequest` and `IntoResponse` traits.
+3.  Implement extractors: `State`, `Json`, `Bincode`, `Bytes`, `Protobuf`.
 
-**Phase 3: Client-Side Tower Service**
-- Implement `TowerClientService`.
-- Implement `tower::Service` for `TowerClientService`, handling `open_bi` and the codec interactions.
+**Phase 3: The Handler Trait & Router**
+1.  Implement the `Handler` trait using a macro to support functions with varying numbers of extractor arguments.
+2.  Implement the `Router` struct with a simple `HashMap` or prefix-tree for routing paths to handlers.
+3.  Make `Router` implement `tower::Service<Request, Response=Response>`.
 
-**Phase 4: Testing & Examples**
-- Write integration tests spinning up a `stric-core` server with `stric-tower` handler and a client executing requests using both Prost and various Serde formats.
-- Ensure tower layers (e.g., `Timeout`) function as expected.
+**Phase 4: Client & Server Glue**
+1.  Update `TowerConnectionHandler` to deserialize the `RequestEnvelope`, create the `Request`, call the `Router`, and serialize the `ResponseEnvelope`.
+2.  Implement an ergonomic `stric_tower::Server` wrapper around `stric_core::ServerInstance` to reduce boilerplate (certificate generation for dev, config setup).
+3.  Update the Client side to provide an ergonomic interface for building `RequestEnvelope`s and sending them.
+
+**Phase 5: Updates**
+1.  Update docs, tests, and binary examples (`examples/server.rs`, `examples/client.rs`) to reflect the new Axum-like API and Protobuf wire protocol.

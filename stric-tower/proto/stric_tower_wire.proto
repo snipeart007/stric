@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package stric_tower.wire;
+
+message RequestEnvelope {
+    string path = 1;
+    map<string, string> headers = 2;
+    bytes payload = 3;
+}
+
+message ResponseEnvelope {
+    uint32 status_code = 1;
+    map<string, string> headers = 2;
+    bytes payload = 3;
+}

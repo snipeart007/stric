@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
-use stric_tower::{SerdeCodec, TowerClientService, TowerError};
+use stric_tower::{TowerClientService, Request};
 use tower::Service;
 
 // 1. Define Request/Response types (Should match server)
@@ -15,30 +15,12 @@ pub struct EchoResponse {
     pub message: String,
 }
 
-// 2. Define JSON Format for SerdeCodec
-#[derive(Clone, Default)]
-struct JsonFormat;
-
-impl stric_tower::SerdeFormat for JsonFormat {
-    fn serialize<T: Serialize>(item: &T) -> Result<Vec<u8>, TowerError> {
-        serde_json::to_vec(item).map_err(|e| TowerError::Codec(e.to_string()))
-    }
-
-    fn deserialize<T: serde::de::DeserializeOwned>(bytes: &[u8]) -> Result<T, TowerError> {
-        serde_json::from_slice(bytes).map_err(|e| TowerError::Codec(e.to_string()))
-    }
-}
-
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
     // Boilerplate for QUIC crypto
     let _ = quinn::rustls::crypto::ring::default_provider().install_default();
 
-    // 3. Client endpoint configuration
-    // Note: In a real app, you would load root CA certs.
-    // For this example, we skip certificate verification (DO NOT DO THIS IN PRODUCTION).
-
-    // UNSAFE: Accepting any server certificate for demonstration
+    // 2. Client endpoint configuration
     let mut crypto = quinn::rustls::ClientConfig::builder()
         .dangerous()
         .with_custom_certificate_verifier(Arc::new(SkipServerVerification))
@@ -53,28 +35,38 @@ async fn main() -> Result<(), anyhow::Error> {
         quinn::Endpoint::client(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))?;
     client_endpoint.set_default_client_config(client_config);
 
-    // 4. Connect to Server
+    // 3. Connect to Server
     let server_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 4433);
     println!("Connecting to {}...", server_addr);
 
     let connection = client_endpoint.connect(server_addr, "localhost")?.await?;
     println!("Connected!");
 
-    // 5. Initialize Tower Client Service
-    let codec = SerdeCodec::<EchoRequest, EchoResponse, JsonFormat>::new();
-    let mut client = TowerClientService::new(connection, codec);
+    // 4. Initialize Tower Client Service
+    let mut client = TowerClientService::new(connection);
 
-    // 6. Make Requests
-    let messages = vec!["Hello!", "Tower over QUIC", "stric-tower is cool"];
+    // 5. Make Requests using the Axum-like wire protocol
+    let messages = vec!["Hello!", "Axum-like API", "stric-tower is revamped"];
 
     for msg in messages {
-        let req = EchoRequest {
+        let payload = EchoRequest {
             message: msg.to_string(),
         };
+        let body = serde_json::to_vec(&payload)?;
+
+        let req = Request {
+            path: "/echo".to_string(),
+            headers: std::collections::HashMap::new(),
+            body: body.into(),
+        };
+
         println!("Sending: {}", msg);
 
         match client.call(req).await {
-            Ok(res) => println!("Received: {}", res.message),
+            Ok(res) => {
+                let echo_res: EchoResponse = serde_json::from_slice(&res.body)?;
+                println!("Received: {}", echo_res.message);
+            }
             Err(e) => eprintln!("Error: {:?}", e),
         }
     }

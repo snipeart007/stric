@@ -55,3 +55,9 @@ pub enum TowerError {
     #[error("Internal error: {0}")]
     Internal(#[from] Box<dyn std::error::Error + Send + Sync>),
 }
+
+impl From<std::convert::Infallible> for TowerError {
+    fn from(_: std::convert::Infallible) -> Self {
+        unreachable!()
+    }
+}

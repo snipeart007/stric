@@ -11,9 +11,17 @@
 pub mod client;
 pub mod codec;
 pub mod error;
+pub mod handler;
+pub mod http;
+pub mod routing;
 pub mod server;
+pub mod wire;
 
 pub use client::TowerClientService;
 pub use codec::{BincodeFormat, ProstCodec, SerdeCodec, SerdeFormat, ServiceCodec};
 pub use error::TowerError;
-pub use server::TowerConnectionHandler;
+pub use http::{
+    Bincode, Bytes, FromRequest, IntoResponse, Json, Protobuf, RawBytes, Request, Response, State,
+};
+pub use routing::Router;
+pub use server::{Server, TowerConnectionHandler};

@@ -145,7 +145,7 @@ where
 // --- Helpers ---
 
 /// Writes a byte buffer to the stream, prefixed with its length as a 4-byte big-endian integer.
-async fn write_length_prefixed(stream: &mut BiStream, buf: &[u8]) -> Result<(), TowerError> {
+pub async fn write_length_prefixed(stream: &mut BiStream, buf: &[u8]) -> Result<(), TowerError> {
     let len = buf.len() as u32;
     stream.write_all(&len.to_be_bytes()).await?;
     stream.write_all(buf).await?;
@@ -153,12 +153,44 @@ async fn write_length_prefixed(stream: &mut BiStream, buf: &[u8]) -> Result<(), 
 }
 
 /// Reads a byte buffer from the stream, expecting a 4-byte big-endian length prefix first.
-async fn read_length_prefixed(stream: &mut BiStream) -> Result<Vec<u8>, TowerError> {
+pub async fn read_length_prefixed(stream: &mut BiStream) -> Result<Vec<u8>, TowerError> {
     let mut len_buf = [0u8; 4];
     stream.read_exact(&mut len_buf).await?;
     let len = u32::from_be_bytes(len_buf) as usize;
-    
+
     let mut buf = vec![0u8; len];
     stream.read_exact(&mut buf).await?;
     Ok(buf)
+}
+
+// --- Envelope Helpers ---
+
+use crate::wire::proto::{RequestEnvelope, ResponseEnvelope};
+
+pub async fn write_request_envelope(
+    stream: &mut BiStream,
+    envelope: RequestEnvelope,
+) -> Result<(), TowerError> {
+    let mut buf = Vec::with_capacity(envelope.encoded_len());
+    envelope.encode(&mut buf)?;
+    write_length_prefixed(stream, &buf).await
+}
+
+pub async fn read_request_envelope(stream: &mut BiStream) -> Result<RequestEnvelope, TowerError> {
+    let buf = read_length_prefixed(stream).await?;
+    Ok(RequestEnvelope::decode(&buf[..])?)
+}
+
+pub async fn write_response_envelope(
+    stream: &mut BiStream,
+    envelope: ResponseEnvelope,
+) -> Result<(), TowerError> {
+    let mut buf = Vec::with_capacity(envelope.encoded_len());
+    envelope.encode(&mut buf)?;
+    write_length_prefixed(stream, &buf).await
+}
+
+pub async fn read_response_envelope(stream: &mut BiStream) -> Result<ResponseEnvelope, TowerError> {
+    let buf = read_length_prefixed(stream).await?;
+    Ok(ResponseEnvelope::decode(&buf[..])?)
 }
