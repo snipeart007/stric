@@ -48,8 +48,8 @@ impl ClientUniStream {
 pub struct BiStream {
     // True if server initiated, false if client initiated
     pub server_initiated: bool,
-    pub(crate) recv_stream: quinn::RecvStream,
-    pub(crate) send_stream: quinn::SendStream,
+    pub recv_stream: quinn::RecvStream,
+    pub send_stream: quinn::SendStream,
 }
 
 impl BiStream {
