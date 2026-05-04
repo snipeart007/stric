@@ -6,16 +6,23 @@ use stric_core::stream::BiStream;
 
 use crate::error::TowerError;
 
+/// A trait for encoding and decoding requests and responses over a [`BiStream`].
 #[async_trait]
 pub trait ServiceCodec<Req, Res>: Send + Sync + Clone + 'static {
+    /// Encodes a request and writes it to the stream.
     async fn encode_request(&self, req: Req, stream: &mut BiStream) -> Result<(), TowerError>;
+    /// Decodes a request from the stream.
     async fn decode_request(&self, stream: &mut BiStream) -> Result<Req, TowerError>;
 
+    /// Encodes a response and writes it to the stream.
     async fn encode_response(&self, res: Res, stream: &mut BiStream) -> Result<(), TowerError>;
+    /// Decodes a response from the stream.
     async fn decode_response(&self, stream: &mut BiStream) -> Result<Res, TowerError>;
 }
 
 // --- Prost Codec ---
+
+/// A codec that uses [Prost](https://github.com/tokio-rs/prost) for Protobuf serialization.
 #[derive(Default)]
 pub struct ProstCodec<Req, Res>(PhantomData<(Req, Res)>);
 
@@ -26,6 +33,7 @@ impl<Req, Res> Clone for ProstCodec<Req, Res> {
 }
 
 impl<Req, Res> ProstCodec<Req, Res> {
+    /// Creates a new `ProstCodec`.
     pub fn new() -> Self {
         Self(PhantomData)
     }
@@ -62,11 +70,15 @@ where
 
 // --- Generic Serde Codec ---
 
+/// A trait for defining a Serde serialization format.
 pub trait SerdeFormat: Send + Sync + Clone + 'static {
+    /// Serializes an item into a byte vector.
     fn serialize<T: Serialize>(item: &T) -> Result<Vec<u8>, TowerError>;
+    /// Deserializes an item from a byte slice.
     fn deserialize<T: DeserializeOwned>(bytes: &[u8]) -> Result<T, TowerError>;
 }
 
+/// The [Bincode](https://github.com/bincode-org/bincode) serialization format.
 #[derive(Clone, Default)]
 pub struct BincodeFormat;
 
@@ -80,6 +92,12 @@ impl SerdeFormat for BincodeFormat {
     }
 }
 
+/// A codec that uses [Serde](https://serde.rs/) for serialization and deserialization.
+///
+/// # Type Parameters
+/// * `Req`: The request type.
+/// * `Res`: The response type.
+/// * `Format`: The serialization format (e.g., `BincodeFormat` or a custom JSON format).
 #[derive(Default)]
 pub struct SerdeCodec<Req, Res, Format>(PhantomData<(Req, Res, Format)>);
 
@@ -90,6 +108,7 @@ impl<Req, Res, Format> Clone for SerdeCodec<Req, Res, Format> {
 }
 
 impl<Req, Res, Format> SerdeCodec<Req, Res, Format> {
+    /// Creates a new `SerdeCodec`.
     pub fn new() -> Self {
         Self(PhantomData)
     }
@@ -125,6 +144,7 @@ where
 
 // --- Helpers ---
 
+/// Writes a byte buffer to the stream, prefixed with its length as a 4-byte big-endian integer.
 async fn write_length_prefixed(stream: &mut BiStream, buf: &[u8]) -> Result<(), TowerError> {
     let len = buf.len() as u32;
     stream.write_all(&len.to_be_bytes()).await?;
@@ -132,6 +152,7 @@ async fn write_length_prefixed(stream: &mut BiStream, buf: &[u8]) -> Result<(), 
     Ok(())
 }
 
+/// Reads a byte buffer from the stream, expecting a 4-byte big-endian length prefix first.
 async fn read_length_prefixed(stream: &mut BiStream) -> Result<Vec<u8>, TowerError> {
     let mut len_buf = [0u8; 4];
     stream.read_exact(&mut len_buf).await?;

@@ -10,14 +10,31 @@ use crate::{
 use quinn::rustls::ServerConfig as RustlsServerConfig;
 use tokio::sync::mpsc::{self, Receiver, Sender};
 
+/// A QUIC server instance.
+///
+/// `ServerInstance` manages the lifecycle of a QUIC server, including accepting incoming connections,
+/// managing connection state via a [`ConnectionManager`], and dispatching connections to a registered handler.
+///
+/// # Type Parameters
+/// * `ConnectionMetadata`: A user-defined type for storing custom metadata associated with each connection.
 pub struct ServerInstance<ConnectionMetadata: Default + Send + Sync + 'static> {
+    /// The underlying QUIC endpoint.
     pub endpoint: quinn::Endpoint,
+    /// The manager for active connections.
     pub conn_manager: Arc<ConnectionManager<ConnectionMetadata>>,
+    /// The optional handler for new connections.
     pub conn_handler: Option<ConnectionHandlerFn<ConnectionMetadata>>,
+    /// A sender for reporting asynchronous errors.
     pub error_tx: Sender<anyhow::Error>,
 }
 
 impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<ConnectionMetadata> {
+    /// Creates a new `ServerInstance` with the provided configuration.
+    ///
+    /// Returns a tuple containing the `ServerInstance` and a `Receiver` for asynchronous errors.
+    ///
+    /// # Errors
+    /// Returns an error if the server configuration is invalid or if the endpoint cannot be bound.
     pub fn new(
         config: ServerConfig,
     ) -> Result<(ServerInstance<ConnectionMetadata>, Receiver<anyhow::Error>), anyhow::Error> {
@@ -55,6 +72,7 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
         ))
     }
 
+    /// Registers a handler function that will be called for every new incoming connection.
     pub fn register_connection_handler(
         &mut self,
         conn_handler: ConnectionHandlerFn<ConnectionMetadata>,
@@ -62,6 +80,9 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
         self.conn_handler = Some(conn_handler);
     }
 
+    /// Starts listening for incoming QUIC connections.
+    ///
+    /// This method runs in a loop and spawns a new Tokio task for each incoming connection.
     pub async fn listen_connections(&self) {
         while let Some(incoming) = self.endpoint.accept().await {
             let manager = self.conn_manager.clone();
@@ -77,6 +98,7 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
         }
     }
 
+    /// Internal method to handle an individual incoming connection.
     pub async fn handle_incoming(
         incoming: quinn::Incoming,
         manager: Arc<ConnectionManager<ConnectionMetadata>>,
@@ -116,6 +138,10 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
         }
     }
 
+    /// Opens a new unidirectional stream on the connection with the given ID.
+    ///
+    /// # Errors
+    /// Returns an error if the connection ID is not found or if the stream cannot be opened.
     pub async fn get_unistream(&self, id: &u64) -> Result<ServerUniStream, anyhow::Error> {
         let conn = self
             .conn_manager
@@ -129,6 +155,10 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
         Ok(ServerUniStream { stream })
     }
 
+    /// Opens a new bidirectional stream on the connection with the given ID.
+    ///
+    /// # Errors
+    /// Returns an error if the connection ID is not found or if the stream cannot be opened.
     pub async fn get_bistream(&self, id: &u64) -> Result<BiStream, anyhow::Error> {
         let conn = self
             .conn_manager
@@ -147,8 +177,10 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
     }
 }
 
+/// Errors that can occur within the `ServerInstance`.
 #[derive(Debug, thiserror::Error)]
 pub enum ServerError {
+    /// The requested connection ID was not found.
     #[error("Connection with given ID not found: {0}")]
     ConnNotFound(u64),
 }

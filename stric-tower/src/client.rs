@@ -7,6 +7,10 @@ use futures::future::BoxFuture;
 use crate::codec::ServiceCodec;
 use crate::error::TowerError;
 
+/// A client-side Tower [`Service`] that sends requests over a QUIC connection.
+///
+/// `TowerClientService` opens a new bidirectional stream for each request,
+/// encodes the request using the provided codec, and decodes the response from the peer.
 pub struct TowerClientService<C, Req, Res> {
     connection: quinn::Connection,
     codec: C,
@@ -14,6 +18,7 @@ pub struct TowerClientService<C, Req, Res> {
 }
 
 impl<C, Req, Res> TowerClientService<C, Req, Res> {
+    /// Creates a new `TowerClientService` using an established QUIC connection.
     pub fn new(connection: quinn::Connection, codec: C) -> Self {
         Self {
             connection,

@@ -9,6 +9,12 @@ use crate::error::TowerError;
 
 use std::marker::PhantomData;
 
+/// A handler that bridges Stric connections to a Tower [`Service`].
+///
+/// `TowerConnectionHandler` implements the Stric `ConnectionHandlerFn` by accepting
+/// incoming bidirectional streams and dispatching requests to the wrapped service.
+///
+/// Each request-response interaction happens on its own bidirectional stream.
 pub struct TowerConnectionHandler<S, C, Req, Res> {
     service: S,
     codec: C,
@@ -24,6 +30,7 @@ where
     Req: Send + 'static,
     Res: Send + 'static,
 {
+    /// Creates a new `TowerConnectionHandler` with the given service and codec.
     pub fn new(service: S, codec: C) -> Self {
         Self {
             service,
@@ -32,6 +39,9 @@ where
         }
     }
 
+    /// Converts the handler into a Stric-compatible `ConnectionHandlerFn`.
+    ///
+    /// This function returns a closure that can be registered with a Stric server.
     pub fn into_handler<M>(self) -> ConnectionHandlerFn<M>
     where
         M: Default + Send + Sync + 'static,
@@ -68,6 +78,7 @@ where
     }
 }
 
+/// Internal helper to handle an individual bidirectional stream.
 async fn handle_stream<S, C, Req, Res>(
     stream: &mut BiStream,
     service: &mut S,

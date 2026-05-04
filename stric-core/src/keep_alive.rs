@@ -8,7 +8,7 @@ use tokio::time::{self, Instant};
 
 use crate::stream::ServerUniStream;
 
-/// Commands sent to the Pool Manager
+/// Commands sent to the Pool Manager.
 enum PoolCommand {
     AddStream {
         id: u64,
@@ -24,7 +24,7 @@ enum PoolCommand {
     },
 }
 
-/// Commands sent to a Worker
+/// Commands sent to a Worker.
 #[allow(dead_code)]
 enum WorkerCommand {
     AddStream(ManagedStream),
@@ -32,23 +32,37 @@ enum WorkerCommand {
     Shutdown,
 }
 
+/// A stream managed by the keep-alive system.
 pub struct ManagedStream {
+    /// The stable ID of the connection.
     pub id: u64,
+    /// The unidirectional stream used for heartbeats.
     pub stream: ServerUniStream,
+    /// The interval at which pings are sent.
     pub interval: Duration,
+    /// The timestamp of the last ping sent.
     pub last_ping: Instant,
 }
 
+/// A handle to a worker thread/task.
 struct WorkerHandle {
     sender: mpsc::Sender<WorkerCommand>,
     count: Arc<AtomicUsize>,
 }
 
+/// A pool for managing keep-alive heartbeat streams.
+///
+/// `KeepAlivePool` distributes managed streams across worker tasks to ensure
+/// heartbeats are sent periodically and efficiently.
 pub struct KeepAlivePool {
     sender: mpsc::Sender<PoolCommand>,
 }
 
 impl KeepAlivePool {
+    /// Creates a new `KeepAlivePool`.
+    ///
+    /// # Arguments
+    /// * `limit` - The maximum number of streams each worker can manage.
     pub fn new(limit: u64) -> Self {
         let (tx, rx) = mpsc::channel(100);
         let pool_sender = tx.clone();
@@ -59,6 +73,7 @@ impl KeepAlivePool {
         Self { sender: tx }
     }
 
+    /// Adds a new stream to the keep-alive pool.
     pub async fn add_stream(&self, id: u64, stream: ServerUniStream, interval: Duration) {
         let _ = self
             .sender
@@ -71,6 +86,7 @@ impl KeepAlivePool {
     }
 }
 
+/// Manages the distribution of streams across workers.
 struct PoolManager {
     limit: u64,
     receiver: mpsc::Receiver<PoolCommand>,
@@ -178,6 +194,7 @@ impl PoolManager {
     }
 }
 
+/// A worker task that manages a subset of keep-alive streams.
 struct KeepAliveWorker {
     id: usize,
     limit: u64,
