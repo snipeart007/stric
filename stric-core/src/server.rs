@@ -1,8 +1,7 @@
 use std::sync::Arc;
-use tokio::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use crate::{
-    connection::ConnectionManager,
+    connection::{ConnectionManager, ConnectionManagerError},
     connection_wrapper::ConnectionWrapper,
     handler_types::ConnectionHandlerFn,
     server_config::ServerConfig,
@@ -13,7 +12,7 @@ use tokio::sync::mpsc::{self, Receiver, Sender};
 
 pub struct ServerInstance<ConnectionMetadata: Default + Send + Sync + 'static> {
     pub endpoint: quinn::Endpoint,
-    pub conn_manager: Arc<RwLock<ConnectionManager<ConnectionMetadata>>>,
+    pub conn_manager: Arc<ConnectionManager<ConnectionMetadata>>,
     pub conn_handler: Option<ConnectionHandlerFn<ConnectionMetadata>>,
     pub error_tx: Sender<anyhow::Error>,
 }
@@ -28,9 +27,15 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
 
         server_config.alpn_protocols = config.alpn_protocol_names;
 
-        let quinn_config = quinn::ServerConfig::with_crypto(Arc::new(
+        let mut quinn_config = quinn::ServerConfig::with_crypto(Arc::new(
             quinn::crypto::rustls::QuicServerConfig::try_from(server_config)?,
         ));
+
+        if let Some(timeout) = config.idle_timeout {
+            let mut transport_config = quinn::TransportConfig::default();
+            transport_config.max_idle_timeout(Some(timeout.try_into()?));
+            quinn_config.transport_config(Arc::new(transport_config));
+        }
 
         let endpoint = quinn::Endpoint::server(quinn_config, config.socket_addr)?;
 
@@ -38,9 +43,11 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
         Ok((
             Self {
                 endpoint,
-                conn_manager: Arc::new(RwLock::new(ConnectionManager::new(
+                conn_manager: Arc::new(ConnectionManager::new(
                     config.default_conn_context,
-                ))),
+                    config.keep_alive_limit_per_thread,
+                    config.idle_timeout,
+                )),
                 conn_handler: None,
                 error_tx,
             },
@@ -53,18 +60,6 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
         conn_handler: ConnectionHandlerFn<ConnectionMetadata>,
     ) {
         self.conn_handler = Some(conn_handler);
-    }
-
-    pub async fn get_manager_read_lock(
-        lock: &RwLock<ConnectionManager<ConnectionMetadata>>,
-    ) -> RwLockReadGuard<'_, ConnectionManager<ConnectionMetadata>> {
-        lock.read().await
-    }
-
-    pub async fn get_manager_write_lock(
-        lock: &RwLock<ConnectionManager<ConnectionMetadata>>,
-    ) -> RwLockWriteGuard<'_, ConnectionManager<ConnectionMetadata>> {
-        lock.write().await
     }
 
     pub async fn listen_connections(&self) {
@@ -84,7 +79,7 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
 
     pub async fn handle_incoming(
         incoming: quinn::Incoming,
-        manager_lock: Arc<RwLock<ConnectionManager<ConnectionMetadata>>>,
+        manager: Arc<ConnectionManager<ConnectionMetadata>>,
         conn_handler: Option<ConnectionHandlerFn<ConnectionMetadata>>,
         error_tx: Sender<anyhow::Error>,
     ) {
@@ -95,12 +90,8 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
         };
         let k = connection.stable_id() as u64;
 
-        let context = {
-            let manager_read = Self::get_manager_read_lock(&manager_lock).await;
-            let mut context = manager_read.default_conn_context.clone();
-            context.id = k;
-            context
-        };
+        let mut context = manager.default_conn_context;
+        context.id = k;
 
         let metadata = ConnectionMetadata::default();
 
@@ -110,28 +101,44 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
             metadata,
         };
 
-        if let Some(func) = conn_handler {
-            if let Err(e) = func(&mut wrapper).await {
-                let _ = error_tx.try_send(e);
-                return;
-            }
+        if let Some(func) = conn_handler
+            && let Err(e) = func(&mut wrapper).await
+        {
+            let _ = error_tx.try_send(e);
+            return;
         }
 
-        let mut manager_write = Self::get_manager_write_lock(&manager_lock).await;
-        manager_write.add_connection(wrapper);
+        let keep_alive = wrapper.context.keep_alive;
+        manager.add_connection(wrapper);
+
+        if keep_alive {
+            let _ = manager.set_keep_alive(k, true);
+        }
     }
 
     pub async fn get_unistream(&self, id: &u64) -> Result<ServerUniStream, anyhow::Error> {
-        let manager_read = Self::get_manager_read_lock(&self.conn_manager).await;
-        let conn_wrapper = manager_read.get_connection(id).await?;
-        let stream = conn_wrapper.conn.open_uni().await?;
+        let conn = self
+            .conn_manager
+            .store
+            .get(id)
+            .ok_or(ConnectionManagerError::IdNotFound(*id))?
+            .conn
+            .clone();
+
+        let stream = conn.open_uni().await?;
         Ok(ServerUniStream { stream })
     }
 
     pub async fn get_bistream(&self, id: &u64) -> Result<BiStream, anyhow::Error> {
-        let manager_read = Self::get_manager_read_lock(&self.conn_manager).await;
-        let conn_wrapper = manager_read.get_connection(id).await?;
-        let (send_stream, recv_stream) = conn_wrapper.conn.open_bi().await?;
+        let conn = self
+            .conn_manager
+            .store
+            .get(id)
+            .ok_or(ConnectionManagerError::IdNotFound(*id))?
+            .conn
+            .clone();
+
+        let (send_stream, recv_stream) = conn.open_bi().await?;
         Ok(BiStream {
             server_initiated: true,
             send_stream,

@@ -5,7 +5,7 @@ pub struct ConnectionWrapper<ConnectionMetadata: Default + Send + Sync + 'static
     pub metadata: ConnectionMetadata,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct ConnectionContext {
     pub id: u64,
     // Whether to keep the connection alive using Heartbeat pings
@@ -18,17 +18,4 @@ pub struct ConnectionContext {
     pub server_uni: bool,
     // Initiate BiStream from Server-side
     pub server_bi: bool,
-}
-
-impl Default for ConnectionContext {
-    fn default() -> Self {
-        ConnectionContext {
-            id: 0,
-            keep_alive: false,
-            client_uni: false,
-            client_bi: false,
-            server_uni: false,
-            server_bi: false,
-        }
-    }
 }

@@ -1,473 +1,444 @@
 {
   "directed": false,
   "multigraph": false,
-  "graph": {
-    "hyperedges": [
-      {
-        "id": "stric_server_core",
-        "label": "Stric Server Core Components",
-        "nodes": [
-          "server_serverinstance",
-          "connection_connectionmanager",
-          "server_config_serverconfig"
-        ],
-        "relation": "form",
-        "confidence": "INFERRED",
-        "confidence_score": 0.95,
-        "source_file": "src/server.rs"
-      },
-      {
-        "id": "quic_stream_abstractions",
-        "label": "QUIC Stream Abstractions",
-        "nodes": [
-          "stream_serverunistream",
-          "stream_clientunistream",
-          "stream_bistream"
-        ],
-        "relation": "form",
-        "confidence": "INFERRED",
-        "confidence_score": 0.95,
-        "source_file": "src/stream.rs"
-      }
-    ]
-  },
+  "graph": {},
   "nodes": [
     {
       "label": "server_config.rs",
       "file_type": "code",
-      "source_file": "src/server_config.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server_config.rs",
       "source_location": "L1",
-      "id": "src_server_config_rs",
-      "community": 9,
-      "norm_label": "server_config.rs"
+      "community": 10,
+      "norm_label": "server_config.rs",
+      "id": "src_server_config_rs"
     },
     {
       "label": "ServerConfig",
       "file_type": "code",
-      "source_file": "src/server_config.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server_config.rs",
       "source_location": "L7",
-      "id": "src_server_config_serverconfig",
-      "community": 9,
-      "norm_label": "serverconfig"
+      "community": 10,
+      "norm_label": "serverconfig",
+      "id": "src_server_config_serverconfig"
     },
     {
       "label": "stream.rs",
       "file_type": "code",
-      "source_file": "src/stream.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\stream.rs",
       "source_location": "L1",
-      "id": "src_stream_rs",
-      "community": 4,
-      "norm_label": "stream.rs"
+      "community": 5,
+      "norm_label": "stream.rs",
+      "id": "src_stream_rs"
     },
     {
       "label": "ServerUniStream",
       "file_type": "code",
-      "source_file": "src/stream.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\stream.rs",
       "source_location": "L1",
-      "id": "src_stream_serverunistream",
-      "community": 4,
-      "norm_label": "serverunistream"
+      "community": 5,
+      "norm_label": "serverunistream",
+      "id": "src_stream_serverunistream"
     },
     {
       "label": "ClientUniStream",
       "file_type": "code",
-      "source_file": "src/stream.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\stream.rs",
       "source_location": "L5",
-      "id": "src_stream_clientunistream",
-      "community": 4,
-      "norm_label": "clientunistream"
+      "community": 5,
+      "norm_label": "clientunistream",
+      "id": "src_stream_clientunistream"
     },
     {
       "label": "BiStream",
       "file_type": "code",
-      "source_file": "src/stream.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\stream.rs",
       "source_location": "L9",
-      "id": "src_stream_bistream",
-      "community": 4,
-      "norm_label": "bistream"
+      "community": 5,
+      "norm_label": "bistream",
+      "id": "src_stream_bistream"
     },
     {
       "label": "connection_wrapper.rs",
       "file_type": "code",
-      "source_file": "src/connection_wrapper.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection_wrapper.rs",
       "source_location": "L1",
-      "id": "src_connection_wrapper_rs",
-      "community": 5,
-      "norm_label": "connection_wrapper.rs"
+      "community": 6,
+      "norm_label": "connection_wrapper.rs",
+      "id": "src_connection_wrapper_rs"
     },
     {
       "label": "ConnectionWrapper",
       "file_type": "code",
-      "source_file": "src/connection_wrapper.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection_wrapper.rs",
       "source_location": "L2",
-      "id": "src_connection_wrapper_connectionwrapper",
-      "community": 5,
-      "norm_label": "connectionwrapper"
+      "community": 6,
+      "norm_label": "connectionwrapper",
+      "id": "src_connection_wrapper_connectionwrapper"
     },
     {
       "label": "ConnectionContext",
       "file_type": "code",
-      "source_file": "src/connection_wrapper.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection_wrapper.rs",
       "source_location": "L9",
-      "id": "src_connection_wrapper_connectioncontext",
-      "community": 5,
-      "norm_label": "connectioncontext"
+      "community": 6,
+      "norm_label": "connectioncontext",
+      "id": "src_connection_wrapper_connectioncontext"
     },
     {
       "label": ".default()",
       "file_type": "code",
-      "source_file": "src/connection_wrapper.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection_wrapper.rs",
       "source_location": "L24",
-      "id": "src_connection_wrapper_connectioncontext_default",
-      "community": 2,
-      "norm_label": ".default()"
+      "community": 1,
+      "norm_label": ".default()",
+      "id": "src_connection_wrapper_connectioncontext_default"
     },
     {
       "label": "lib.rs",
       "file_type": "code",
-      "source_file": "src/lib.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\lib.rs",
       "source_location": "L1",
-      "id": "src_lib_rs",
-      "community": 7,
-      "norm_label": "lib.rs"
+      "community": 9,
+      "norm_label": "lib.rs",
+      "id": "src_lib_rs"
     },
     {
       "label": "add()",
       "file_type": "code",
-      "source_file": "src/lib.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\lib.rs",
       "source_location": "L7",
-      "id": "src_lib_add",
-      "community": 7,
-      "norm_label": "add()"
+      "community": 9,
+      "norm_label": "add()",
+      "id": "src_lib_add"
     },
     {
       "label": "connection.rs",
       "file_type": "code",
-      "source_file": "src/connection.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
       "source_location": "L1",
-      "id": "src_connection_rs",
-      "community": 6,
-      "norm_label": "connection.rs"
+      "community": 7,
+      "norm_label": "connection.rs",
+      "id": "src_connection_rs"
     },
     {
       "label": "ConnectionManager",
       "file_type": "code",
-      "source_file": "src/connection.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
       "source_location": "L6",
-      "id": "src_connection_connectionmanager",
-      "community": 6,
-      "norm_label": "connectionmanager"
+      "community": 7,
+      "norm_label": "connectionmanager",
+      "id": "src_connection_connectionmanager"
     },
     {
       "label": "ConnectionManager<ConnectionMetadata>",
       "file_type": "code",
-      "source_file": "src/connection.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
       "source_location": "L11",
-      "id": "src_connection_connectionmanager_connectionmetadata",
-      "community": 1,
-      "norm_label": "connectionmanager<connectionmetadata>"
+      "community": 2,
+      "norm_label": "connectionmanager<connectionmetadata>",
+      "id": "src_connection_connectionmanager_connectionmetadata"
     },
     {
       "label": ".new()",
       "file_type": "code",
-      "source_file": "src/connection.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
       "source_location": "L12",
-      "id": "src_connection_connectionmanager_connectionmetadata_new",
       "community": 1,
-      "norm_label": ".new()"
+      "norm_label": ".new()",
+      "id": "src_connection_connectionmanager_connectionmetadata_new"
     },
     {
       "label": ".set_client_uni()",
       "file_type": "code",
-      "source_file": "src/connection.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
       "source_location": "L19",
-      "id": "src_connection_connectionmanager_connectionmetadata_set_client_uni",
-      "community": 1,
-      "norm_label": ".set_client_uni()"
+      "community": 2,
+      "norm_label": ".set_client_uni()",
+      "id": "src_connection_connectionmanager_connectionmetadata_set_client_uni"
     },
     {
       "label": ".set_client_bi()",
       "file_type": "code",
-      "source_file": "src/connection.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
       "source_location": "L32",
-      "id": "src_connection_connectionmanager_connectionmetadata_set_client_bi",
-      "community": 1,
-      "norm_label": ".set_client_bi()"
+      "community": 2,
+      "norm_label": ".set_client_bi()",
+      "id": "src_connection_connectionmanager_connectionmetadata_set_client_bi"
     },
     {
       "label": ".set_server_uni()",
       "file_type": "code",
-      "source_file": "src/connection.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
       "source_location": "L45",
-      "id": "src_connection_connectionmanager_connectionmetadata_set_server_uni",
-      "community": 1,
-      "norm_label": ".set_server_uni()"
+      "community": 2,
+      "norm_label": ".set_server_uni()",
+      "id": "src_connection_connectionmanager_connectionmetadata_set_server_uni"
     },
     {
       "label": ".set_server_bi()",
       "file_type": "code",
-      "source_file": "src/connection.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
       "source_location": "L58",
-      "id": "src_connection_connectionmanager_connectionmetadata_set_server_bi",
-      "community": 1,
-      "norm_label": ".set_server_bi()"
+      "community": 2,
+      "norm_label": ".set_server_bi()",
+      "id": "src_connection_connectionmanager_connectionmetadata_set_server_bi"
     },
     {
       "label": ".add_connection()",
       "file_type": "code",
-      "source_file": "src/connection.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
       "source_location": "L71",
-      "id": "src_connection_connectionmanager_connectionmetadata_add_connection",
-      "community": 1,
-      "norm_label": ".add_connection()"
+      "community": 2,
+      "norm_label": ".add_connection()",
+      "id": "src_connection_connectionmanager_connectionmetadata_add_connection"
     },
     {
       "label": ".get_connection()",
       "file_type": "code",
-      "source_file": "src/connection.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
       "source_location": "L76",
-      "id": "src_connection_connectionmanager_connectionmetadata_get_connection",
-      "community": 1,
-      "norm_label": ".get_connection()"
+      "community": 2,
+      "norm_label": ".get_connection()",
+      "id": "src_connection_connectionmanager_connectionmetadata_get_connection"
     },
     {
       "label": "ConnectionManagerError",
       "file_type": "code",
-      "source_file": "src/connection.rs",
-      "source_location": "L88",
-      "id": "src_connection_connectionmanagererror",
-      "community": 6,
-      "norm_label": "connectionmanagererror"
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
+      "source_location": "L108",
+      "community": 7,
+      "norm_label": "connectionmanagererror",
+      "id": "src_connection_connectionmanagererror"
     },
     {
       "label": "server.rs",
       "file_type": "code",
-      "source_file": "src/server.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
       "source_location": "L1",
-      "id": "src_server_rs",
       "community": 8,
-      "norm_label": "server.rs"
+      "norm_label": "server.rs",
+      "id": "src_server_rs"
     },
     {
       "label": "ServerInstance",
       "file_type": "code",
-      "source_file": "src/server.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
       "source_location": "L14",
-      "id": "src_server_serverinstance",
       "community": 8,
-      "norm_label": "serverinstance"
+      "norm_label": "serverinstance",
+      "id": "src_server_serverinstance"
     },
     {
       "label": "ServerInstance<ConnectionMetadata>",
       "file_type": "code",
-      "source_file": "src/server.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
       "source_location": "L21",
-      "id": "src_server_serverinstance_connectionmetadata",
-      "community": 0,
-      "norm_label": "serverinstance<connectionmetadata>"
+      "community": 3,
+      "norm_label": "serverinstance<connectionmetadata>",
+      "id": "src_server_serverinstance_connectionmetadata"
     },
     {
       "label": ".new()",
       "file_type": "code",
-      "source_file": "src/server.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
       "source_location": "L22",
-      "id": "src_server_serverinstance_connectionmetadata_new",
-      "community": 0,
-      "norm_label": ".new()"
+      "community": 1,
+      "norm_label": ".new()",
+      "id": "src_server_serverinstance_connectionmetadata_new"
     },
     {
       "label": ".register_connection_handler()",
       "file_type": "code",
-      "source_file": "src/server.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
       "source_location": "L51",
-      "id": "src_server_serverinstance_connectionmetadata_register_connection_handler",
-      "community": 0,
-      "norm_label": ".register_connection_handler()"
+      "community": 3,
+      "norm_label": ".register_connection_handler()",
+      "id": "src_server_serverinstance_connectionmetadata_register_connection_handler"
     },
     {
       "label": ".get_manager_read_lock()",
       "file_type": "code",
-      "source_file": "src/server.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
       "source_location": "L58",
-      "id": "src_server_serverinstance_connectionmetadata_get_manager_read_lock",
-      "community": 0,
-      "norm_label": ".get_manager_read_lock()"
+      "community": 3,
+      "norm_label": ".get_manager_read_lock()",
+      "id": "src_server_serverinstance_connectionmetadata_get_manager_read_lock"
     },
     {
       "label": ".get_manager_write_lock()",
       "file_type": "code",
-      "source_file": "src/server.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
       "source_location": "L64",
-      "id": "src_server_serverinstance_connectionmetadata_get_manager_write_lock",
-      "community": 0,
-      "norm_label": ".get_manager_write_lock()"
+      "community": 3,
+      "norm_label": ".get_manager_write_lock()",
+      "id": "src_server_serverinstance_connectionmetadata_get_manager_write_lock"
     },
     {
       "label": ".listen_connections()",
       "file_type": "code",
-      "source_file": "src/server.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
       "source_location": "L70",
-      "id": "src_server_serverinstance_connectionmetadata_listen_connections",
-      "community": 0,
-      "norm_label": ".listen_connections()"
+      "community": 3,
+      "norm_label": ".listen_connections()",
+      "id": "src_server_serverinstance_connectionmetadata_listen_connections"
     },
     {
       "label": ".handle_incoming()",
       "file_type": "code",
-      "source_file": "src/server.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
       "source_location": "L85",
-      "id": "src_server_serverinstance_connectionmetadata_handle_incoming",
-      "community": 0,
-      "norm_label": ".handle_incoming()"
+      "community": 3,
+      "norm_label": ".handle_incoming()",
+      "id": "src_server_serverinstance_connectionmetadata_handle_incoming"
     },
     {
       "label": ".get_unistream()",
       "file_type": "code",
-      "source_file": "src/server.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
       "source_location": "L124",
-      "id": "src_server_serverinstance_connectionmetadata_get_unistream",
-      "community": 0,
-      "norm_label": ".get_unistream()"
+      "community": 3,
+      "norm_label": ".get_unistream()",
+      "id": "src_server_serverinstance_connectionmetadata_get_unistream"
     },
     {
       "label": ".get_bistream()",
       "file_type": "code",
-      "source_file": "src/server.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
       "source_location": "L131",
-      "id": "src_server_serverinstance_connectionmetadata_get_bistream",
-      "community": 0,
-      "norm_label": ".get_bistream()"
+      "community": 3,
+      "norm_label": ".get_bistream()",
+      "id": "src_server_serverinstance_connectionmetadata_get_bistream"
     },
     {
       "label": "ServerError",
       "file_type": "code",
-      "source_file": "src/server.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
       "source_location": "L144",
-      "id": "src_server_servererror",
       "community": 8,
-      "norm_label": "servererror"
+      "norm_label": "servererror",
+      "id": "src_server_servererror"
     },
     {
       "label": "handler_types.rs",
       "file_type": "code",
-      "source_file": "src/handler_types.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\handler_types.rs",
       "source_location": "L1",
-      "id": "src_handler_types_rs",
       "community": 11,
-      "norm_label": "handler_types.rs"
+      "norm_label": "handler_types.rs",
+      "id": "src_handler_types_rs"
     },
     {
       "label": "integration_test.rs",
       "file_type": "code",
-      "source_file": "tests/integration_test.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
       "source_location": "L1",
-      "id": "tests_integration_test_rs",
-      "community": 2,
-      "norm_label": "integration_test.rs"
+      "community": 1,
+      "norm_label": "integration_test.rs",
+      "id": "tests_integration_test_rs"
     },
     {
       "label": "setup_crypto()",
       "file_type": "code",
-      "source_file": "tests/integration_test.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
       "source_location": "L8",
-      "id": "tests_integration_test_setup_crypto",
-      "community": 2,
-      "norm_label": "setup_crypto()"
+      "community": 1,
+      "norm_label": "setup_crypto()",
+      "id": "tests_integration_test_setup_crypto"
     },
     {
       "label": "test_server_connection_lifecycle()",
       "file_type": "code",
-      "source_file": "tests/integration_test.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
       "source_location": "L13",
-      "id": "tests_integration_test_test_server_connection_lifecycle",
-      "community": 2,
-      "norm_label": "test_server_connection_lifecycle()"
+      "community": 1,
+      "norm_label": "test_server_connection_lifecycle()",
+      "id": "tests_integration_test_test_server_connection_lifecycle"
     },
     {
       "label": "test_connection_manager_updates()",
       "file_type": "code",
-      "source_file": "tests/integration_test.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
       "source_location": "L102",
-      "id": "tests_integration_test_test_connection_manager_updates",
-      "community": 2,
-      "norm_label": "test_connection_manager_updates()"
+      "community": 1,
+      "norm_label": "test_connection_manager_updates()",
+      "id": "tests_integration_test_test_connection_manager_updates"
     },
     {
       "label": "test_error_channel_and_handler_failure()",
       "file_type": "code",
-      "source_file": "tests/integration_test.rs",
-      "source_location": "L171",
-      "id": "tests_integration_test_test_error_channel_and_handler_failure",
-      "community": 2,
-      "norm_label": "test_error_channel_and_handler_failure()"
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "source_location": "L252",
+      "community": 1,
+      "norm_label": "test_error_channel_and_handler_failure()",
+      "id": "tests_integration_test_test_error_channel_and_handler_failure"
     },
     {
       "label": "MyMetadata",
       "file_type": "code",
-      "source_file": "tests/integration_test.rs",
-      "source_location": "L235",
-      "id": "tests_integration_test_mymetadata",
-      "community": 2,
-      "norm_label": "mymetadata"
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "source_location": "L316",
+      "community": 1,
+      "norm_label": "mymetadata",
+      "id": "tests_integration_test_mymetadata"
     },
     {
       "label": "test_custom_metadata()",
       "file_type": "code",
-      "source_file": "tests/integration_test.rs",
-      "source_location": "L240",
-      "id": "tests_integration_test_test_custom_metadata",
-      "community": 2,
-      "norm_label": "test_custom_metadata()"
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "source_location": "L321",
+      "community": 1,
+      "norm_label": "test_custom_metadata()",
+      "id": "tests_integration_test_test_custom_metadata"
     },
     {
       "label": "server_config.rs",
       "file_type": "code",
-      "source_file": "server_config.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\server_config.rs",
       "source_location": "L1",
-      "community": 9,
+      "community": 10,
       "norm_label": "server_config.rs",
       "id": "server_config_rs"
     },
     {
       "label": "stream.rs",
       "file_type": "code",
-      "source_file": "stream.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\stream.rs",
       "source_location": "L1",
-      "community": 4,
+      "community": 5,
       "norm_label": "stream.rs",
       "id": "stream_rs"
     },
     {
       "label": "connection_wrapper.rs",
       "file_type": "code",
-      "source_file": "connection_wrapper.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\connection_wrapper.rs",
       "source_location": "L1",
-      "community": 5,
+      "community": 6,
       "norm_label": "connection_wrapper.rs",
       "id": "connection_wrapper_rs"
     },
     {
       "label": "lib.rs",
       "file_type": "code",
-      "source_file": "lib.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\lib.rs",
       "source_location": "L1",
-      "community": 7,
+      "community": 9,
       "norm_label": "lib.rs",
       "id": "lib_rs"
     },
     {
       "label": "connection.rs",
       "file_type": "code",
-      "source_file": "connection.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\connection.rs",
       "source_location": "L1",
-      "community": 6,
+      "community": 7,
       "norm_label": "connection.rs",
       "id": "connection_rs"
     },
     {
       "label": "server.rs",
       "file_type": "code",
-      "source_file": "server.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\server.rs",
       "source_location": "L1",
       "community": 8,
       "norm_label": "server.rs",
@@ -476,7 +447,7 @@
     {
       "label": "handler_types.rs",
       "file_type": "code",
-      "source_file": "handler_types.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\handler_types.rs",
       "source_location": "L1",
       "community": 12,
       "norm_label": "handler_types.rs",
@@ -485,16 +456,16 @@
     {
       "label": "it_works()",
       "file_type": "code",
-      "source_file": "lib.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\lib.rs",
       "source_location": "L16",
-      "community": 7,
+      "community": 9,
       "norm_label": "it_works()",
       "id": "src_lib_it_works"
     },
     {
       "label": "ServerConfig",
       "file_type": "code",
-      "source_file": "src/server_config.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server_config.rs",
       "source_location": {
         "start_line": 5,
         "end_line": 12
@@ -503,14 +474,14 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "serverconfig",
       "id": "server_config_serverconfig"
     },
     {
       "label": "ServerUniStream",
       "file_type": "code",
-      "source_file": "src/stream.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\stream.rs",
       "source_location": {
         "start_line": 1,
         "end_line": 3
@@ -519,14 +490,14 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 10,
+      "community": 0,
       "norm_label": "serverunistream",
       "id": "stream_serverunistream"
     },
     {
       "label": "ClientUniStream",
       "file_type": "code",
-      "source_file": "src/stream.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\stream.rs",
       "source_location": {
         "start_line": 5,
         "end_line": 7
@@ -535,14 +506,14 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 10,
+      "community": 0,
       "norm_label": "clientunistream",
       "id": "stream_clientunistream"
     },
     {
       "label": "BiStream",
       "file_type": "code",
-      "source_file": "src/stream.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\stream.rs",
       "source_location": {
         "start_line": 9,
         "end_line": 14
@@ -551,14 +522,14 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 10,
+      "community": 0,
       "norm_label": "bistream",
       "id": "stream_bistream"
     },
     {
       "label": "ConnectionWrapper",
       "file_type": "code",
-      "source_file": "src/connection_wrapper.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection_wrapper.rs",
       "source_location": {
         "start_line": 2,
         "end_line": 6
@@ -567,14 +538,14 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "connectionwrapper",
       "id": "connection_wrapper_connectionwrapper"
     },
     {
       "label": "ConnectionContext",
       "file_type": "code",
-      "source_file": "src/connection_wrapper.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection_wrapper.rs",
       "source_location": {
         "start_line": 9,
         "end_line": 20
@@ -583,14 +554,14 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "connectioncontext",
       "id": "connection_wrapper_connectioncontext"
     },
     {
       "label": "ConnectionManager",
       "file_type": "code",
-      "source_file": "src/connection.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
       "source_location": {
         "start_line": 6,
         "end_line": 9
@@ -599,14 +570,14 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "connectionmanager",
       "id": "connection_connectionmanager"
     },
     {
       "label": "ServerInstance",
       "file_type": "code",
-      "source_file": "src/server.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
       "source_location": {
         "start_line": 9,
         "end_line": 15
@@ -615,14 +586,14 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "serverinstance",
       "id": "server_serverinstance"
     },
     {
       "label": "ConnectionHandlerFn",
       "file_type": "code",
-      "source_file": "src/handler_types.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\handler_types.rs",
       "source_location": {
         "start_line": 8,
         "end_line": 15
@@ -631,14 +602,14 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 3,
+      "community": 4,
       "norm_label": "connectionhandlerfn",
       "id": "handler_types_connectionhandlerfn"
     },
     {
       "label": "Graphify Maintenance Rules",
       "file_type": "rationale",
-      "source_file": "GEMINI.md",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\GEMINI.md",
       "source_location": {
         "start_line": 1,
         "end_line": 10
@@ -650,632 +621,1053 @@
       "community": 13,
       "norm_label": "graphify maintenance rules",
       "id": "gemini_graphify_rules"
+    },
+    {
+      "label": "ConnectionManager",
+      "file_type": "code",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
+      "community": 0,
+      "norm_label": "connectionmanager",
+      "id": "connection_manager"
+    },
+    {
+      "label": "ConnectionManagerError",
+      "file_type": "code",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
+      "community": 14,
+      "norm_label": "connectionmanagererror",
+      "id": "connection_error"
+    },
+    {
+      "label": "ConnectionWrapper",
+      "file_type": "code",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection_wrapper.rs",
+      "community": 0,
+      "norm_label": "connectionwrapper",
+      "id": "wrapper_connectionwrapper"
+    },
+    {
+      "label": "ConnectionContext",
+      "file_type": "code",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection_wrapper.rs",
+      "community": 0,
+      "norm_label": "connectioncontext",
+      "id": "wrapper_connectioncontext"
+    },
+    {
+      "label": "ConnectionHandlerFn",
+      "file_type": "code",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\handler_types.rs",
+      "community": 0,
+      "norm_label": "connectionhandlerfn",
+      "id": "handler_connectionhandlerfn"
+    },
+    {
+      "label": "ServerInstance",
+      "file_type": "code",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
+      "community": 0,
+      "norm_label": "serverinstance",
+      "id": "server_instance"
+    },
+    {
+      "label": "ServerError",
+      "file_type": "code",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
+      "community": 15,
+      "norm_label": "servererror",
+      "id": "server_error"
+    },
+    {
+      "label": "ServerConfig",
+      "file_type": "code",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server_config.rs",
+      "community": 0,
+      "norm_label": "serverconfig",
+      "id": "config_serverconfig"
+    },
+    {
+      "label": "test_server_connection_lifecycle",
+      "file_type": "code",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "community": 0,
+      "norm_label": "test_server_connection_lifecycle",
+      "id": "test_lifecycle"
+    },
+    {
+      "label": "test_connection_manager_updates",
+      "file_type": "code",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "community": 0,
+      "norm_label": "test_connection_manager_updates",
+      "id": "test_updates"
+    },
+    {
+      "label": "test_error_channel_and_handler_failure",
+      "file_type": "code",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "community": 0,
+      "norm_label": "test_error_channel_and_handler_failure",
+      "id": "test_failure"
+    },
+    {
+      "label": "test_custom_metadata",
+      "file_type": "code",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "community": 0,
+      "norm_label": "test_custom_metadata",
+      "id": "test_metadata"
+    },
+    {
+      "label": "GEMINI.md",
+      "file_type": "document",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\GEMINI.md",
+      "community": 0,
+      "norm_label": "gemini.md",
+      "id": "doc_gemini"
+    },
+    {
+      "label": ".get_connection_lock()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
+      "source_location": "L86",
+      "id": "src_connection_connectionmanager_connectionmetadata_get_connection_lock",
+      "community": 2,
+      "norm_label": ".get_connection_lock()"
+    },
+    {
+      "label": ".get_connection_write_lock()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
+      "source_location": "L96",
+      "id": "src_connection_connectionmanager_connectionmetadata_get_connection_write_lock",
+      "community": 2,
+      "norm_label": ".get_connection_write_lock()"
+    },
+    {
+      "label": "test_connection_manager_locks()",
+      "file_type": "code",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "source_location": "L171",
+      "id": "tests_integration_test_test_connection_manager_locks",
+      "community": 1,
+      "norm_label": "test_connection_manager_locks()"
     }
   ],
   "links": [
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "src/server_config.rs",
-      "source_location": "L7",
-      "weight": 1.0,
-      "source": "src_server_config_rs",
-      "target": "src_server_config_serverconfig",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "server_config.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server_config.rs",
       "source_location": "L7",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "server_config_rs",
+      "_src": "src_server_config_rs",
+      "_tgt": "src_server_config_serverconfig",
+      "source": "src_server_config_rs",
       "target": "src_server_config_serverconfig"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "src/stream.rs",
-      "source_location": "L1",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\server_config.rs",
+      "source_location": "L7",
       "weight": 1.0,
-      "source": "src_stream_rs",
-      "target": "src_stream_serverunistream",
-      "confidence_score": 1.0
+      "confidence_score": 1.0,
+      "_src": "src_server_config_serverconfig",
+      "_tgt": "server_config_rs",
+      "source": "src_server_config_serverconfig",
+      "target": "server_config_rs"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "src/stream.rs",
-      "source_location": "L5",
-      "weight": 1.0,
-      "source": "src_stream_rs",
-      "target": "src_stream_clientunistream",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "src/stream.rs",
-      "source_location": "L9",
-      "weight": 1.0,
-      "source": "src_stream_rs",
-      "target": "src_stream_bistream",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "stream.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\stream.rs",
       "source_location": "L1",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "stream_rs",
+      "_src": "src_stream_rs",
+      "_tgt": "src_stream_serverunistream",
+      "source": "src_stream_rs",
       "target": "src_stream_serverunistream"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "stream.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\stream.rs",
       "source_location": "L5",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "stream_rs",
+      "_src": "src_stream_rs",
+      "_tgt": "src_stream_clientunistream",
+      "source": "src_stream_rs",
       "target": "src_stream_clientunistream"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "stream.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\stream.rs",
       "source_location": "L9",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "stream_rs",
+      "_src": "src_stream_rs",
+      "_tgt": "src_stream_bistream",
+      "source": "src_stream_rs",
       "target": "src_stream_bistream"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "src/connection_wrapper.rs",
-      "source_location": "L2",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\stream.rs",
+      "source_location": "L1",
       "weight": 1.0,
-      "source": "src_connection_wrapper_rs",
-      "target": "src_connection_wrapper_connectionwrapper",
-      "confidence_score": 1.0
+      "confidence_score": 1.0,
+      "_src": "src_stream_serverunistream",
+      "_tgt": "stream_rs",
+      "source": "src_stream_serverunistream",
+      "target": "stream_rs"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "src/connection_wrapper.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\stream.rs",
+      "source_location": "L5",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "_src": "src_stream_clientunistream",
+      "_tgt": "stream_rs",
+      "source": "src_stream_clientunistream",
+      "target": "stream_rs"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\stream.rs",
       "source_location": "L9",
       "weight": 1.0,
-      "source": "src_connection_wrapper_rs",
-      "target": "src_connection_wrapper_connectioncontext",
-      "confidence_score": 1.0
+      "confidence_score": 1.0,
+      "_src": "src_stream_bistream",
+      "_tgt": "stream_rs",
+      "source": "src_stream_bistream",
+      "target": "stream_rs"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "connection_wrapper.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection_wrapper.rs",
       "source_location": "L2",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "connection_wrapper_rs",
+      "_src": "src_connection_wrapper_rs",
+      "_tgt": "src_connection_wrapper_connectionwrapper",
+      "source": "src_connection_wrapper_rs",
       "target": "src_connection_wrapper_connectionwrapper"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection_wrapper.rs",
+      "source_location": "L9",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "_src": "src_connection_wrapper_rs",
+      "_tgt": "src_connection_wrapper_connectioncontext",
+      "source": "src_connection_wrapper_rs",
+      "target": "src_connection_wrapper_connectioncontext"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\connection_wrapper.rs",
+      "source_location": "L2",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "_src": "src_connection_wrapper_connectionwrapper",
+      "_tgt": "connection_wrapper_rs",
+      "source": "src_connection_wrapper_connectionwrapper",
+      "target": "connection_wrapper_rs"
     },
     {
       "relation": "method",
       "confidence": "EXTRACTED",
-      "source_file": "connection_wrapper.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection_wrapper.rs",
       "source_location": "L24",
       "weight": 1.0,
       "confidence_score": 1.0,
+      "_src": "src_connection_wrapper_connectioncontext",
+      "_tgt": "src_connection_wrapper_connectioncontext_default",
       "source": "src_connection_wrapper_connectioncontext",
       "target": "src_connection_wrapper_connectioncontext_default"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "connection_wrapper.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\connection_wrapper.rs",
       "source_location": "L9",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "connection_wrapper_rs",
-      "target": "src_connection_wrapper_connectioncontext"
+      "_src": "src_connection_wrapper_connectioncontext",
+      "_tgt": "connection_wrapper_rs",
+      "source": "src_connection_wrapper_connectioncontext",
+      "target": "connection_wrapper_rs"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
-      "source_file": "server.rs",
-      "source_location": "L82",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
+      "source_location": "L105",
       "weight": 1.0,
-      "source": "src_server_serverinstance_connectionmetadata_handle_incoming",
-      "target": "src_connection_wrapper_connectioncontext_default"
+      "_src": "src_connection_wrapper_connectioncontext_default",
+      "_tgt": "src_server_serverinstance_connectionmetadata_handle_incoming",
+      "source": "src_connection_wrapper_connectioncontext_default",
+      "target": "src_server_serverinstance_connectionmetadata_handle_incoming"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
-      "source_file": "tests/integration_test.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
       "source_location": "L31",
       "weight": 1.0,
-      "source": "tests_integration_test_test_server_connection_lifecycle",
-      "target": "src_connection_wrapper_connectioncontext_default"
+      "_src": "src_connection_wrapper_connectioncontext_default",
+      "_tgt": "tests_integration_test_test_server_connection_lifecycle",
+      "source": "src_connection_wrapper_connectioncontext_default",
+      "target": "tests_integration_test_test_server_connection_lifecycle"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
-      "source_file": "tests/integration_test.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
       "source_location": "L117",
       "weight": 1.0,
-      "source": "tests_integration_test_test_connection_manager_updates",
-      "target": "src_connection_wrapper_connectioncontext_default"
+      "_src": "src_connection_wrapper_connectioncontext_default",
+      "_tgt": "tests_integration_test_test_connection_manager_updates",
+      "source": "src_connection_wrapper_connectioncontext_default",
+      "target": "tests_integration_test_test_connection_manager_updates"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
-      "source_file": "tests/integration_test.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
       "source_location": "L186",
       "weight": 1.0,
-      "source": "tests_integration_test_test_error_channel_and_handler_failure",
-      "target": "src_connection_wrapper_connectioncontext_default"
+      "_src": "src_connection_wrapper_connectioncontext_default",
+      "_tgt": "tests_integration_test_test_error_channel_and_handler_failure",
+      "source": "src_connection_wrapper_connectioncontext_default",
+      "target": "tests_integration_test_test_error_channel_and_handler_failure"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "INFERRED",
       "confidence_score": 0.8,
-      "source_file": "tests/integration_test.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
       "source_location": "L255",
       "weight": 1.0,
-      "source": "tests_integration_test_test_custom_metadata",
-      "target": "src_connection_wrapper_connectioncontext_default"
+      "_src": "src_connection_wrapper_connectioncontext_default",
+      "_tgt": "tests_integration_test_test_custom_metadata",
+      "source": "src_connection_wrapper_connectioncontext_default",
+      "target": "tests_integration_test_test_custom_metadata"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "src/lib.rs",
-      "source_location": "L7",
-      "weight": 1.0,
-      "source": "src_lib_rs",
-      "target": "src_lib_add",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "lib.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\lib.rs",
       "source_location": "L7",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "lib_rs",
+      "_src": "src_lib_rs",
+      "_tgt": "src_lib_add",
+      "source": "src_lib_rs",
       "target": "src_lib_add"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\lib.rs",
+      "source_location": "L7",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "_src": "src_lib_add",
+      "_tgt": "lib_rs",
+      "source": "src_lib_add",
+      "target": "lib_rs"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
-      "source_file": "lib.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\lib.rs",
       "source_location": "L17",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "src_lib_it_works",
-      "target": "src_lib_add"
+      "_src": "src_lib_add",
+      "_tgt": "src_lib_it_works",
+      "source": "src_lib_add",
+      "target": "src_lib_it_works"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "src/connection.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
       "source_location": "L6",
       "weight": 1.0,
+      "confidence_score": 1.0,
+      "_src": "src_connection_rs",
+      "_tgt": "src_connection_connectionmanager",
       "source": "src_connection_rs",
-      "target": "src_connection_connectionmanager",
-      "confidence_score": 1.0
+      "target": "src_connection_connectionmanager"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "src/connection.rs",
-      "source_location": "L88",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
+      "source_location": "L108",
       "weight": 1.0,
+      "confidence_score": 1.0,
+      "_src": "src_connection_rs",
+      "_tgt": "src_connection_connectionmanagererror",
       "source": "src_connection_rs",
-      "target": "src_connection_connectionmanagererror",
-      "confidence_score": 1.0
+      "target": "src_connection_connectionmanagererror"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "connection.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\connection.rs",
       "source_location": "L8",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "connection_rs",
-      "target": "src_connection_connectionmanager"
+      "_src": "src_connection_connectionmanager",
+      "_tgt": "connection_rs",
+      "source": "src_connection_connectionmanager",
+      "target": "connection_rs"
     },
     {
       "relation": "method",
       "confidence": "EXTRACTED",
-      "source_file": "connection.rs",
-      "source_location": "L14",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
+      "source_location": "L12",
       "weight": 1.0,
       "confidence_score": 1.0,
+      "_src": "src_connection_connectionmanager_connectionmetadata",
+      "_tgt": "src_connection_connectionmanager_connectionmetadata_new",
       "source": "src_connection_connectionmanager_connectionmetadata",
       "target": "src_connection_connectionmanager_connectionmetadata_new"
     },
     {
       "relation": "method",
       "confidence": "EXTRACTED",
-      "source_file": "connection.rs",
-      "source_location": "L21",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
+      "source_location": "L19",
       "weight": 1.0,
       "confidence_score": 1.0,
+      "_src": "src_connection_connectionmanager_connectionmetadata",
+      "_tgt": "src_connection_connectionmanager_connectionmetadata_set_client_uni",
       "source": "src_connection_connectionmanager_connectionmetadata",
       "target": "src_connection_connectionmanager_connectionmetadata_set_client_uni"
     },
     {
       "relation": "method",
       "confidence": "EXTRACTED",
-      "source_file": "connection.rs",
-      "source_location": "L36",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
+      "source_location": "L32",
       "weight": 1.0,
       "confidence_score": 1.0,
+      "_src": "src_connection_connectionmanager_connectionmetadata",
+      "_tgt": "src_connection_connectionmanager_connectionmetadata_set_client_bi",
       "source": "src_connection_connectionmanager_connectionmetadata",
       "target": "src_connection_connectionmanager_connectionmetadata_set_client_bi"
     },
     {
       "relation": "method",
       "confidence": "EXTRACTED",
-      "source_file": "connection.rs",
-      "source_location": "L51",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
+      "source_location": "L45",
       "weight": 1.0,
       "confidence_score": 1.0,
+      "_src": "src_connection_connectionmanager_connectionmetadata",
+      "_tgt": "src_connection_connectionmanager_connectionmetadata_set_server_uni",
       "source": "src_connection_connectionmanager_connectionmetadata",
       "target": "src_connection_connectionmanager_connectionmetadata_set_server_uni"
     },
     {
       "relation": "method",
       "confidence": "EXTRACTED",
-      "source_file": "connection.rs",
-      "source_location": "L66",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
+      "source_location": "L58",
       "weight": 1.0,
       "confidence_score": 1.0,
+      "_src": "src_connection_connectionmanager_connectionmetadata",
+      "_tgt": "src_connection_connectionmanager_connectionmetadata_set_server_bi",
       "source": "src_connection_connectionmanager_connectionmetadata",
       "target": "src_connection_connectionmanager_connectionmetadata_set_server_bi"
     },
     {
       "relation": "method",
       "confidence": "EXTRACTED",
-      "source_file": "connection.rs",
-      "source_location": "L81",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
+      "source_location": "L71",
       "weight": 1.0,
       "confidence_score": 1.0,
+      "_src": "src_connection_connectionmanager_connectionmetadata",
+      "_tgt": "src_connection_connectionmanager_connectionmetadata_add_connection",
       "source": "src_connection_connectionmanager_connectionmetadata",
       "target": "src_connection_connectionmanager_connectionmetadata_add_connection"
     },
     {
       "relation": "method",
       "confidence": "EXTRACTED",
-      "source_file": "connection.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
       "source_location": "L76",
       "weight": 1.0,
       "confidence_score": 1.0,
+      "_src": "src_connection_connectionmanager_connectionmetadata",
+      "_tgt": "src_connection_connectionmanager_connectionmetadata_get_connection",
       "source": "src_connection_connectionmanager_connectionmetadata",
       "target": "src_connection_connectionmanager_connectionmetadata_get_connection"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
+      "source_location": "L86",
+      "weight": 1.0,
+      "_src": "src_connection_connectionmanager_connectionmetadata",
+      "_tgt": "src_connection_connectionmanager_connectionmetadata_get_connection_lock",
+      "source": "src_connection_connectionmanager_connectionmetadata",
+      "target": "src_connection_connectionmanager_connectionmetadata_get_connection_lock",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
+      "source_location": "L96",
+      "weight": 1.0,
+      "_src": "src_connection_connectionmanager_connectionmetadata",
+      "_tgt": "src_connection_connectionmanager_connectionmetadata_get_connection_write_lock",
+      "source": "src_connection_connectionmanager_connectionmetadata",
+      "target": "src_connection_connectionmanager_connectionmetadata_get_connection_write_lock",
+      "confidence_score": 1.0
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
-      "source_file": "connection.rs",
-      "source_location": "L82",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
+      "source_location": "L73",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "src_connection_connectionmanager_connectionmetadata_add_connection",
-      "target": "src_connection_connectionmanager_connectionmetadata_new"
+      "_src": "src_connection_connectionmanager_connectionmetadata_add_connection",
+      "_tgt": "src_connection_connectionmanager_connectionmetadata_new",
+      "source": "src_connection_connectionmanager_connectionmetadata_new",
+      "target": "src_connection_connectionmanager_connectionmetadata_add_connection"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
+      "source_location": "L14",
+      "weight": 1.0,
+      "_src": "src_connection_connectionmanager_connectionmetadata_new",
+      "_tgt": "src_server_serverinstance_connectionmetadata_new",
+      "source": "src_connection_connectionmanager_connectionmetadata_new",
+      "target": "src_server_serverinstance_connectionmetadata_new"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "source_location": "L23",
+      "weight": 1.0,
+      "_src": "tests_integration_test_test_server_connection_lifecycle",
+      "_tgt": "src_connection_connectionmanager_connectionmetadata_new",
+      "source": "src_connection_connectionmanager_connectionmetadata_new",
+      "target": "tests_integration_test_test_server_connection_lifecycle"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "source_location": "L109",
+      "weight": 1.0,
+      "_src": "tests_integration_test_test_connection_manager_updates",
+      "_tgt": "src_connection_connectionmanager_connectionmetadata_new",
+      "source": "src_connection_connectionmanager_connectionmetadata_new",
+      "target": "tests_integration_test_test_connection_manager_updates"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "source_location": "L178",
+      "weight": 1.0,
+      "_src": "tests_integration_test_test_connection_manager_locks",
+      "_tgt": "src_connection_connectionmanager_connectionmetadata_new",
+      "source": "src_connection_connectionmanager_connectionmetadata_new",
+      "target": "tests_integration_test_test_connection_manager_locks"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "source_location": "L259",
+      "weight": 1.0,
+      "_src": "tests_integration_test_test_error_channel_and_handler_failure",
+      "_tgt": "src_connection_connectionmanager_connectionmetadata_new",
+      "source": "src_connection_connectionmanager_connectionmetadata_new",
+      "target": "tests_integration_test_test_error_channel_and_handler_failure"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "source_location": "L328",
+      "weight": 1.0,
+      "_src": "tests_integration_test_test_custom_metadata",
+      "_tgt": "src_connection_connectionmanager_connectionmetadata_new",
+      "source": "src_connection_connectionmanager_connectionmetadata_new",
+      "target": "tests_integration_test_test_custom_metadata"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "connection.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\connection.rs",
       "source_location": "L87",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "connection_rs",
-      "target": "src_connection_connectionmanagererror"
+      "_src": "src_connection_connectionmanagererror",
+      "_tgt": "connection_rs",
+      "source": "src_connection_connectionmanagererror",
+      "target": "connection_rs"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "src/server.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
       "source_location": "L14",
       "weight": 1.0,
+      "confidence_score": 1.0,
+      "_src": "src_server_rs",
+      "_tgt": "src_server_serverinstance",
       "source": "src_server_rs",
-      "target": "src_server_serverinstance",
-      "confidence_score": 1.0
+      "target": "src_server_serverinstance"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "src/server.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
       "source_location": "L144",
       "weight": 1.0,
+      "confidence_score": 1.0,
+      "_src": "src_server_rs",
+      "_tgt": "src_server_servererror",
       "source": "src_server_rs",
-      "target": "src_server_servererror",
-      "confidence_score": 1.0
+      "target": "src_server_servererror"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "server.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\server.rs",
       "source_location": "L10",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "server_rs",
-      "target": "src_server_serverinstance"
+      "_src": "src_server_serverinstance",
+      "_tgt": "server_rs",
+      "source": "src_server_serverinstance",
+      "target": "server_rs"
     },
     {
       "relation": "method",
       "confidence": "EXTRACTED",
-      "source_file": "server.rs",
-      "source_location": "L19",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
+      "source_location": "L22",
       "weight": 1.0,
       "confidence_score": 1.0,
+      "_src": "src_server_serverinstance_connectionmetadata",
+      "_tgt": "src_server_serverinstance_connectionmetadata_new",
       "source": "src_server_serverinstance_connectionmetadata",
       "target": "src_server_serverinstance_connectionmetadata_new"
     },
     {
       "relation": "method",
       "confidence": "EXTRACTED",
-      "source_file": "server.rs",
-      "source_location": "L44",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
+      "source_location": "L51",
       "weight": 1.0,
       "confidence_score": 1.0,
+      "_src": "src_server_serverinstance_connectionmetadata",
+      "_tgt": "src_server_serverinstance_connectionmetadata_register_connection_handler",
       "source": "src_server_serverinstance_connectionmetadata",
       "target": "src_server_serverinstance_connectionmetadata_register_connection_handler"
     },
     {
       "relation": "method",
       "confidence": "EXTRACTED",
-      "source_file": "server.rs",
-      "source_location": "L55",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
+      "source_location": "L58",
       "weight": 1.0,
       "confidence_score": 1.0,
+      "_src": "src_server_serverinstance_connectionmetadata",
+      "_tgt": "src_server_serverinstance_connectionmetadata_get_manager_read_lock",
       "source": "src_server_serverinstance_connectionmetadata",
       "target": "src_server_serverinstance_connectionmetadata_get_manager_read_lock"
     },
     {
       "relation": "method",
       "confidence": "EXTRACTED",
-      "source_file": "server.rs",
-      "source_location": "L61",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
+      "source_location": "L64",
       "weight": 1.0,
       "confidence_score": 1.0,
+      "_src": "src_server_serverinstance_connectionmetadata",
+      "_tgt": "src_server_serverinstance_connectionmetadata_get_manager_write_lock",
       "source": "src_server_serverinstance_connectionmetadata",
       "target": "src_server_serverinstance_connectionmetadata_get_manager_write_lock"
     },
     {
       "relation": "method",
       "confidence": "EXTRACTED",
-      "source_file": "server.rs",
-      "source_location": "L43",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
+      "source_location": "L70",
       "weight": 1.0,
       "confidence_score": 1.0,
+      "_src": "src_server_serverinstance_connectionmetadata",
+      "_tgt": "src_server_serverinstance_connectionmetadata_listen_connections",
       "source": "src_server_serverinstance_connectionmetadata",
       "target": "src_server_serverinstance_connectionmetadata_listen_connections"
     },
     {
       "relation": "method",
       "confidence": "EXTRACTED",
-      "source_file": "server.rs",
-      "source_location": "L58",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
+      "source_location": "L85",
       "weight": 1.0,
       "confidence_score": 1.0,
+      "_src": "src_server_serverinstance_connectionmetadata",
+      "_tgt": "src_server_serverinstance_connectionmetadata_handle_incoming",
       "source": "src_server_serverinstance_connectionmetadata",
       "target": "src_server_serverinstance_connectionmetadata_handle_incoming"
     },
     {
       "relation": "method",
       "confidence": "EXTRACTED",
-      "source_file": "server.rs",
-      "source_location": "L111",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
+      "source_location": "L124",
       "weight": 1.0,
       "confidence_score": 1.0,
+      "_src": "src_server_serverinstance_connectionmetadata",
+      "_tgt": "src_server_serverinstance_connectionmetadata_get_unistream",
       "source": "src_server_serverinstance_connectionmetadata",
       "target": "src_server_serverinstance_connectionmetadata_get_unistream"
     },
     {
       "relation": "method",
       "confidence": "EXTRACTED",
-      "source_file": "server.rs",
-      "source_location": "L128",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
+      "source_location": "L131",
       "weight": 1.0,
       "confidence_score": 1.0,
+      "_src": "src_server_serverinstance_connectionmetadata",
+      "_tgt": "src_server_serverinstance_connectionmetadata_get_bistream",
       "source": "src_server_serverinstance_connectionmetadata",
+      "target": "src_server_serverinstance_connectionmetadata_get_bistream"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "source_location": "L23",
+      "weight": 1.0,
+      "_src": "src_server_serverinstance_connectionmetadata_new",
+      "_tgt": "tests_integration_test_test_server_connection_lifecycle",
+      "source": "src_server_serverinstance_connectionmetadata_new",
+      "target": "tests_integration_test_test_server_connection_lifecycle"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "source_location": "L109",
+      "weight": 1.0,
+      "_src": "src_server_serverinstance_connectionmetadata_new",
+      "_tgt": "tests_integration_test_test_connection_manager_updates",
+      "source": "src_server_serverinstance_connectionmetadata_new",
+      "target": "tests_integration_test_test_connection_manager_updates"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "source_location": "L178",
+      "weight": 1.0,
+      "_src": "src_server_serverinstance_connectionmetadata_new",
+      "_tgt": "tests_integration_test_test_error_channel_and_handler_failure",
+      "source": "src_server_serverinstance_connectionmetadata_new",
+      "target": "tests_integration_test_test_error_channel_and_handler_failure"
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "source_location": "L247",
+      "weight": 1.0,
+      "_src": "src_server_serverinstance_connectionmetadata_new",
+      "_tgt": "tests_integration_test_test_custom_metadata",
+      "source": "src_server_serverinstance_connectionmetadata_new",
+      "target": "tests_integration_test_test_custom_metadata"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
+      "source_location": "L99",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "_src": "src_server_serverinstance_connectionmetadata_get_manager_read_lock",
+      "_tgt": "src_server_serverinstance_connectionmetadata_handle_incoming",
+      "source": "src_server_serverinstance_connectionmetadata_get_manager_read_lock",
+      "target": "src_server_serverinstance_connectionmetadata_handle_incoming"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
+      "source_location": "L125",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "_src": "src_server_serverinstance_connectionmetadata_get_manager_read_lock",
+      "_tgt": "src_server_serverinstance_connectionmetadata_get_unistream",
+      "source": "src_server_serverinstance_connectionmetadata_get_manager_read_lock",
+      "target": "src_server_serverinstance_connectionmetadata_get_unistream"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
+      "source_location": "L132",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "_src": "src_server_serverinstance_connectionmetadata_get_manager_read_lock",
+      "_tgt": "src_server_serverinstance_connectionmetadata_get_bistream",
+      "source": "src_server_serverinstance_connectionmetadata_get_manager_read_lock",
       "target": "src_server_serverinstance_connectionmetadata_get_bistream"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
-      "source_file": "server.rs",
-      "source_location": "L96",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
+      "source_location": "L120",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "src_server_serverinstance_connectionmetadata_handle_incoming",
-      "target": "src_server_serverinstance_connectionmetadata_get_manager_read_lock"
+      "_src": "src_server_serverinstance_connectionmetadata_get_manager_write_lock",
+      "_tgt": "src_server_serverinstance_connectionmetadata_handle_incoming",
+      "source": "src_server_serverinstance_connectionmetadata_get_manager_write_lock",
+      "target": "src_server_serverinstance_connectionmetadata_handle_incoming"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
-      "source_file": "server.rs",
-      "source_location": "L122",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
+      "source_location": "L76",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "src_server_serverinstance_connectionmetadata_get_unistream",
-      "target": "src_server_serverinstance_connectionmetadata_get_manager_read_lock"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "server.rs",
-      "source_location": "L129",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_server_serverinstance_connectionmetadata_get_bistream",
-      "target": "src_server_serverinstance_connectionmetadata_get_manager_read_lock"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "server.rs",
-      "source_location": "L117",
-      "weight": 1.0,
-      "confidence_score": 1.0,
-      "source": "src_server_serverinstance_connectionmetadata_handle_incoming",
-      "target": "src_server_serverinstance_connectionmetadata_get_manager_write_lock"
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "server.rs",
-      "source_location": "L49",
-      "weight": 1.0,
-      "confidence_score": 1.0,
+      "_src": "src_server_serverinstance_connectionmetadata_listen_connections",
+      "_tgt": "src_server_serverinstance_connectionmetadata_handle_incoming",
       "source": "src_server_serverinstance_connectionmetadata_listen_connections",
       "target": "src_server_serverinstance_connectionmetadata_handle_incoming"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "server.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\server.rs",
       "source_location": "L108",
       "weight": 1.0,
       "confidence_score": 1.0,
-      "source": "server_rs",
-      "target": "src_server_servererror"
+      "_src": "src_server_servererror",
+      "_tgt": "server_rs",
+      "source": "src_server_servererror",
+      "target": "server_rs"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "tests/integration_test.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
       "source_location": "L8",
       "weight": 1.0,
+      "confidence_score": 1.0,
+      "_src": "tests_integration_test_rs",
+      "_tgt": "tests_integration_test_setup_crypto",
       "source": "tests_integration_test_rs",
-      "target": "tests_integration_test_setup_crypto",
-      "confidence_score": 1.0
+      "target": "tests_integration_test_setup_crypto"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "tests/integration_test.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
       "source_location": "L13",
       "weight": 1.0,
+      "confidence_score": 1.0,
+      "_src": "tests_integration_test_rs",
+      "_tgt": "tests_integration_test_test_server_connection_lifecycle",
       "source": "tests_integration_test_rs",
-      "target": "tests_integration_test_test_server_connection_lifecycle",
-      "confidence_score": 1.0
+      "target": "tests_integration_test_test_server_connection_lifecycle"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "tests/integration_test.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
       "source_location": "L102",
       "weight": 1.0,
+      "confidence_score": 1.0,
+      "_src": "tests_integration_test_rs",
+      "_tgt": "tests_integration_test_test_connection_manager_updates",
       "source": "tests_integration_test_rs",
-      "target": "tests_integration_test_test_connection_manager_updates",
-      "confidence_score": 1.0
+      "target": "tests_integration_test_test_connection_manager_updates"
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "tests/integration_test.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "source_location": "L252",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "_src": "tests_integration_test_rs",
+      "_tgt": "tests_integration_test_test_error_channel_and_handler_failure",
+      "source": "tests_integration_test_rs",
+      "target": "tests_integration_test_test_error_channel_and_handler_failure"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "source_location": "L316",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "_src": "tests_integration_test_rs",
+      "_tgt": "tests_integration_test_mymetadata",
+      "source": "tests_integration_test_rs",
+      "target": "tests_integration_test_mymetadata"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "source_location": "L321",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "_src": "tests_integration_test_rs",
+      "_tgt": "tests_integration_test_test_custom_metadata",
+      "source": "tests_integration_test_rs",
+      "target": "tests_integration_test_test_custom_metadata"
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
       "source_location": "L171",
       "weight": 1.0,
+      "_src": "tests_integration_test_rs",
+      "_tgt": "tests_integration_test_test_connection_manager_locks",
       "source": "tests_integration_test_rs",
-      "target": "tests_integration_test_test_error_channel_and_handler_failure",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/integration_test.rs",
-      "source_location": "L235",
-      "weight": 1.0,
-      "source": "tests_integration_test_rs",
-      "target": "tests_integration_test_mymetadata",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/integration_test.rs",
-      "source_location": "L240",
-      "weight": 1.0,
-      "source": "tests_integration_test_rs",
-      "target": "tests_integration_test_test_custom_metadata",
+      "target": "tests_integration_test_test_connection_manager_locks",
       "confidence_score": 1.0
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
-      "source_file": "tests/integration_test.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
       "source_location": "L14",
       "weight": 1.0,
-      "source": "tests_integration_test_test_server_connection_lifecycle",
-      "target": "tests_integration_test_setup_crypto",
-      "confidence_score": 1.0
+      "confidence_score": 1.0,
+      "_src": "tests_integration_test_test_server_connection_lifecycle",
+      "_tgt": "tests_integration_test_setup_crypto",
+      "source": "tests_integration_test_setup_crypto",
+      "target": "tests_integration_test_test_server_connection_lifecycle"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
-      "source_file": "tests/integration_test.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
       "source_location": "L103",
       "weight": 1.0,
-      "source": "tests_integration_test_test_connection_manager_updates",
-      "target": "tests_integration_test_setup_crypto",
-      "confidence_score": 1.0
+      "confidence_score": 1.0,
+      "_src": "tests_integration_test_test_connection_manager_updates",
+      "_tgt": "tests_integration_test_setup_crypto",
+      "source": "tests_integration_test_setup_crypto",
+      "target": "tests_integration_test_test_connection_manager_updates"
     },
     {
       "relation": "calls",
       "context": "call",
       "confidence": "EXTRACTED",
-      "source_file": "tests/integration_test.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "source_location": "L253",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "_src": "tests_integration_test_test_error_channel_and_handler_failure",
+      "_tgt": "tests_integration_test_setup_crypto",
+      "source": "tests_integration_test_setup_crypto",
+      "target": "tests_integration_test_test_error_channel_and_handler_failure"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "source_location": "L322",
+      "weight": 1.0,
+      "confidence_score": 1.0,
+      "_src": "tests_integration_test_test_custom_metadata",
+      "_tgt": "tests_integration_test_setup_crypto",
+      "source": "tests_integration_test_setup_crypto",
+      "target": "tests_integration_test_test_custom_metadata"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
       "source_location": "L172",
       "weight": 1.0,
-      "source": "tests_integration_test_test_error_channel_and_handler_failure",
-      "target": "tests_integration_test_setup_crypto",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "calls",
-      "context": "call",
-      "confidence": "EXTRACTED",
-      "source_file": "tests/integration_test.rs",
-      "source_location": "L241",
-      "weight": 1.0,
-      "source": "tests_integration_test_test_custom_metadata",
-      "target": "tests_integration_test_setup_crypto",
+      "_src": "tests_integration_test_test_connection_manager_locks",
+      "_tgt": "tests_integration_test_setup_crypto",
+      "source": "tests_integration_test_setup_crypto",
+      "target": "tests_integration_test_test_connection_manager_locks",
       "confidence_score": 1.0
     },
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
-      "source_file": "lib.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\lib.rs",
       "source_location": "L16",
       "weight": 1.0,
       "confidence_score": 1.0,
+      "_src": "lib_rs",
+      "_tgt": "src_lib_it_works",
       "source": "lib_rs",
       "target": "src_lib_it_works"
     },
@@ -1283,19 +1675,23 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "src/server.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
       "source_location": null,
       "weight": 1.0,
-      "source": "server_serverinstance",
-      "target": "server_config_serverconfig"
+      "_src": "server_config_serverconfig",
+      "_tgt": "server_serverinstance",
+      "source": "server_config_serverconfig",
+      "target": "server_serverinstance"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "src/server_config.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server_config.rs",
       "source_location": null,
       "weight": 1.0,
+      "_src": "server_config_serverconfig",
+      "_tgt": "connection_wrapper_connectioncontext",
       "source": "server_config_serverconfig",
       "target": "connection_wrapper_connectioncontext"
     },
@@ -1303,9 +1699,11 @@
       "relation": "semantically_similar_to",
       "confidence": "INFERRED",
       "confidence_score": 0.85,
-      "source_file": "src/stream.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\stream.rs",
       "source_location": null,
       "weight": 1.0,
+      "_src": "stream_serverunistream",
+      "_tgt": "stream_clientunistream",
       "source": "stream_serverunistream",
       "target": "stream_clientunistream"
     },
@@ -1313,29 +1711,55 @@
       "relation": "conceptually_related_to",
       "confidence": "INFERRED",
       "confidence_score": 0.95,
-      "source_file": "src/stream.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\stream.rs",
       "source_location": null,
       "weight": 1.0,
+      "_src": "stream_serverunistream",
+      "_tgt": "stream_bistream",
       "source": "stream_serverunistream",
       "target": "stream_bistream"
-    },
-    {
-      "relation": "shares_data_with",
-      "confidence": "EXTRACTED",
-      "confidence_score": 1.0,
-      "source_file": "src/connection.rs",
-      "source_location": null,
-      "weight": 1.0,
-      "source": "connection_connectionmanager",
-      "target": "connection_wrapper_connectionwrapper"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "src/connection_wrapper.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
+      "_src": "stream_serverunistream",
+      "_tgt": "server_instance",
+      "source": "stream_serverunistream",
+      "target": "server_instance"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
+      "_src": "stream_bistream",
+      "_tgt": "server_instance",
+      "source": "stream_bistream",
+      "target": "server_instance"
+    },
+    {
+      "relation": "shares_data_with",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
       "source_location": null,
       "weight": 1.0,
+      "_src": "connection_wrapper_connectionwrapper",
+      "_tgt": "connection_connectionmanager",
+      "source": "connection_wrapper_connectionwrapper",
+      "target": "connection_connectionmanager"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection_wrapper.rs",
+      "source_location": null,
+      "weight": 1.0,
+      "_src": "connection_wrapper_connectionwrapper",
+      "_tgt": "connection_wrapper_connectioncontext",
       "source": "connection_wrapper_connectionwrapper",
       "target": "connection_wrapper_connectioncontext"
     },
@@ -1343,49 +1767,156 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "src/server.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
       "source_location": null,
       "weight": 1.0,
-      "source": "server_serverinstance",
-      "target": "connection_connectionmanager"
+      "_src": "connection_connectionmanager",
+      "_tgt": "server_serverinstance",
+      "source": "connection_connectionmanager",
+      "target": "server_serverinstance"
     },
     {
       "relation": "references",
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
-      "source_file": "src/server.rs",
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
       "source_location": null,
       "weight": 1.0,
+      "_src": "server_serverinstance",
+      "_tgt": "handler_types_connectionhandlerfn",
       "source": "server_serverinstance",
       "target": "handler_types_connectionhandlerfn"
-    }
-  ],
-  "hyperedges": [
-    {
-      "id": "stric_server_core",
-      "label": "Stric Server Core Components",
-      "nodes": [
-        "server_serverinstance",
-        "connection_connectionmanager",
-        "server_config_serverconfig"
-      ],
-      "relation": "form",
-      "confidence": "INFERRED",
-      "confidence_score": 0.95,
-      "source_file": "src/server.rs"
     },
     {
-      "id": "quic_stream_abstractions",
-      "label": "QUIC Stream Abstractions",
-      "nodes": [
-        "stream_serverunistream",
-        "stream_clientunistream",
-        "stream_bistream"
-      ],
-      "relation": "form",
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
+      "_src": "connection_manager",
+      "_tgt": "wrapper_connectionwrapper",
+      "source": "connection_manager",
+      "target": "wrapper_connectionwrapper"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection.rs",
+      "_src": "connection_manager",
+      "_tgt": "wrapper_connectioncontext",
+      "source": "connection_manager",
+      "target": "wrapper_connectioncontext"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
+      "_src": "connection_manager",
+      "_tgt": "server_instance",
+      "source": "connection_manager",
+      "target": "server_instance"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "_src": "connection_manager",
+      "_tgt": "test_updates",
+      "source": "connection_manager",
+      "target": "test_updates"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\connection_wrapper.rs",
+      "_src": "wrapper_connectionwrapper",
+      "_tgt": "wrapper_connectioncontext",
+      "source": "wrapper_connectionwrapper",
+      "target": "wrapper_connectioncontext"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\handler_types.rs",
+      "_src": "wrapper_connectionwrapper",
+      "_tgt": "handler_connectionhandlerfn",
+      "source": "wrapper_connectionwrapper",
+      "target": "handler_connectionhandlerfn"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server_config.rs",
+      "_src": "wrapper_connectioncontext",
+      "_tgt": "config_serverconfig",
+      "source": "wrapper_connectioncontext",
+      "target": "config_serverconfig"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
+      "_src": "handler_connectionhandlerfn",
+      "_tgt": "server_instance",
+      "source": "handler_connectionhandlerfn",
+      "target": "server_instance"
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\src\\server.rs",
+      "_src": "server_instance",
+      "_tgt": "config_serverconfig",
+      "source": "server_instance",
+      "target": "config_serverconfig"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "_src": "server_instance",
+      "_tgt": "test_lifecycle",
+      "source": "server_instance",
+      "target": "test_lifecycle"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "_src": "server_instance",
+      "_tgt": "test_failure",
+      "source": "server_instance",
+      "target": "test_failure"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\tests\\integration_test.rs",
+      "_src": "server_instance",
+      "_tgt": "test_metadata",
+      "source": "server_instance",
+      "target": "test_metadata"
+    },
+    {
+      "relation": "conceptually_related_to",
       "confidence": "INFERRED",
-      "confidence_score": 0.95,
-      "source_file": "src/stream.rs"
+      "confidence_score": 0.8,
+      "source_file": "C:\\Users\\abcom\\repos\\stric\\GEMINI.md",
+      "_src": "server_instance",
+      "_tgt": "doc_gemini",
+      "source": "server_instance",
+      "target": "doc_gemini"
     }
-  ]
+  ],
+  "hyperedges": []
 }

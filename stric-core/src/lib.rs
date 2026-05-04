@@ -1,6 +1,7 @@
 pub mod connection;
 pub mod connection_wrapper;
 pub mod handler_types;
+pub mod keep_alive;
 pub mod server;
 pub mod server_config;
 pub mod stream;

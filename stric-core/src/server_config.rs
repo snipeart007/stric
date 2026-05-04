@@ -11,4 +11,6 @@ pub struct ServerConfig {
     pub alpn_protocol_names: Vec<Vec<u8>>,
     pub error_channel_len: usize,
     pub default_conn_context: ConnectionContext,
+    pub keep_alive_limit_per_thread: u64,
+    pub idle_timeout: Option<std::time::Duration>,
 }

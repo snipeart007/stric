@@ -8,8 +8,7 @@ pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 pub type ConnectionHandlerFn<ConnectionMetadata: Default + Send + Sync + 'static> = Arc<
     dyn Fn(
             &mut ConnectionWrapper<ConnectionMetadata>,
-        )
-            -> BoxFuture<'static, Result<(), anyhow::Error>>
+        ) -> BoxFuture<'static, Result<(), anyhow::Error>>
         + Send
         + Sync,
 >;
