@@ -29,7 +29,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
     // 4. Run Server with automatic dev-certificate generation
     let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 4433);
-    Server::bind(addr)?.serve(app).await?;
+    Server::bind(addr).serve(app).await?;
 
     Ok(())
 }

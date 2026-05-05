@@ -63,7 +63,10 @@ where
     ///
     /// Existing routes are not carried across; this mirrors the current
     /// implementation strategy, which constructs a new router instance.
-    pub fn with_state<S2>(self, state: S2) -> Router<S2, B> {
+    pub fn with_state<S2>(self, state: S2) -> Router<S2, B>
+    where
+        S2: Clone + Send + Sync + 'static,
+    {
         Router {
             routes: HashMap::new(),
             state,

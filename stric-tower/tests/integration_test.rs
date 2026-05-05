@@ -6,9 +6,7 @@ use std::task::{Context, Poll};
 use futures::FutureExt;
 use http_body::{Body as HttpBody, Frame, SizeHint};
 use http_body_util::Full as HttpFull;
-use stric_core::connection_wrapper::ConnectionContext;
-use stric_core::server::ServerInstance;
-use stric_core::server_config::ServerConfig;
+use stric_core::{ConnectionContext, ServerConfig, ServerInstance};
 use stric_tower::{BodyExt, Bytes, Full, HeaderMap, HeaderValue, Json, Request, Router, TowerClientService, TowerConnectionHandler, TowerError};
 use tower::{Layer, Service};
 
@@ -114,7 +112,7 @@ fn build_server_config(
         certs: vec![quinn::rustls::pki_types::CertificateDer::from(cert_der)],
         key: quinn::rustls::pki_types::PrivateKeyDer::try_from(key_der).unwrap(),
         socket_addr: addr,
-        alpn_protocol_names: vec![b"h3".to_vec()],
+        alpn_protocol_names: vec![b"stric".to_vec()],
         error_channel_len: 10,
         default_conn_context: ConnectionContext::default(),
         keep_alive_limit_per_thread: 0,
@@ -130,7 +128,7 @@ async fn build_client(cert_der: Vec<u8>, server_addr: SocketAddr) -> TowerClient
     let mut crypto = quinn::rustls::ClientConfig::builder()
         .with_root_certificates(roots)
         .with_no_client_auth();
-    crypto.alpn_protocols = vec![b"h3".to_vec()];
+    crypto.alpn_protocols = vec![b"stric".to_vec()];
     let client_config = quinn::ClientConfig::new(Arc::new(
         quinn::crypto::rustls::QuicClientConfig::try_from(crypto).unwrap(),
     ));
@@ -161,7 +159,7 @@ async fn test_axum_like_tower_integration() {
     let tower_handler = TowerConnectionHandler::new(app);
 
     let (mut server, mut _error_rx) = ServerInstance::<()>::new(config).unwrap();
-    let server_addr = server.endpoint.local_addr().unwrap();
+    let server_addr = server.local_addr().unwrap();
 
     server.register_connection_handler(tower_handler.into_handler());
 
@@ -202,7 +200,7 @@ async fn test_axum_like_404() {
     let tower_handler = TowerConnectionHandler::new(app);
 
     let (mut server, mut _error_rx) = ServerInstance::<()>::new(config).unwrap();
-    let server_addr = server.endpoint.local_addr().unwrap();
+    let server_addr = server.local_addr().unwrap();
     server.register_connection_handler(tower_handler.into_handler());
 
     let server_arc = Arc::new(server);
@@ -236,7 +234,7 @@ async fn test_invalid_json_returns_bad_request() {
     let tower_handler = TowerConnectionHandler::new(app);
 
     let (mut server, mut _error_rx) = ServerInstance::<()>::new(config).unwrap();
-    let server_addr = server.endpoint.local_addr().unwrap();
+    let server_addr = server.local_addr().unwrap();
     server.register_connection_handler(tower_handler.into_handler());
 
     let server_arc = Arc::new(server);
@@ -275,7 +273,7 @@ async fn test_standard_layer_can_add_headers_and_wrap_body() {
     let tower_handler = TowerConnectionHandler::new(app);
 
     let (mut server, mut _error_rx) = ServerInstance::<()>::new(config).unwrap();
-    let server_addr = server.endpoint.local_addr().unwrap();
+    let server_addr = server.local_addr().unwrap();
     server.register_connection_handler(tower_handler.into_handler());
 
     let server_arc = Arc::new(server);

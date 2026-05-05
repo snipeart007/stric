@@ -2,6 +2,11 @@
 ///
 /// This struct provides a high-level view of a single connection, combining the underlying
 /// `quinn` connection with Stric-specific metadata and context flags.
+///
+/// `ConnectionWrapper` is intended for use inside connection handlers registered
+/// through [`ServerInstance::register_connection_handler`](crate::ServerInstance::register_connection_handler).
+/// It should not be treated as a long-lived connection registry entry; use
+/// [`ConnectionManager`](crate::ConnectionManager) for post-registration tracking.
 #[derive(Clone)]
 pub struct ConnectionWrapper<ConnectionMetadata: Default + Send + Sync + 'static> {
     /// The underlying `quinn::Connection`.
@@ -13,7 +18,7 @@ pub struct ConnectionWrapper<ConnectionMetadata: Default + Send + Sync + 'static
 }
 
 /// Configuration and state flags for a connection.
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
 pub struct ConnectionContext {
     /// The stable ID of the connection, typically assigned by `quinn`.
     pub id: u64,

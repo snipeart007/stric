@@ -13,19 +13,19 @@ use crate::{
 /// `ConnectionManager` is responsible for storing connections, managing their lifecycle,
 /// and providing methods to update connection-specific settings like keep-alive.
 pub struct ConnectionManager<ConnectionMetadata: Default + Send + Sync + 'static> {
-    /// A thread-safe map storing connections indexed by their stable ID.
+    /// A thread-safe map storing accepted connections indexed by their stable ID.
+    ///
+    /// This field is public for low-level inspection and diagnostics. Prefer the
+    /// higher-level methods on [`ServerInstance`](crate::ServerInstance) and
+    /// `ConnectionManager` for ordinary server logic rather than mutating the map directly.
     pub store: DashMap<u64, ConnectionWrapper<ConnectionMetadata>>,
-    /// The default context to apply to new connections.
-    pub default_conn_context: ConnectionContext,
-    /// The pool for managing keep-alive heartbeat streams.
-    pub keep_alive_pool: Arc<KeepAlivePool>,
-    /// The idle timeout duration for connections.
-    pub idle_timeout: Duration,
+    pub(crate) default_conn_context: ConnectionContext,
+    keep_alive_pool: Arc<KeepAlivePool>,
+    idle_timeout: Duration,
 }
 
 impl<ConnectionMetadata: Default + Send + Sync + 'static> ConnectionManager<ConnectionMetadata> {
-    /// Creates a new `ConnectionManager`.
-    pub fn new(
+    pub(crate) fn new(
         default_conn_context: ConnectionContext,
         keep_alive_limit: u64,
         idle_timeout: Option<Duration>,
@@ -45,8 +45,14 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ConnectionManager<Conn
     /// over a unidirectional stream.
     ///
     /// # Errors
-    /// Returns an error if the connection ID is not found.
-    pub fn set_keep_alive(&self, id: u64, val: bool) -> Result<(), anyhow::Error> {
+    /// Returns [`ConnectionManagerError::IdNotFound`] when `id` does not refer
+    /// to a currently tracked connection.
+    ///
+    /// # Edge Cases
+    /// When keep-alive is enabled, stream creation happens in a background
+    /// task. If the connection closes before the task opens the stream, the
+    /// call still returns `Ok(())` and no keep-alive stream is started.
+    pub fn set_keep_alive(&self, id: u64, val: bool) -> Result<(), ConnectionManagerError> {
         let mut connection = self
             .store
             .get_mut(&id)
@@ -55,22 +61,26 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ConnectionManager<Conn
         connection.context.keep_alive = val;
 
         if val {
-            let conn = connection.conn.clone();
-            let pool = self.keep_alive_pool.clone();
-            let interval = self.idle_timeout / 2;
-            tokio::spawn(async move {
-                if let Ok(stream) = conn.open_uni().await {
-                    pool.add_stream(id, ServerUniStream { stream }, interval)
+                    let conn = connection.conn.clone();
+                    let pool = self.keep_alive_pool.clone();
+                    let interval = self.idle_timeout / 2;
+                    tokio::spawn(async move {
+                        if let Ok(stream) = conn.open_uni().await {
+                    pool.add_stream(ServerUniStream::new(stream), interval)
                         .await;
-                }
-            });
+                        }
+                    });
         }
 
         Ok(())
     }
 
     /// Sets whether the client is allowed to initiate unidirectional streams.
-    pub fn set_client_uni(&self, id: u64, val: bool) -> Result<(), anyhow::Error> {
+    ///
+    /// # Errors
+    /// Returns [`ConnectionManagerError::IdNotFound`] when the connection has
+    /// not been registered or has already been removed.
+    pub fn set_client_uni(&self, id: u64, val: bool) -> Result<(), ConnectionManagerError> {
         let mut connection = self
             .store
             .get_mut(&id)
@@ -82,7 +92,11 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ConnectionManager<Conn
     }
 
     /// Sets whether the client is allowed to initiate bidirectional streams.
-    pub fn set_client_bi(&self, id: u64, val: bool) -> Result<(), anyhow::Error> {
+    ///
+    /// # Errors
+    /// Returns [`ConnectionManagerError::IdNotFound`] when the connection has
+    /// not been registered or has already been removed.
+    pub fn set_client_bi(&self, id: u64, val: bool) -> Result<(), ConnectionManagerError> {
         let mut connection = self
             .store
             .get_mut(&id)
@@ -94,7 +108,11 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ConnectionManager<Conn
     }
 
     /// Sets whether the server is allowed to initiate unidirectional streams.
-    pub fn set_server_uni(&self, id: u64, val: bool) -> Result<(), anyhow::Error> {
+    ///
+    /// # Errors
+    /// Returns [`ConnectionManagerError::IdNotFound`] when the connection has
+    /// not been registered or has already been removed.
+    pub fn set_server_uni(&self, id: u64, val: bool) -> Result<(), ConnectionManagerError> {
         let mut connection = self
             .store
             .get_mut(&id)
@@ -106,7 +124,11 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ConnectionManager<Conn
     }
 
     /// Sets whether the server is allowed to initiate bidirectional streams.
-    pub fn set_server_bi(&self, id: u64, val: bool) -> Result<(), anyhow::Error> {
+    ///
+    /// # Errors
+    /// Returns [`ConnectionManagerError::IdNotFound`] when the connection has
+    /// not been registered or has already been removed.
+    pub fn set_server_bi(&self, id: u64, val: bool) -> Result<(), ConnectionManagerError> {
         let mut connection = self
             .store
             .get_mut(&id)
@@ -118,7 +140,7 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ConnectionManager<Conn
     }
 
     /// Adds a connection wrapper to the manager's store.
-    pub fn add_connection(&self, wrapper: ConnectionWrapper<ConnectionMetadata>) {
+    pub(crate) fn add_connection(&self, wrapper: ConnectionWrapper<ConnectionMetadata>) {
         self.store.insert(wrapper.context.id, wrapper);
     }
 }

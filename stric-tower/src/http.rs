@@ -24,6 +24,7 @@ pub struct Request<B = Full<Bytes>> {
 /// Responses carry a numeric status code instead of `http::StatusCode` so they
 /// map directly onto the wire representation, while still being convertible to
 /// `http::Response<B>` when needed.
+#[derive(Debug)]
 pub struct Response<B = Full<Bytes>> {
     /// The response status code.
     pub status: u16,
@@ -38,6 +39,11 @@ impl<B> Response<B> {
     ///
     /// Headers start empty and can be populated by the caller or a middleware
     /// layer later in the pipeline.
+    ///
+    /// # Edge Cases
+    /// `Response::new` does not validate the numeric status code. Invalid codes
+    /// are preserved inside the Stric response and are only coerced to `500`
+    /// when the response is converted into `http::Response<B>`.
     pub fn new(status: u16, body: B) -> Self {
         Self {
             status,
@@ -122,6 +128,9 @@ pub trait FromRequest<S, B = Full<Bytes>>: Sized {
 /// As an extractor, it buffers the body and deserializes it with `serde_json`.
 /// As a response, it serializes the value and sets `content-type:
 /// application/json`.
+///
+/// Extraction failures are returned as `Response<Full<Bytes>>` rejections:
+/// invalid JSON becomes `400`, while body collection failures become `500`.
 pub struct Json<T>(pub T);
 
 #[async_trait]
@@ -131,7 +140,7 @@ where
     S: Send + Sync,
     B: Body + Send + Sync + 'static,
     B::Data: Send,
-    B::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
+    B::Error: Into<Box<dyn std::error::Error + Send + Sync>> + Send + Sync + 'static,
 {
     type Rejection = Response<Full<Bytes>>;
 
@@ -184,6 +193,9 @@ where
 ///
 /// This is useful when both sides of the connection share Rust-native payload
 /// types and want a compact binary format.
+///
+/// Extraction failures are returned as `Response<Full<Bytes>>` rejections:
+/// invalid bincode becomes `400`, while body collection failures become `500`.
 pub struct Bincode<T>(pub T);
 
 #[async_trait]
@@ -193,7 +205,7 @@ where
     S: Send + Sync,
     B: Body + Send + Sync + 'static,
     B::Data: Send,
-    B::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
+    B::Error: Into<Box<dyn std::error::Error + Send + Sync>> + Send + Sync + 'static,
 {
     type Rejection = Response<Full<Bytes>>;
 
@@ -246,6 +258,9 @@ where
 ///
 /// The wrapped type must implement `prost::Message`. Request extraction buffers
 /// the body before decoding, which matches the envelope-based Stric transport.
+///
+/// Extraction failures are returned as `Response<Full<Bytes>>` rejections:
+/// invalid protobuf becomes `400`, while body collection failures become `500`.
 pub struct Protobuf<T>(pub T);
 
 #[async_trait]
@@ -255,7 +270,7 @@ where
     S: Send + Sync,
     B: Body + Send + Sync + 'static,
     B::Data: Send,
-    B::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
+    B::Error: Into<Box<dyn std::error::Error + Send + Sync>> + Send + Sync + 'static,
 {
     type Rejection = Response<Full<Bytes>>;
 
@@ -307,6 +322,9 @@ where
 ///
 /// Use this when the handler wants the fully buffered payload without applying
 /// a codec such as JSON or Protobuf.
+///
+/// Extraction failures are returned as `Response<Full<Bytes>>` rejections with
+/// status `500` when body collection fails.
 pub struct RawBytes(pub Bytes);
 
 #[async_trait]
@@ -315,7 +333,7 @@ where
     S: Send + Sync,
     B: Body + Send + Sync + 'static,
     B::Data: Send,
-    B::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
+    B::Error: Into<Box<dyn std::error::Error + Send + Sync>> + Send + Sync + 'static,
 {
     type Rejection = Response<Full<Bytes>>;
 
@@ -345,6 +363,9 @@ impl IntoResponse for RawBytes {
 ///
 /// The router state type must implement `AsRef<T>` so the extractor can clone
 /// a typed view of the shared state into the handler.
+///
+/// This extractor does not currently fail; its rejection type exists only to
+/// match the extractor trait signature.
 pub struct State<T>(pub T);
 
 #[async_trait]

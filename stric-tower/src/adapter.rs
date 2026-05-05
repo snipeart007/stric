@@ -12,13 +12,13 @@ use http::response;
 /// `HttpServiceShim` is the inner half of the sandwich model. It lets a
 /// standard Tower layer operate on `http::Request` and `http::Response` values
 /// even when the real service speaks `stric-tower` request and response types.
-pub struct HttpServiceShim<S> {
+struct HttpServiceShim<S> {
     inner: S,
 }
 
 impl<S> HttpServiceShim<S> {
     /// Wraps a Stric-native service with HTTP compatibility.
-    pub fn new(inner: S) -> Self {
+    fn new(inner: S) -> Self {
         Self { inner }
     }
 }
@@ -78,7 +78,7 @@ pub struct HttpAdapter<S, L> {
 
 impl<S, L> HttpAdapter<S, L> {
     /// Creates a new adapter from an inner service and a standard Tower layer.
-    pub fn new(inner: S, layer: L) -> Self {
+    pub(crate) fn new(inner: S, layer: L) -> Self {
         Self { inner, layer }
     }
 }

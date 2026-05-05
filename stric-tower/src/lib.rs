@@ -1,30 +1,24 @@
-//! # stric-tower
-//!
-//! `stric-tower` provides integration between the Stric network framework and the [Tower](https://github.com/tower-rs/tower) ecosystem.
-//! It allows users to build high-performance, request-response based services over QUIC using an ergonomic, `axum`-like API.
-//!
-//! The crate is centered around three layers of abstraction:
-//! - request and response primitives plus extractors in [`http`]
-//! - async handler routing in [`routing`] and [`handler`]
-//! - adapters that bridge Stric-native services with standard Tower middleware
-//!   in [`adapter`]
+#![doc = include_str!("../README.md")]
 
-pub mod adapter;
-pub mod client;
+mod adapter;
+mod client;
 pub mod codec;
-pub mod error;
-pub mod handler;
-pub mod http;
-pub mod routing;
-pub mod server;
-pub mod wire;
+mod error;
+mod handler;
+mod http;
+mod routing;
+mod server;
+mod wire;
 
-pub use client::TowerClientService;
+pub use adapter::HttpAdapter;
+pub use client::{SkipServerVerification, TowerClientService};
 pub use codec::{BincodeFormat, ProstCodec, SerdeCodec, SerdeFormat, ServiceCodec};
 pub use error::TowerError;
+pub use handler::Handler;
 pub use http::{
     Bincode, Body, BodyExt, Bytes, FromRequest, Full, HeaderMap, HeaderName, HeaderValue,
-    IntoResponse, Json, Protobuf, RawBytes, Request, Response, State,
+    HttpError, IntoResponse, Json, Method, Protobuf, RawBytes, Request, Response, State,
+    StatusCode, Uri,
 };
 pub use routing::Router;
 pub use server::{Server, TowerConnectionHandler};

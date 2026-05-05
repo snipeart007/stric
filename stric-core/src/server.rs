@@ -19,13 +19,13 @@ use tokio::sync::mpsc::{self, Receiver, Sender};
 /// * `ConnectionMetadata`: A user-defined type for storing custom metadata associated with each connection.
 pub struct ServerInstance<ConnectionMetadata: Default + Send + Sync + 'static> {
     /// The underlying QUIC endpoint.
-    pub endpoint: quinn::Endpoint,
+    endpoint: quinn::Endpoint,
     /// The manager for active connections.
-    pub conn_manager: Arc<ConnectionManager<ConnectionMetadata>>,
+    conn_manager: Arc<ConnectionManager<ConnectionMetadata>>,
     /// The optional handler for new connections.
-    pub conn_handler: Option<ConnectionHandlerFn<ConnectionMetadata>>,
+    conn_handler: Option<ConnectionHandlerFn<ConnectionMetadata>>,
     /// A sender for reporting asynchronous errors.
-    pub error_tx: Sender<anyhow::Error>,
+    error_tx: Sender<anyhow::Error>,
 }
 
 impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<ConnectionMetadata> {
@@ -34,7 +34,18 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
     /// Returns a tuple containing the `ServerInstance` and a `Receiver` for asynchronous errors.
     ///
     /// # Errors
-    /// Returns an error if the server configuration is invalid or if the endpoint cannot be bound.
+    /// Returns `anyhow::Error` when Stric cannot build the TLS server
+    /// configuration or bind the QUIC endpoint.
+    ///
+    /// The propagated source error is typically one of:
+    /// - `quinn::rustls::Error` for invalid certificates or key material
+    /// - `quinn::crypto::rustls::NoInitialCipherSuite` when the rustls crypto provider is not installed
+    /// - the timeout conversion error produced by `quinn` when `idle_timeout` is outside its supported range
+    /// - `std::io::Error` when the socket cannot be bound
+    ///
+    /// # Edge Cases
+    /// `ServerInstance::new` does not verify ALPN compatibility with future
+    /// clients. A mismatch is reported later during the QUIC handshake instead.
     pub fn new(
         config: ServerConfig,
     ) -> Result<(ServerInstance<ConnectionMetadata>, Receiver<anyhow::Error>), anyhow::Error> {
@@ -73,6 +84,10 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
     }
 
     /// Registers a handler function that will be called for every new incoming connection.
+    ///
+    /// Re-registering a handler replaces the previous handler for subsequent
+    /// connections only. Existing accepted connections continue running with the
+    /// handler logic that was already spawned for them.
     pub fn register_connection_handler(
         &mut self,
         conn_handler: ConnectionHandlerFn<ConnectionMetadata>,
@@ -83,6 +98,11 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
     /// Starts listening for incoming QUIC connections.
     ///
     /// This method runs in a loop and spawns a new Tokio task for each incoming connection.
+    ///
+    /// # Edge Cases
+    /// This method only returns when the endpoint stops accepting connections.
+    /// Per-connection failures are forwarded through the error channel rather
+    /// than returned from this function.
     pub async fn listen_connections(&self) {
         while let Some(incoming) = self.endpoint.accept().await {
             let manager = self.conn_manager.clone();
@@ -98,8 +118,25 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
         }
     }
 
+    /// Returns the local socket address currently bound by the QUIC endpoint.
+    ///
+    /// # Errors
+    /// Propagates the `std::io::Error` returned by `quinn` when the local
+    /// socket address is unavailable.
+    pub fn local_addr(&self) -> Result<std::net::SocketAddr, std::io::Error> {
+        self.endpoint.local_addr()
+    }
+
+    /// Returns the shared connection manager for low-level inspection and policy updates.
+    ///
+    /// Prefer higher-level APIs unless you need direct access to connection
+    /// metadata, keep-alive flags, or per-connection stream opening.
+    pub fn connection_manager(&self) -> &Arc<ConnectionManager<ConnectionMetadata>> {
+        &self.conn_manager
+    }
+
     /// Internal method to handle an individual incoming connection.
-    pub async fn handle_incoming(
+    pub(crate) async fn handle_incoming(
         incoming: quinn::Incoming,
         manager: Arc<ConnectionManager<ConnectionMetadata>>,
         conn_handler: Option<ConnectionHandlerFn<ConnectionMetadata>>,
@@ -141,8 +178,15 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
     /// Opens a new unidirectional stream on the connection with the given ID.
     ///
     /// # Errors
-    /// Returns an error if the connection ID is not found or if the stream cannot be opened.
-    pub async fn get_unistream(&self, id: &u64) -> Result<ServerUniStream, anyhow::Error> {
+    /// Returns [`ServerStreamError::ConnectionManager`] if the connection ID is
+    /// unknown and [`ServerStreamError::Open`] if `quinn` cannot open the
+    /// stream because the connection is closed or otherwise unusable.
+    ///
+    /// # Edge Cases
+    /// A connection can disappear between looking it up and calling
+    /// `open_uni()`. In that case the ID lookup succeeds and the later
+    /// `quinn::ConnectionError` is returned as [`ServerStreamError::Open`].
+    pub async fn get_unistream(&self, id: &u64) -> Result<ServerUniStream, ServerStreamError> {
         let conn = self
             .conn_manager
             .store
@@ -152,14 +196,20 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
             .clone();
 
         let stream = conn.open_uni().await?;
-        Ok(ServerUniStream { stream })
+        Ok(ServerUniStream::new(stream))
     }
 
     /// Opens a new bidirectional stream on the connection with the given ID.
     ///
     /// # Errors
-    /// Returns an error if the connection ID is not found or if the stream cannot be opened.
-    pub async fn get_bistream(&self, id: &u64) -> Result<BiStream, anyhow::Error> {
+    /// Returns [`ServerStreamError::ConnectionManager`] if the connection ID is
+    /// unknown and [`ServerStreamError::Open`] if `quinn` cannot open the
+    /// stream because the connection is closed or otherwise unusable.
+    ///
+    /// # Edge Cases
+    /// The connection may close after lookup but before the stream opens. That
+    /// race is surfaced as [`ServerStreamError::Open`].
+    pub async fn get_bistream(&self, id: &u64) -> Result<BiStream, ServerStreamError> {
         let conn = self
             .conn_manager
             .store
@@ -169,18 +219,18 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ServerInstance<Connect
             .clone();
 
         let (send_stream, recv_stream) = conn.open_bi().await?;
-        Ok(BiStream {
-            server_initiated: true,
-            send_stream,
-            recv_stream,
-        })
+        Ok(BiStream::new(true, send_stream, recv_stream))
     }
 }
 
-/// Errors that can occur within the `ServerInstance`.
+/// Errors returned when opening server-initiated streams through [`ServerInstance`].
 #[derive(Debug, thiserror::Error)]
-pub enum ServerError {
-    /// The requested connection ID was not found.
-    #[error("Connection with given ID not found: {0}")]
-    ConnNotFound(u64),
+pub enum ServerStreamError {
+    /// The requested connection ID is not currently tracked by the connection manager.
+    #[error(transparent)]
+    ConnectionManager(#[from] ConnectionManagerError),
+
+    /// `quinn` failed to open a new stream on an otherwise known connection.
+    #[error(transparent)]
+    Open(#[from] quinn::ConnectionError),
 }

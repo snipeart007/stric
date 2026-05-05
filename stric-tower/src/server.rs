@@ -1,12 +1,10 @@
 use std::sync::Arc;
 use std::marker::PhantomData;
 use tower::{Service, ServiceExt};
-use stric_core::connection_wrapper::ConnectionWrapper;
-use stric_core::handler_types::ConnectionHandlerFn;
-use stric_core::stream::BiStream;
-use stric_core::server::ServerInstance;
-use stric_core::server_config::ServerConfig;
-use stric_core::connection_wrapper::ConnectionContext;
+use stric_core::{
+    BiStream, ConnectionContext, ConnectionHandlerFn, ConnectionWrapper, ServerConfig,
+    ServerInstance,
+};
 
 use crate::error::TowerError;
 use crate::http::{Request as StricRequest, Response, Full, Bytes, HeaderMap, HeaderName, HeaderValue, Body, BodyExt};
@@ -27,12 +25,16 @@ impl<S, B> TowerConnectionHandler<S, B>
 where
     S: Service<StricRequest<Full<Bytes>>, Response = Response<B>> + Clone + Send + Sync + 'static,
     S::Error: Into<TowerError> + Send,
-    S::Future: Send,
+    S::Future: Send + 'static,
     B: Body + Send + 'static,
-    B::Data: Send,
-    B::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
+    B::Data: Send + 'static,
+    B::Error: Into<Box<dyn std::error::Error + Send + Sync>> + Send + Sync + 'static,
 {
     /// Creates a new `TowerConnectionHandler` with the given service.
+    ///
+    /// Use this when you want `stric-tower` routing or middleware behavior on
+    /// top of a manually configured [`stric_core::ServerInstance`]. If the
+    /// development server helper is enough, prefer [`Server::serve`].
     pub fn new(service: S) -> Self {
         Self { service, _marker: PhantomData }
     }
@@ -41,6 +43,10 @@ where
     ///
     /// The returned handler clones the wrapped service per accepted stream so
     /// each request can be processed concurrently.
+    ///
+    /// This is the low-level bridge for `stric-core` integration. It should not
+    /// be used as a general request handler abstraction outside a
+    /// `ServerInstance::register_connection_handler` call.
     pub fn into_handler<M>(self) -> ConnectionHandlerFn<M>
     where
         M: Default + Send + Sync + 'static,
@@ -53,11 +59,7 @@ where
 
             Box::pin(async move {
                 while let Ok((send, recv)) = conn.accept_bi().await {
-                    let mut stream = BiStream {
-                        server_initiated: false,
-                        send_stream: send,
-                        recv_stream: recv,
-                    };
+                    let mut stream = BiStream::new(false, send, recv);
 
                     let mut service = service.clone();
 
@@ -82,8 +84,8 @@ where
     S: Service<StricRequest<Full<Bytes>>, Response = Response<B>> + Send,
     S::Error: Into<TowerError> + Send,
     B: Body + Send + 'static,
-    B::Data: Send,
-    B::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
+    B::Data: Send + 'static,
+    B::Error: Into<Box<dyn std::error::Error + Send + Sync>> + Send + Sync + 'static,
 {
     // 1. Decode Request Envelope
     let envelope = read_request_envelope(stream).await?;
@@ -142,8 +144,11 @@ pub struct Server {
 
 impl Server {
     /// Binds the server to the given address.
-    pub fn bind(addr: std::net::SocketAddr) -> Result<Self, anyhow::Error> {
-        Ok(Self { addr })
+    ///
+    /// This constructor is infallible because it only stores the address. The
+    /// actual socket bind happens later in [`serve`](Self::serve).
+    pub fn bind(addr: std::net::SocketAddr) -> Self {
+        Self { addr }
     }
 
     /// Serves the given Tower service.
@@ -151,14 +156,25 @@ impl Server {
     /// This method sets up a development-oriented QUIC configuration with a
     /// self-signed certificate and then forwards each accepted request stream to
     /// the supplied service.
+    ///
+    /// # Errors
+    /// Returns `anyhow::Error` when self-signed certificate generation fails,
+    /// when the underlying [`stric_core::ServerInstance::new`] call fails, or
+    /// when the async Stric error channel reports a connection handler failure.
+    ///
+    /// # Edge Cases
+    /// This helper always generates a fresh self-signed certificate for
+    /// `localhost`. It is intended for development and examples only. Use
+    /// [`TowerConnectionHandler`] together with [`stric_core::ServerInstance`]
+    /// when you need production TLS or client-certificate verification.
     pub async fn serve<S, B>(self, service: S) -> Result<(), anyhow::Error>
     where
         S: Service<StricRequest<Full<Bytes>>, Response = Response<B>> + Clone + Send + Sync + 'static,
         S::Error: Into<TowerError> + Send,
-        S::Future: Send,
+        S::Future: Send + 'static,
         B: Body + Send + 'static,
-        B::Data: Send,
-        B::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
+        B::Data: Send + 'static,
+        B::Error: Into<Box<dyn std::error::Error + Send + Sync>> + Send + Sync + 'static,
     {
         // Boilerplate for QUIC crypto (using rustls with ring)
         let _ = quinn::rustls::crypto::ring::default_provider().install_default();
@@ -174,7 +190,7 @@ impl Server {
             certs,
             key,
             socket_addr: self.addr,
-            alpn_protocol_names: vec![b"h3".to_vec()],
+            alpn_protocol_names: vec![b"stric".to_vec()],
             error_channel_len: 10,
             default_conn_context: ConnectionContext::default(),
             keep_alive_limit_per_thread: 0,

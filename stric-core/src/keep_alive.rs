@@ -11,7 +11,6 @@ use crate::stream::ServerUniStream;
 /// Commands sent to the Pool Manager.
 enum PoolCommand {
     AddStream {
-        id: u64,
         stream: ServerUniStream,
         interval: Duration,
     },
@@ -33,9 +32,7 @@ enum WorkerCommand {
 }
 
 /// A stream managed by the keep-alive system.
-pub struct ManagedStream {
-    /// The stable ID of the connection.
-    pub id: u64,
+pub(crate) struct ManagedStream {
     /// The unidirectional stream used for heartbeats.
     pub stream: ServerUniStream,
     /// The interval at which pings are sent.
@@ -54,7 +51,7 @@ struct WorkerHandle {
 ///
 /// `KeepAlivePool` distributes managed streams across worker tasks to ensure
 /// heartbeats are sent periodically and efficiently.
-pub struct KeepAlivePool {
+pub(crate) struct KeepAlivePool {
     sender: mpsc::Sender<PoolCommand>,
 }
 
@@ -63,7 +60,7 @@ impl KeepAlivePool {
     ///
     /// # Arguments
     /// * `limit` - The maximum number of streams each worker can manage.
-    pub fn new(limit: u64) -> Self {
+    pub(crate) fn new(limit: u64) -> Self {
         let (tx, rx) = mpsc::channel(100);
         let pool_sender = tx.clone();
         tokio::spawn(async move {
@@ -74,14 +71,10 @@ impl KeepAlivePool {
     }
 
     /// Adds a new stream to the keep-alive pool.
-    pub async fn add_stream(&self, id: u64, stream: ServerUniStream, interval: Duration) {
+    pub(crate) async fn add_stream(&self, stream: ServerUniStream, interval: Duration) {
         let _ = self
             .sender
-            .send(PoolCommand::AddStream {
-                id,
-                stream,
-                interval,
-            })
+            .send(PoolCommand::AddStream { stream, interval })
             .await;
     }
 }
@@ -114,12 +107,10 @@ impl PoolManager {
         while let Some(cmd) = self.receiver.recv().await {
             match cmd {
                 PoolCommand::AddStream {
-                    id,
                     stream,
                     interval,
                 } => {
                     self.handle_add_stream(ManagedStream {
-                        id,
                         stream,
                         interval,
                         last_ping: Instant::now(),

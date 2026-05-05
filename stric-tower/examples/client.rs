@@ -1,10 +1,9 @@
 use serde::{Deserialize, Serialize};
-use stric_tower::{HeaderMap, IntoResponse, Json, Request, TowerClientService, BodyExt};
-use tower::Service;
 use std::sync::Arc;
-use quinn::rustls::pki_types::{CertificateDer, ServerName, UnixTime};
-use quinn::rustls::client::danger::{ServerCertVerifier, ServerCertVerified, HandshakeSignatureValid};
-use quinn::rustls::{Error, SignatureScheme, DigitallySignedStruct};
+use stric_tower::{
+    BodyExt, HeaderMap, IntoResponse, Json, Request, SkipServerVerification, TowerClientService,
+};
+use tower::Service;
 
 #[derive(Serialize, Deserialize, Debug)]
 struct EchoRequest {
@@ -29,7 +28,7 @@ async fn main() -> Result<(), anyhow::Error> {
         .dangerous()
         .with_custom_certificate_verifier(Arc::new(SkipServerVerification))
         .with_no_client_auth();
-    crypto.alpn_protocols = vec![b"h3".to_vec()];
+    crypto.alpn_protocols = vec![b"stric".to_vec()];
 
     let client_config = quinn::ClientConfig::new(Arc::new(
         quinn::crypto::rustls::QuicClientConfig::try_from(crypto).unwrap(),
@@ -68,45 +67,4 @@ async fn main() -> Result<(), anyhow::Error> {
     println!("Echo Response: {}", echo_res.message);
 
     Ok(())
-}
-
-// --- Helper to skip verification for dev ---
-#[derive(Debug)]
-struct SkipServerVerification;
-
-impl ServerCertVerifier for SkipServerVerification {
-    fn verify_server_cert(
-        &self,
-        _end_entity: &CertificateDer<'_>,
-        _intermediates: &[CertificateDer<'_>],
-        _server_name: &ServerName<'_>,
-        _ocsp_response: &[u8],
-        _now: UnixTime,
-    ) -> Result<ServerCertVerified, Error> {
-        Ok(ServerCertVerified::assertion())
-    }
-
-    fn verify_tls12_signature(
-        &self,
-        _message: &[u8],
-        _cert: &CertificateDer<'_>,
-        _dss: &DigitallySignedStruct,
-    ) -> Result<HandshakeSignatureValid, Error> {
-        Ok(HandshakeSignatureValid::assertion())
-    }
-
-    fn verify_tls13_signature(
-        &self,
-        _message: &[u8],
-        _cert: &CertificateDer<'_>,
-        _dss: &DigitallySignedStruct,
-    ) -> Result<HandshakeSignatureValid, Error> {
-        Ok(HandshakeSignatureValid::assertion())
-    }
-
-    fn supported_verify_schemes(&self) -> Vec<SignatureScheme> {
-        quinn::rustls::crypto::ring::default_provider()
-            .signature_verification_algorithms
-            .supported_schemes()
-    }
 }

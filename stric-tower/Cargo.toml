@@ -2,6 +2,7 @@
 name = "stric-tower"
 version = "0.1.0"
 edition = "2024"
+readme = "README.md"
 
 [dependencies]
 stric-core = { path = "../stric-core" }
@@ -33,4 +34,3 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tokio = { version = "1.52.1", features = ["full", "macros", "test-util"] }
 rustls = "0.23.40"
-

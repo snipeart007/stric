@@ -34,7 +34,7 @@ async fn main() -> Result<(), anyhow::Error> {
     let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 4436);
     tracing::info!("Server starting with tower-http TraceLayer on {}", addr);
     
-    Server::bind(addr)?.serve(app).await?;
+    Server::bind(addr).serve(app).await?;
 
     Ok(())
 }

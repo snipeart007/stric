@@ -1,7 +1,7 @@
 use std::task::{Context, Poll};
 use tower::Service;
-use stric_core::stream::BiStream;
 use futures::future::BoxFuture;
+use stric_core::BiStream;
 
 use crate::error::TowerError;
 use crate::http::{Request, Response, Full, HeaderMap, HeaderName, HeaderValue, BodyExt};
@@ -15,6 +15,7 @@ use quinn::rustls::{Error, SignatureScheme, DigitallySignedStruct};
 ///
 /// `TowerClientService` opens a new bidirectional stream for each request,
 /// wraps the request in a `RequestEnvelope`, and decodes the `ResponseEnvelope` from the peer.
+#[derive(Clone)]
 pub struct TowerClientService {
     connection: quinn::Connection,
 }
@@ -50,11 +51,7 @@ impl Service<Request> for TowerClientService {
         Box::pin(async move {
             // 1. Open new BiStream
             let (send, recv) = conn.open_bi().await?;
-            let mut stream = BiStream {
-                server_initiated: true,
-                send_stream: send,
-                recv_stream: recv,
-            };
+            let mut stream = BiStream::new(true, send, recv);
 
             // 2. Encode Request Envelope
             // Direct header conversion: HeaderMap -> Prost HashMap
@@ -96,10 +93,13 @@ impl Service<Request> for TowerClientService {
     }
 }
 
-// --- Helper to skip verification for dev ---
-#[derive(Debug)]
-#[allow(dead_code)]
-struct SkipServerVerification;
+/// A rustls verifier that unconditionally accepts the server certificate.
+///
+/// This type exists only to make examples and local development setup easier.
+/// It disables server identity verification entirely and must not be used in
+/// production or on untrusted networks.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct SkipServerVerification;
 
 impl ServerCertVerifier for SkipServerVerification {
     fn verify_server_cert(

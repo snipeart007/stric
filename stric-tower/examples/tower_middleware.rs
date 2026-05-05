@@ -1,16 +1,12 @@
 use futures::future;
-use quinn::rustls::client::danger::{
-    HandshakeSignatureValid, ServerCertVerified, ServerCertVerifier,
-};
-use quinn::rustls::pki_types::{CertificateDer, ServerName, UnixTime};
-use quinn::rustls::{DigitallySignedStruct, Error, SignatureScheme};
 use serde::{Deserialize, Serialize};
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 use stric_tower::{
-    BodyExt, Bytes, Full, HeaderMap, Json, Request, Response, Router, Server, TowerClientService,
+    BodyExt, Bytes, Full, HeaderMap, Json, Request, Response, Router, Server,
+    SkipServerVerification, TowerClientService,
 };
 use tokio::time::sleep;
 use tower::retry::Policy;
@@ -115,7 +111,7 @@ async fn main() -> Result<(), anyhow::Error> {
         .route("/slow", slow_handler);
 
     let server_task = tokio::spawn(async move {
-        if let Err(error) = Server::bind(addr).unwrap().serve(app).await {
+        if let Err(error) = Server::bind(addr).serve(app).await {
             eprintln!("Server error: {error:?}");
         }
     });
@@ -276,7 +272,7 @@ async fn connect_insecure(addr: SocketAddr) -> Result<quinn::Connection, anyhow:
         .dangerous()
         .with_custom_certificate_verifier(Arc::new(SkipServerVerification))
         .with_no_client_auth();
-    crypto.alpn_protocols = vec![b"h3".to_vec()];
+    crypto.alpn_protocols = vec![b"stric".to_vec()];
 
     let client_config = quinn::ClientConfig::new(Arc::new(
         quinn::crypto::rustls::QuicClientConfig::try_from(crypto).unwrap(),
@@ -286,44 +282,4 @@ async fn connect_insecure(addr: SocketAddr) -> Result<quinn::Connection, anyhow:
     endpoint.set_default_client_config(client_config);
 
     Ok(endpoint.connect(addr, "localhost")?.await?)
-}
-
-#[derive(Debug)]
-struct SkipServerVerification;
-
-impl ServerCertVerifier for SkipServerVerification {
-    fn verify_server_cert(
-        &self,
-        _end_entity: &CertificateDer<'_>,
-        _intermediates: &[CertificateDer<'_>],
-        _server_name: &ServerName<'_>,
-        _ocsp_response: &[u8],
-        _now: UnixTime,
-    ) -> Result<ServerCertVerified, Error> {
-        Ok(ServerCertVerified::assertion())
-    }
-
-    fn verify_tls12_signature(
-        &self,
-        _message: &[u8],
-        _cert: &CertificateDer<'_>,
-        _dss: &DigitallySignedStruct,
-    ) -> Result<HandshakeSignatureValid, Error> {
-        Ok(HandshakeSignatureValid::assertion())
-    }
-
-    fn verify_tls13_signature(
-        &self,
-        _message: &[u8],
-        _cert: &CertificateDer<'_>,
-        _dss: &DigitallySignedStruct,
-    ) -> Result<HandshakeSignatureValid, Error> {
-        Ok(HandshakeSignatureValid::assertion())
-    }
-
-    fn supported_verify_schemes(&self) -> Vec<SignatureScheme> {
-        quinn::rustls::crypto::ring::default_provider()
-            .signature_verification_algorithms
-            .supported_schemes()
-    }
 }

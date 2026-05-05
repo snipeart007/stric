@@ -1,8 +1,6 @@
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
-use stric_core::{
-    connection_wrapper::ConnectionContext, server::ServerInstance, server_config::ServerConfig,
-};
+use stric_core::{ConnectionContext, ServerConfig, ServerInstance};
 use tokio::time::{Duration, sleep};
 
 fn setup_crypto() {
@@ -28,7 +26,7 @@ async fn test_server_connection_lifecycle() {
         certs,
         key,
         socket_addr: addr,
-        alpn_protocol_names: vec![b"h3".to_vec()],
+        alpn_protocol_names: vec![b"stric".to_vec()],
         error_channel_len: 10,
         default_conn_context: ConnectionContext::default(),
         keep_alive_limit_per_thread: 0,
@@ -37,7 +35,7 @@ async fn test_server_connection_lifecycle() {
 
     // 2. Start Server
     let (mut server, mut _error_rx) = ServerInstance::<()>::new(config).unwrap();
-    let server_addr = server.endpoint.local_addr().unwrap();
+    let server_addr = server.local_addr().unwrap();
 
     // Set a handler that just finishes immediately
     server.register_connection_handler(Arc::new(|_wrapper| Box::pin(async move { Ok(()) })));
@@ -57,7 +55,7 @@ async fn test_server_connection_lifecycle() {
     let mut crypto = quinn::rustls::ClientConfig::builder()
         .with_root_certificates(roots)
         .with_no_client_auth();
-    crypto.alpn_protocols = vec![b"h3".to_vec()];
+    crypto.alpn_protocols = vec![b"stric".to_vec()];
 
     let client_config = quinn::ClientConfig::new(Arc::new(
         quinn::crypto::rustls::QuicClientConfig::try_from(crypto).unwrap(),
@@ -78,7 +76,7 @@ async fn test_server_connection_lifecycle() {
     sleep(Duration::from_millis(200)).await;
 
     let server_id = {
-        let manager = &server_arc.conn_manager;
+        let manager = server_arc.connection_manager();
         let id = *manager
             .store
             .iter()
@@ -90,7 +88,7 @@ async fn test_server_connection_lifecycle() {
     };
 
     {
-        let manager = &server_arc.conn_manager;
+        let manager = server_arc.connection_manager();
         assert!(manager.store.contains_key(&server_id));
 
         let conn_ref = manager.store.get(&server_id).unwrap();
@@ -110,7 +108,7 @@ async fn test_server_connection_lifecycle() {
         .get_bistream(&server_id)
         .await
         .expect("Server should be able to open bi stream");
-    assert!(server_bi.server_initiated);
+        assert!(server_bi.is_server_initiated());
 }
 
 #[tokio::test]
@@ -129,7 +127,7 @@ async fn test_connection_manager_updates() {
         certs,
         key,
         socket_addr: addr,
-        alpn_protocol_names: vec![b"h3".to_vec()],
+        alpn_protocol_names: vec![b"stric".to_vec()],
         error_channel_len: 10,
         default_conn_context: ConnectionContext::default(),
         keep_alive_limit_per_thread: 0,
@@ -137,7 +135,7 @@ async fn test_connection_manager_updates() {
     };
 
     let (server, mut _error_rx) = ServerInstance::<()>::new(config).unwrap();
-    let server_addr = server.endpoint.local_addr().unwrap();
+    let server_addr = server.local_addr().unwrap();
     let server_arc = Arc::new(server);
     let server_clone = server_arc.clone();
     tokio::spawn(async move {
@@ -152,7 +150,7 @@ async fn test_connection_manager_updates() {
     let mut crypto = quinn::rustls::ClientConfig::builder()
         .with_root_certificates(roots)
         .with_no_client_auth();
-    crypto.alpn_protocols = vec![b"h3".to_vec()];
+    crypto.alpn_protocols = vec![b"stric".to_vec()];
 
     let client_config = quinn::ClientConfig::new(Arc::new(
         quinn::crypto::rustls::QuicClientConfig::try_from(crypto).unwrap(),
@@ -171,7 +169,7 @@ async fn test_connection_manager_updates() {
     sleep(Duration::from_millis(200)).await;
 
     let server_id = {
-        let manager = &server_arc.conn_manager;
+        let manager = server_arc.connection_manager();
         *manager
             .store
             .iter()
@@ -182,7 +180,7 @@ async fn test_connection_manager_updates() {
 
     // Test updating context flags via manager
     {
-        let manager = &server_arc.conn_manager;
+        let manager = server_arc.connection_manager();
         manager.set_client_uni(server_id, true).unwrap();
         manager.set_server_bi(server_id, true).unwrap();
 
@@ -209,7 +207,7 @@ async fn test_error_channel_and_handler_failure() {
         certs,
         key,
         socket_addr: addr,
-        alpn_protocol_names: vec![b"h3".to_vec()],
+        alpn_protocol_names: vec![b"stric".to_vec()],
         error_channel_len: 10,
         default_conn_context: ConnectionContext::default(),
         keep_alive_limit_per_thread: 0,
@@ -217,7 +215,7 @@ async fn test_error_channel_and_handler_failure() {
     };
 
     let (mut server, mut error_rx) = ServerInstance::<()>::new(config).unwrap();
-    let server_addr = server.endpoint.local_addr().unwrap();
+    let server_addr = server.local_addr().unwrap();
 
     server.register_connection_handler(Arc::new(|_wrapper| {
         Box::pin(async move { Err(anyhow::anyhow!("Handler intentional failure")) })
@@ -236,7 +234,7 @@ async fn test_error_channel_and_handler_failure() {
     let mut crypto = quinn::rustls::ClientConfig::builder()
         .with_root_certificates(roots)
         .with_no_client_auth();
-    crypto.alpn_protocols = vec![b"h3".to_vec()];
+    crypto.alpn_protocols = vec![b"stric".to_vec()];
     let client_config = quinn::ClientConfig::new(Arc::new(
         quinn::crypto::rustls::QuicClientConfig::try_from(crypto).unwrap(),
     ));
@@ -260,7 +258,7 @@ async fn test_error_channel_and_handler_failure() {
     assert_eq!(err.to_string(), "Handler intentional failure");
 
     // Verify connection NOT in manager
-    let manager = &server_arc.conn_manager;
+    let manager = server_arc.connection_manager();
     assert_eq!(
         manager.store.len(),
         0,
@@ -289,7 +287,7 @@ async fn test_custom_metadata() {
         certs,
         key,
         socket_addr: addr,
-        alpn_protocol_names: vec![b"h3".to_vec()],
+        alpn_protocol_names: vec![b"stric".to_vec()],
         error_channel_len: 10,
         default_conn_context: ConnectionContext::default(),
         keep_alive_limit_per_thread: 0,
@@ -297,7 +295,7 @@ async fn test_custom_metadata() {
     };
 
     let (mut server, mut _error_rx) = ServerInstance::<MyMetadata>::new(config).unwrap();
-    let server_addr = server.endpoint.local_addr().unwrap();
+    let server_addr = server.local_addr().unwrap();
 
     server.register_connection_handler(Arc::new(|wrapper| {
         wrapper.metadata.name = "StricTest".to_string();
@@ -317,7 +315,7 @@ async fn test_custom_metadata() {
     let mut crypto = quinn::rustls::ClientConfig::builder()
         .with_root_certificates(roots)
         .with_no_client_auth();
-    crypto.alpn_protocols = vec![b"h3".to_vec()];
+    crypto.alpn_protocols = vec![b"stric".to_vec()];
     let client_config = quinn::ClientConfig::new(Arc::new(
         quinn::crypto::rustls::QuicClientConfig::try_from(crypto).unwrap(),
     ));
@@ -334,7 +332,7 @@ async fn test_custom_metadata() {
 
     sleep(Duration::from_millis(200)).await;
 
-    let manager = &server_arc.conn_manager;
+    let manager = server_arc.connection_manager();
     let id = *manager.store.iter().next().unwrap().key();
     let conn_ref = manager.store.get(&id).unwrap();
     assert_eq!(conn_ref.metadata.name, "StricTest");
@@ -359,7 +357,7 @@ async fn test_keep_alive_ping() {
         certs,
         key,
         socket_addr: addr,
-        alpn_protocol_names: vec![b"h3".to_vec()],
+        alpn_protocol_names: vec![b"stric".to_vec()],
         error_channel_len: 10,
         default_conn_context: context,
         keep_alive_limit_per_thread: 10,
@@ -367,7 +365,7 @@ async fn test_keep_alive_ping() {
     };
 
     let (server, mut _error_rx) = ServerInstance::<()>::new(config).unwrap();
-    let server_addr = server.endpoint.local_addr().unwrap();
+    let server_addr = server.local_addr().unwrap();
     let server_arc = Arc::new(server);
     let server_clone = server_arc.clone();
     tokio::spawn(async move {
@@ -381,7 +379,7 @@ async fn test_keep_alive_ping() {
     let mut crypto = quinn::rustls::ClientConfig::builder()
         .with_root_certificates(roots)
         .with_no_client_auth();
-    crypto.alpn_protocols = vec![b"h3".to_vec()];
+    crypto.alpn_protocols = vec![b"stric".to_vec()];
     let client_config = quinn::ClientConfig::new(Arc::new(
         quinn::crypto::rustls::QuicClientConfig::try_from(crypto).unwrap(),
     ));
