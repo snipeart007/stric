@@ -9,7 +9,7 @@
       "source_file": "stric\\src\\lib.rs",
       "source_location": "L1",
       "id": "stric_src_lib_rs",
-      "community": 22,
+      "community": 24,
       "norm_label": "lib.rs"
     },
     {
@@ -18,7 +18,7 @@
       "source_file": "stric-core\\src\\connection.rs",
       "source_location": "L1",
       "id": "stric_core_src_connection_rs",
-      "community": 14,
+      "community": 16,
       "norm_label": "connection.rs"
     },
     {
@@ -27,7 +27,7 @@
       "source_file": "stric-core\\src\\connection.rs",
       "source_location": "L15",
       "id": "src_connection_connectionmanager",
-      "community": 14,
+      "community": 16,
       "norm_label": "connectionmanager"
     },
     {
@@ -36,7 +36,7 @@
       "source_file": "stric-core\\src\\connection.rs",
       "source_location": "L26",
       "id": "src_connection_connectionmanager_connectionmetadata",
-      "community": 10,
+      "community": 12,
       "norm_label": "connectionmanager<connectionmetadata>"
     },
     {
@@ -54,7 +54,7 @@
       "source_file": "stric-core\\src\\connection.rs",
       "source_location": "L49",
       "id": "src_connection_connectionmanager_connectionmetadata_set_keep_alive",
-      "community": 10,
+      "community": 12,
       "norm_label": ".set_keep_alive()"
     },
     {
@@ -63,7 +63,7 @@
       "source_file": "stric-core\\src\\connection.rs",
       "source_location": "L73",
       "id": "src_connection_connectionmanager_connectionmetadata_set_client_uni",
-      "community": 10,
+      "community": 12,
       "norm_label": ".set_client_uni()"
     },
     {
@@ -72,7 +72,7 @@
       "source_file": "stric-core\\src\\connection.rs",
       "source_location": "L85",
       "id": "src_connection_connectionmanager_connectionmetadata_set_client_bi",
-      "community": 10,
+      "community": 12,
       "norm_label": ".set_client_bi()"
     },
     {
@@ -81,7 +81,7 @@
       "source_file": "stric-core\\src\\connection.rs",
       "source_location": "L97",
       "id": "src_connection_connectionmanager_connectionmetadata_set_server_uni",
-      "community": 10,
+      "community": 12,
       "norm_label": ".set_server_uni()"
     },
     {
@@ -90,7 +90,7 @@
       "source_file": "stric-core\\src\\connection.rs",
       "source_location": "L109",
       "id": "src_connection_connectionmanager_connectionmetadata_set_server_bi",
-      "community": 10,
+      "community": 12,
       "norm_label": ".set_server_bi()"
     },
     {
@@ -99,7 +99,7 @@
       "source_file": "stric-core\\src\\connection.rs",
       "source_location": "L121",
       "id": "src_connection_connectionmanager_connectionmetadata_add_connection",
-      "community": 10,
+      "community": 12,
       "norm_label": ".add_connection()"
     },
     {
@@ -108,7 +108,7 @@
       "source_file": "stric-core\\src\\connection.rs",
       "source_location": "L128",
       "id": "src_connection_connectionmanagererror",
-      "community": 14,
+      "community": 16,
       "norm_label": "connectionmanagererror"
     },
     {
@@ -117,7 +117,7 @@
       "source_file": "stric-core\\src\\connection_wrapper.rs",
       "source_location": "L1",
       "id": "stric_core_src_connection_wrapper_rs",
-      "community": 15,
+      "community": 17,
       "norm_label": "connection_wrapper.rs"
     },
     {
@@ -126,7 +126,7 @@
       "source_file": "stric-core\\src\\connection_wrapper.rs",
       "source_location": "L6",
       "id": "src_connection_wrapper_connectionwrapper",
-      "community": 15,
+      "community": 17,
       "norm_label": "connectionwrapper"
     },
     {
@@ -135,7 +135,7 @@
       "source_file": "stric-core\\src\\connection_wrapper.rs",
       "source_location": "L17",
       "id": "src_connection_wrapper_connectioncontext",
-      "community": 15,
+      "community": 17,
       "norm_label": "connectioncontext"
     },
     {
@@ -144,7 +144,7 @@
       "source_file": "stric-core\\src\\handler_types.rs",
       "source_location": "L1",
       "id": "stric_core_src_handler_types_rs",
-      "community": 23,
+      "community": 25,
       "norm_label": "handler_types.rs"
     },
     {
@@ -153,7 +153,7 @@
       "source_file": "stric-core\\src\\keep_alive.rs",
       "source_location": "L1",
       "id": "stric_core_src_keep_alive_rs",
-      "community": 5,
+      "community": 7,
       "norm_label": "keep_alive.rs"
     },
     {
@@ -162,7 +162,7 @@
       "source_file": "stric-core\\src\\keep_alive.rs",
       "source_location": "L12",
       "id": "src_keep_alive_poolcommand",
-      "community": 5,
+      "community": 7,
       "norm_label": "poolcommand"
     },
     {
@@ -171,7 +171,7 @@
       "source_file": "stric-core\\src\\keep_alive.rs",
       "source_location": "L29",
       "id": "src_keep_alive_workercommand",
-      "community": 5,
+      "community": 7,
       "norm_label": "workercommand"
     },
     {
@@ -180,7 +180,7 @@
       "source_file": "stric-core\\src\\keep_alive.rs",
       "source_location": "L36",
       "id": "src_keep_alive_managedstream",
-      "community": 5,
+      "community": 7,
       "norm_label": "managedstream"
     },
     {
@@ -189,7 +189,7 @@
       "source_file": "stric-core\\src\\keep_alive.rs",
       "source_location": "L48",
       "id": "src_keep_alive_workerhandle",
-      "community": 5,
+      "community": 7,
       "norm_label": "workerhandle"
     },
     {
@@ -198,7 +198,7 @@
       "source_file": "stric-core\\src\\keep_alive.rs",
       "source_location": "L57",
       "id": "src_keep_alive_keepalivepool",
-      "community": 5,
+      "community": 7,
       "norm_label": "keepalivepool"
     },
     {
@@ -207,7 +207,7 @@
       "source_file": "stric-core\\src\\keep_alive.rs",
       "source_location": "L66",
       "id": "src_keep_alive_keepalivepool_new",
-      "community": 5,
+      "community": 7,
       "norm_label": ".new()"
     },
     {
@@ -216,7 +216,7 @@
       "source_file": "stric-core\\src\\keep_alive.rs",
       "source_location": "L77",
       "id": "src_keep_alive_keepalivepool_add_stream",
-      "community": 5,
+      "community": 7,
       "norm_label": ".add_stream()"
     },
     {
@@ -225,7 +225,7 @@
       "source_file": "stric-core\\src\\keep_alive.rs",
       "source_location": "L90",
       "id": "src_keep_alive_poolmanager",
-      "community": 5,
+      "community": 7,
       "norm_label": "poolmanager"
     },
     {
@@ -234,7 +234,7 @@
       "source_file": "stric-core\\src\\keep_alive.rs",
       "source_location": "L99",
       "id": "src_keep_alive_poolmanager_new",
-      "community": 5,
+      "community": 7,
       "norm_label": ".new()"
     },
     {
@@ -243,7 +243,7 @@
       "source_file": "stric-core\\src\\keep_alive.rs",
       "source_location": "L113",
       "id": "src_keep_alive_poolmanager_run",
-      "community": 5,
+      "community": 7,
       "norm_label": ".run()"
     },
     {
@@ -252,7 +252,7 @@
       "source_file": "stric-core\\src\\keep_alive.rs",
       "source_location": "L139",
       "id": "src_keep_alive_poolmanager_handle_add_stream",
-      "community": 5,
+      "community": 7,
       "norm_label": ".handle_add_stream()"
     },
     {
@@ -261,7 +261,7 @@
       "source_file": "stric-core\\src\\keep_alive.rs",
       "source_location": "L184",
       "id": "src_keep_alive_poolmanager_handle_underloaded",
-      "community": 5,
+      "community": 7,
       "norm_label": ".handle_underloaded()"
     },
     {
@@ -270,7 +270,7 @@
       "source_file": "stric-core\\src\\keep_alive.rs",
       "source_location": "L198",
       "id": "src_keep_alive_keepaliveworker",
-      "community": 5,
+      "community": 7,
       "norm_label": "keepaliveworker"
     },
     {
@@ -279,7 +279,7 @@
       "source_file": "stric-core\\src\\keep_alive.rs",
       "source_location": "L209",
       "id": "src_keep_alive_keepaliveworker_update_counts",
-      "community": 5,
+      "community": 7,
       "norm_label": ".update_counts()"
     },
     {
@@ -288,7 +288,7 @@
       "source_file": "stric-core\\src\\keep_alive.rs",
       "source_location": "L214",
       "id": "src_keep_alive_keepaliveworker_run",
-      "community": 5,
+      "community": 7,
       "norm_label": ".run()"
     },
     {
@@ -297,7 +297,7 @@
       "source_file": "stric-core\\src\\lib.rs",
       "source_location": "L1",
       "id": "stric_core_src_lib_rs",
-      "community": 24,
+      "community": 26,
       "norm_label": "lib.rs"
     },
     {
@@ -306,7 +306,7 @@
       "source_file": "stric-core\\src\\server.rs",
       "source_location": "L1",
       "id": "stric_core_src_server_rs",
-      "community": 16,
+      "community": 18,
       "norm_label": "server.rs"
     },
     {
@@ -315,7 +315,7 @@
       "source_file": "stric-core\\src\\server.rs",
       "source_location": "L20",
       "id": "src_server_serverinstance",
-      "community": 16,
+      "community": 18,
       "norm_label": "serverinstance"
     },
     {
@@ -324,7 +324,7 @@
       "source_file": "stric-core\\src\\server.rs",
       "source_location": "L31",
       "id": "src_server_serverinstance_connectionmetadata",
-      "community": 11,
+      "community": 13,
       "norm_label": "serverinstance<connectionmetadata>"
     },
     {
@@ -342,7 +342,7 @@
       "source_file": "stric-core\\src\\server.rs",
       "source_location": "L76",
       "id": "src_server_serverinstance_connectionmetadata_register_connection_handler",
-      "community": 11,
+      "community": 13,
       "norm_label": ".register_connection_handler()"
     },
     {
@@ -351,7 +351,7 @@
       "source_file": "stric-core\\src\\server.rs",
       "source_location": "L86",
       "id": "src_server_serverinstance_connectionmetadata_listen_connections",
-      "community": 11,
+      "community": 13,
       "norm_label": ".listen_connections()"
     },
     {
@@ -360,7 +360,7 @@
       "source_file": "stric-core\\src\\server.rs",
       "source_location": "L102",
       "id": "src_server_serverinstance_connectionmetadata_handle_incoming",
-      "community": 11,
+      "community": 13,
       "norm_label": ".handle_incoming()"
     },
     {
@@ -369,7 +369,7 @@
       "source_file": "stric-core\\src\\server.rs",
       "source_location": "L145",
       "id": "src_server_serverinstance_connectionmetadata_get_unistream",
-      "community": 11,
+      "community": 13,
       "norm_label": ".get_unistream()"
     },
     {
@@ -378,7 +378,7 @@
       "source_file": "stric-core\\src\\server.rs",
       "source_location": "L162",
       "id": "src_server_serverinstance_connectionmetadata_get_bistream",
-      "community": 11,
+      "community": 13,
       "norm_label": ".get_bistream()"
     },
     {
@@ -387,7 +387,7 @@
       "source_file": "stric-core\\src\\server.rs",
       "source_location": "L182",
       "id": "src_server_servererror",
-      "community": 16,
+      "community": 18,
       "norm_label": "servererror"
     },
     {
@@ -396,7 +396,7 @@
       "source_file": "stric-core\\src\\server_config.rs",
       "source_location": "L1",
       "id": "stric_core_src_server_config_rs",
-      "community": 18,
+      "community": 20,
       "norm_label": "server_config.rs"
     },
     {
@@ -405,7 +405,7 @@
       "source_file": "stric-core\\src\\server_config.rs",
       "source_location": "L8",
       "id": "src_server_config_serverconfig",
-      "community": 18,
+      "community": 20,
       "norm_label": "serverconfig"
     },
     {
@@ -414,7 +414,7 @@
       "source_file": "stric-core\\src\\stream.rs",
       "source_location": "L1",
       "id": "stric_core_src_stream_rs",
-      "community": 4,
+      "community": 6,
       "norm_label": "stream.rs"
     },
     {
@@ -423,7 +423,7 @@
       "source_file": "stric-core\\src\\stream.rs",
       "source_location": "L7",
       "id": "src_stream_serverunistream",
-      "community": 4,
+      "community": 6,
       "norm_label": "serverunistream"
     },
     {
@@ -432,7 +432,7 @@
       "source_file": "stric-core\\src\\stream.rs",
       "source_location": "L13",
       "id": "src_stream_serverunistream_write",
-      "community": 4,
+      "community": 6,
       "norm_label": ".write()"
     },
     {
@@ -441,7 +441,7 @@
       "source_file": "stric-core\\src\\stream.rs",
       "source_location": "L18",
       "id": "src_stream_serverunistream_write_all",
-      "community": 4,
+      "community": 6,
       "norm_label": ".write_all()"
     },
     {
@@ -450,7 +450,7 @@
       "source_file": "stric-core\\src\\stream.rs",
       "source_location": "L23",
       "id": "src_stream_serverunistream_finish",
-      "community": 4,
+      "community": 6,
       "norm_label": ".finish()"
     },
     {
@@ -459,7 +459,7 @@
       "source_file": "stric-core\\src\\stream.rs",
       "source_location": "L28",
       "id": "src_stream_serverunistream_stopped",
-      "community": 4,
+      "community": 6,
       "norm_label": ".stopped()"
     },
     {
@@ -468,7 +468,7 @@
       "source_file": "stric-core\\src\\stream.rs",
       "source_location": "L34",
       "id": "src_stream_clientunistream",
-      "community": 4,
+      "community": 6,
       "norm_label": "clientunistream"
     },
     {
@@ -477,7 +477,7 @@
       "source_file": "stric-core\\src\\stream.rs",
       "source_location": "L40",
       "id": "src_stream_clientunistream_read",
-      "community": 4,
+      "community": 6,
       "norm_label": ".read()"
     },
     {
@@ -486,7 +486,7 @@
       "source_file": "stric-core\\src\\stream.rs",
       "source_location": "L45",
       "id": "src_stream_clientunistream_read_exact",
-      "community": 4,
+      "community": 6,
       "norm_label": ".read_exact()"
     },
     {
@@ -495,7 +495,7 @@
       "source_file": "stric-core\\src\\stream.rs",
       "source_location": "L53",
       "id": "src_stream_clientunistream_read_to_end",
-      "community": 4,
+      "community": 6,
       "norm_label": ".read_to_end()"
     },
     {
@@ -504,7 +504,7 @@
       "source_file": "stric-core\\src\\stream.rs",
       "source_location": "L61",
       "id": "src_stream_clientunistream_stop",
-      "community": 4,
+      "community": 6,
       "norm_label": ".stop()"
     },
     {
@@ -513,7 +513,7 @@
       "source_file": "stric-core\\src\\stream.rs",
       "source_location": "L70",
       "id": "src_stream_bistream",
-      "community": 4,
+      "community": 6,
       "norm_label": "bistream"
     },
     {
@@ -522,7 +522,7 @@
       "source_file": "stric-core\\src\\stream.rs",
       "source_location": "L83",
       "id": "src_stream_bistream_write",
-      "community": 4,
+      "community": 6,
       "norm_label": ".write()"
     },
     {
@@ -531,7 +531,7 @@
       "source_file": "stric-core\\src\\stream.rs",
       "source_location": "L88",
       "id": "src_stream_bistream_write_all",
-      "community": 4,
+      "community": 6,
       "norm_label": ".write_all()"
     },
     {
@@ -540,7 +540,7 @@
       "source_file": "stric-core\\src\\stream.rs",
       "source_location": "L93",
       "id": "src_stream_bistream_finish",
-      "community": 4,
+      "community": 6,
       "norm_label": ".finish()"
     },
     {
@@ -549,7 +549,7 @@
       "source_file": "stric-core\\src\\stream.rs",
       "source_location": "L100",
       "id": "src_stream_bistream_read",
-      "community": 4,
+      "community": 6,
       "norm_label": ".read()"
     },
     {
@@ -558,7 +558,7 @@
       "source_file": "stric-core\\src\\stream.rs",
       "source_location": "L105",
       "id": "src_stream_bistream_read_exact",
-      "community": 4,
+      "community": 6,
       "norm_label": ".read_exact()"
     },
     {
@@ -567,7 +567,7 @@
       "source_file": "stric-core\\src\\stream.rs",
       "source_location": "L113",
       "id": "src_stream_bistream_read_to_end",
-      "community": 4,
+      "community": 6,
       "norm_label": ".read_to_end()"
     },
     {
@@ -648,7 +648,7 @@
       "source_file": "stric-tower\\build.rs",
       "source_location": "L1",
       "id": "stric_tower_build_rs",
-      "community": 19,
+      "community": 21,
       "norm_label": "build.rs"
     },
     {
@@ -657,7 +657,7 @@
       "source_file": "stric-tower\\build.rs",
       "source_location": "L1",
       "id": "stric_tower_build_main",
-      "community": 19,
+      "community": 21,
       "norm_label": "main()"
     },
     {
@@ -666,7 +666,7 @@
       "source_file": "stric-tower\\examples\\client.rs",
       "source_location": "L1",
       "id": "stric_tower_examples_client_rs",
-      "community": 9,
+      "community": 11,
       "norm_label": "client.rs"
     },
     {
@@ -675,7 +675,7 @@
       "source_file": "stric-tower\\examples\\client.rs",
       "source_location": "L10",
       "id": "examples_client_echorequest",
-      "community": 9,
+      "community": 11,
       "norm_label": "echorequest"
     },
     {
@@ -684,7 +684,7 @@
       "source_file": "stric-tower\\examples\\client.rs",
       "source_location": "L15",
       "id": "examples_client_echoresponse",
-      "community": 9,
+      "community": 11,
       "norm_label": "echoresponse"
     },
     {
@@ -702,7 +702,7 @@
       "source_file": "stric-tower\\examples\\client.rs",
       "source_location": "L75",
       "id": "examples_client_skipserververification",
-      "community": 9,
+      "community": 11,
       "norm_label": "skipserververification"
     },
     {
@@ -711,7 +711,7 @@
       "source_file": "stric-tower\\examples\\client.rs",
       "source_location": "L78",
       "id": "examples_client_skipserververification_verify_server_cert",
-      "community": 9,
+      "community": 11,
       "norm_label": ".verify_server_cert()"
     },
     {
@@ -720,7 +720,7 @@
       "source_file": "stric-tower\\examples\\client.rs",
       "source_location": "L89",
       "id": "examples_client_skipserververification_verify_tls12_signature",
-      "community": 9,
+      "community": 11,
       "norm_label": ".verify_tls12_signature()"
     },
     {
@@ -729,7 +729,7 @@
       "source_file": "stric-tower\\examples\\client.rs",
       "source_location": "L98",
       "id": "examples_client_skipserververification_verify_tls13_signature",
-      "community": 9,
+      "community": 11,
       "norm_label": ".verify_tls13_signature()"
     },
     {
@@ -738,7 +738,7 @@
       "source_file": "stric-tower\\examples\\client.rs",
       "source_location": "L107",
       "id": "examples_client_skipserververification_supported_verify_schemes",
-      "community": 9,
+      "community": 11,
       "norm_label": ".supported_verify_schemes()"
     },
     {
@@ -747,7 +747,7 @@
       "source_file": "stric-tower\\examples\\middleware.rs",
       "source_location": "L1",
       "id": "stric_tower_examples_middleware_rs",
-      "community": 3,
+      "community": 8,
       "norm_label": "middleware.rs"
     },
     {
@@ -756,7 +756,7 @@
       "source_file": "stric-tower\\examples\\middleware.rs",
       "source_location": "L7",
       "id": "examples_middleware_message",
-      "community": 3,
+      "community": 8,
       "norm_label": "message"
     },
     {
@@ -765,7 +765,7 @@
       "source_file": "stric-tower\\examples\\middleware.rs",
       "source_location": "L11",
       "id": "examples_middleware_hello_handler",
-      "community": 3,
+      "community": 8,
       "norm_label": "hello_handler()"
     },
     {
@@ -774,7 +774,7 @@
       "source_file": "stric-tower\\examples\\middleware.rs",
       "source_location": "L19",
       "id": "examples_middleware_main",
-      "community": 3,
+      "community": 8,
       "norm_label": "main()"
     },
     {
@@ -783,7 +783,7 @@
       "source_file": "stric-tower\\examples\\mixed_codec.rs",
       "source_location": "L1",
       "id": "stric_tower_examples_mixed_codec_rs",
-      "community": 6,
+      "community": 4,
       "norm_label": "mixed_codec.rs"
     },
     {
@@ -792,7 +792,7 @@
       "source_file": "stric-tower\\examples\\mixed_codec.rs",
       "source_location": "L13",
       "id": "examples_mixed_codec_searchrequest",
-      "community": 6,
+      "community": 4,
       "norm_label": "searchrequest"
     },
     {
@@ -801,7 +801,7 @@
       "source_file": "stric-tower\\examples\\mixed_codec.rs",
       "source_location": "L20",
       "id": "examples_mixed_codec_searchresult",
-      "community": 6,
+      "community": 4,
       "norm_label": "searchresult"
     },
     {
@@ -810,7 +810,7 @@
       "source_file": "stric-tower\\examples\\mixed_codec.rs",
       "source_location": "L28",
       "id": "examples_mixed_codec_searchresponse",
-      "community": 6,
+      "community": 4,
       "norm_label": "searchresponse"
     },
     {
@@ -819,7 +819,7 @@
       "source_file": "stric-tower\\examples\\mixed_codec.rs",
       "source_location": "L34",
       "id": "examples_mixed_codec_search_handler",
-      "community": 6,
+      "community": 4,
       "norm_label": "search_handler()"
     },
     {
@@ -828,7 +828,7 @@
       "source_file": "stric-tower\\examples\\mixed_codec.rs",
       "source_location": "L52",
       "id": "examples_mixed_codec_main",
-      "community": 6,
+      "community": 0,
       "norm_label": "main()"
     },
     {
@@ -837,7 +837,7 @@
       "source_file": "stric-tower\\examples\\mixed_codec.rs",
       "source_location": "L73",
       "id": "examples_mixed_codec_run_client",
-      "community": 6,
+      "community": 0,
       "norm_label": "run_client()"
     },
     {
@@ -846,7 +846,7 @@
       "source_file": "stric-tower\\examples\\mixed_codec.rs",
       "source_location": "L126",
       "id": "examples_mixed_codec_skipserververification",
-      "community": 6,
+      "community": 4,
       "norm_label": "skipserververification"
     },
     {
@@ -855,7 +855,7 @@
       "source_file": "stric-tower\\examples\\mixed_codec.rs",
       "source_location": "L129",
       "id": "examples_mixed_codec_skipserververification_verify_server_cert",
-      "community": 6,
+      "community": 4,
       "norm_label": ".verify_server_cert()"
     },
     {
@@ -864,7 +864,7 @@
       "source_file": "stric-tower\\examples\\mixed_codec.rs",
       "source_location": "L140",
       "id": "examples_mixed_codec_skipserververification_verify_tls12_signature",
-      "community": 6,
+      "community": 4,
       "norm_label": ".verify_tls12_signature()"
     },
     {
@@ -873,7 +873,7 @@
       "source_file": "stric-tower\\examples\\mixed_codec.rs",
       "source_location": "L149",
       "id": "examples_mixed_codec_skipserververification_verify_tls13_signature",
-      "community": 6,
+      "community": 4,
       "norm_label": ".verify_tls13_signature()"
     },
     {
@@ -882,7 +882,7 @@
       "source_file": "stric-tower\\examples\\mixed_codec.rs",
       "source_location": "L158",
       "id": "examples_mixed_codec_skipserververification_supported_verify_schemes",
-      "community": 6,
+      "community": 4,
       "norm_label": ".supported_verify_schemes()"
     },
     {
@@ -891,7 +891,7 @@
       "source_file": "stric-tower\\examples\\protobuf.rs",
       "source_location": "L1",
       "id": "stric_tower_examples_protobuf_rs",
-      "community": 3,
+      "community": 4,
       "norm_label": "protobuf.rs"
     },
     {
@@ -900,7 +900,7 @@
       "source_file": "stric-tower\\examples\\protobuf.rs",
       "source_location": "L12",
       "id": "examples_protobuf_hellorequest",
-      "community": 3,
+      "community": 4,
       "norm_label": "hellorequest"
     },
     {
@@ -909,7 +909,7 @@
       "source_file": "stric-tower\\examples\\protobuf.rs",
       "source_location": "L18",
       "id": "examples_protobuf_helloresponse",
-      "community": 3,
+      "community": 4,
       "norm_label": "helloresponse"
     },
     {
@@ -918,7 +918,7 @@
       "source_file": "stric-tower\\examples\\protobuf.rs",
       "source_location": "L24",
       "id": "examples_protobuf_hello_handler",
-      "community": 6,
+      "community": 4,
       "norm_label": "hello_handler()"
     },
     {
@@ -927,7 +927,7 @@
       "source_file": "stric-tower\\examples\\protobuf.rs",
       "source_location": "L32",
       "id": "examples_protobuf_main",
-      "community": 3,
+      "community": 0,
       "norm_label": "main()"
     },
     {
@@ -936,7 +936,7 @@
       "source_file": "stric-tower\\examples\\protobuf.rs",
       "source_location": "L53",
       "id": "examples_protobuf_run_client",
-      "community": 3,
+      "community": 0,
       "norm_label": "run_client()"
     },
     {
@@ -945,7 +945,7 @@
       "source_file": "stric-tower\\examples\\protobuf.rs",
       "source_location": "L104",
       "id": "examples_protobuf_skipserververification",
-      "community": 3,
+      "community": 4,
       "norm_label": "skipserververification"
     },
     {
@@ -954,7 +954,7 @@
       "source_file": "stric-tower\\examples\\protobuf.rs",
       "source_location": "L107",
       "id": "examples_protobuf_skipserververification_verify_server_cert",
-      "community": 3,
+      "community": 4,
       "norm_label": ".verify_server_cert()"
     },
     {
@@ -963,7 +963,7 @@
       "source_file": "stric-tower\\examples\\protobuf.rs",
       "source_location": "L118",
       "id": "examples_protobuf_skipserververification_verify_tls12_signature",
-      "community": 3,
+      "community": 4,
       "norm_label": ".verify_tls12_signature()"
     },
     {
@@ -972,7 +972,7 @@
       "source_file": "stric-tower\\examples\\protobuf.rs",
       "source_location": "L127",
       "id": "examples_protobuf_skipserververification_verify_tls13_signature",
-      "community": 3,
+      "community": 4,
       "norm_label": ".verify_tls13_signature()"
     },
     {
@@ -981,7 +981,7 @@
       "source_file": "stric-tower\\examples\\protobuf.rs",
       "source_location": "L136",
       "id": "examples_protobuf_skipserververification_supported_verify_schemes",
-      "community": 3,
+      "community": 4,
       "norm_label": ".supported_verify_schemes()"
     },
     {
@@ -990,7 +990,7 @@
       "source_file": "stric-tower\\examples\\server.rs",
       "source_location": "L1",
       "id": "stric_tower_examples_server_rs",
-      "community": 3,
+      "community": 8,
       "norm_label": "server.rs"
     },
     {
@@ -999,7 +999,7 @@
       "source_file": "stric-tower\\examples\\server.rs",
       "source_location": "L7",
       "id": "examples_server_echorequest",
-      "community": 3,
+      "community": 8,
       "norm_label": "echorequest"
     },
     {
@@ -1008,7 +1008,7 @@
       "source_file": "stric-tower\\examples\\server.rs",
       "source_location": "L12",
       "id": "examples_server_echoresponse",
-      "community": 3,
+      "community": 8,
       "norm_label": "echoresponse"
     },
     {
@@ -1017,7 +1017,7 @@
       "source_file": "stric-tower\\examples\\server.rs",
       "source_location": "L17",
       "id": "examples_server_echo_handler",
-      "community": 3,
+      "community": 8,
       "norm_label": "echo_handler()"
     },
     {
@@ -1026,8 +1026,206 @@
       "source_file": "stric-tower\\examples\\server.rs",
       "source_location": "L25",
       "id": "examples_server_main",
+      "community": 8,
+      "norm_label": "main()"
+    },
+    {
+      "label": "tower_middleware.rs",
+      "file_type": "code",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L1",
+      "id": "stric_tower_examples_tower_middleware_rs",
+      "community": 3,
+      "norm_label": "tower_middleware.rs"
+    },
+    {
+      "label": "EchoRequest",
+      "file_type": "code",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L22",
+      "id": "examples_tower_middleware_echorequest",
+      "community": 3,
+      "norm_label": "echorequest"
+    },
+    {
+      "label": "EchoResponse",
+      "file_type": "code",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L27",
+      "id": "examples_tower_middleware_echoresponse",
+      "community": 3,
+      "norm_label": "echoresponse"
+    },
+    {
+      "label": "echo_handler()",
+      "file_type": "code",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L31",
+      "id": "examples_tower_middleware_echo_handler",
+      "community": 5,
+      "norm_label": "echo_handler()"
+    },
+    {
+      "label": "unstable_handler()",
+      "file_type": "code",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L41",
+      "id": "examples_tower_middleware_unstable_handler",
+      "community": 3,
+      "norm_label": "unstable_handler()"
+    },
+    {
+      "label": "slow_handler()",
+      "file_type": "code",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L52",
+      "id": "examples_tower_middleware_slow_handler",
+      "community": 3,
+      "norm_label": "slow_handler()"
+    },
+    {
+      "label": "RetryOnUnavailable",
+      "file_type": "code",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L58",
+      "id": "examples_tower_middleware_retryonunavailable",
+      "community": 3,
+      "norm_label": "retryonunavailable"
+    },
+    {
+      "label": ".new()",
+      "file_type": "code",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L63",
+      "id": "examples_tower_middleware_retryonunavailable_new",
+      "community": 3,
+      "norm_label": ".new()"
+    },
+    {
+      "label": ".retry()",
+      "file_type": "code",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L74",
+      "id": "examples_tower_middleware_retryonunavailable_retry",
+      "community": 3,
+      "norm_label": ".retry()"
+    },
+    {
+      "label": ".clone_request()",
+      "file_type": "code",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L97",
+      "id": "examples_tower_middleware_retryonunavailable_clone_request",
+      "community": 3,
+      "norm_label": ".clone_request()"
+    },
+    {
+      "label": "main()",
+      "file_type": "code",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L103",
+      "id": "examples_tower_middleware_main",
       "community": 3,
       "norm_label": "main()"
+    },
+    {
+      "label": "run_retry_demo()",
+      "file_type": "code",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L145",
+      "id": "examples_tower_middleware_run_retry_demo",
+      "community": 3,
+      "norm_label": "run_retry_demo()"
+    },
+    {
+      "label": "run_buffer_and_limit_demo()",
+      "file_type": "code",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L174",
+      "id": "examples_tower_middleware_run_buffer_and_limit_demo",
+      "community": 3,
+      "norm_label": "run_buffer_and_limit_demo()"
+    },
+    {
+      "label": "run_timeout_demo()",
+      "file_type": "code",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L209",
+      "id": "examples_tower_middleware_run_timeout_demo",
+      "community": 3,
+      "norm_label": "run_timeout_demo()"
+    },
+    {
+      "label": "build_echo_request()",
+      "file_type": "code",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L245",
+      "id": "examples_tower_middleware_build_echo_request",
+      "community": 3,
+      "norm_label": "build_echo_request()"
+    },
+    {
+      "label": "decode_echo_response()",
+      "file_type": "code",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L257",
+      "id": "examples_tower_middleware_decode_echo_response",
+      "community": 3,
+      "norm_label": "decode_echo_response()"
+    },
+    {
+      "label": "connect_insecure()",
+      "file_type": "code",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L262",
+      "id": "examples_tower_middleware_connect_insecure",
+      "community": 3,
+      "norm_label": "connect_insecure()"
+    },
+    {
+      "label": "SkipServerVerification",
+      "file_type": "code",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L280",
+      "id": "examples_tower_middleware_skipserververification",
+      "community": 3,
+      "norm_label": "skipserververification"
+    },
+    {
+      "label": ".verify_server_cert()",
+      "file_type": "code",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L283",
+      "id": "examples_tower_middleware_skipserververification_verify_server_cert",
+      "community": 3,
+      "norm_label": ".verify_server_cert()"
+    },
+    {
+      "label": ".verify_tls12_signature()",
+      "file_type": "code",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L294",
+      "id": "examples_tower_middleware_skipserververification_verify_tls12_signature",
+      "community": 3,
+      "norm_label": ".verify_tls12_signature()"
+    },
+    {
+      "label": ".verify_tls13_signature()",
+      "file_type": "code",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L303",
+      "id": "examples_tower_middleware_skipserververification_verify_tls13_signature",
+      "community": 3,
+      "norm_label": ".verify_tls13_signature()"
+    },
+    {
+      "label": ".supported_verify_schemes()",
+      "file_type": "code",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L312",
+      "id": "examples_tower_middleware_skipserververification_supported_verify_schemes",
+      "community": 3,
+      "norm_label": ".supported_verify_schemes()"
     },
     {
       "label": "adapter.rs",
@@ -1035,7 +1233,7 @@
       "source_file": "stric-tower\\src\\adapter.rs",
       "source_location": "L1",
       "id": "stric_tower_src_adapter_rs",
-      "community": 17,
+      "community": 19,
       "norm_label": "adapter.rs"
     },
     {
@@ -1044,7 +1242,7 @@
       "source_file": "stric-tower\\src\\adapter.rs",
       "source_location": "L15",
       "id": "src_adapter_httpserviceshim",
-      "community": 17,
+      "community": 19,
       "norm_label": "httpserviceshim"
     },
     {
@@ -1053,7 +1251,7 @@
       "source_file": "stric-tower\\src\\adapter.rs",
       "source_location": "L19",
       "id": "src_adapter_httpserviceshim_s",
-      "community": 8,
+      "community": 10,
       "norm_label": "httpserviceshim<s>"
     },
     {
@@ -1062,7 +1260,7 @@
       "source_file": "stric-tower\\src\\adapter.rs",
       "source_location": "L21",
       "id": "src_adapter_httpserviceshim_s_new",
-      "community": 8,
+      "community": 10,
       "norm_label": ".new()"
     },
     {
@@ -1071,7 +1269,7 @@
       "source_file": "stric-tower\\src\\adapter.rs",
       "source_location": "L30",
       "id": "src_adapter_httpserviceshim_s_clone",
-      "community": 8,
+      "community": 10,
       "norm_label": ".clone()"
     },
     {
@@ -1080,7 +1278,7 @@
       "source_file": "stric-tower\\src\\adapter.rs",
       "source_location": "L48",
       "id": "src_adapter_httpserviceshim_s_poll_ready",
-      "community": 8,
+      "community": 10,
       "norm_label": ".poll_ready()"
     },
     {
@@ -1089,7 +1287,7 @@
       "source_file": "stric-tower\\src\\adapter.rs",
       "source_location": "L52",
       "id": "src_adapter_httpserviceshim_s_call",
-      "community": 8,
+      "community": 10,
       "norm_label": ".call()"
     },
     {
@@ -1098,7 +1296,7 @@
       "source_file": "stric-tower\\src\\adapter.rs",
       "source_location": "L74",
       "id": "src_adapter_httpadapter",
-      "community": 17,
+      "community": 19,
       "norm_label": "httpadapter"
     },
     {
@@ -1107,7 +1305,7 @@
       "source_file": "stric-tower\\src\\adapter.rs",
       "source_location": "L79",
       "id": "src_adapter_httpadapter_s_l",
-      "community": 8,
+      "community": 10,
       "norm_label": "httpadapter<s, l>"
     },
     {
@@ -1116,7 +1314,7 @@
       "source_file": "stric-tower\\src\\adapter.rs",
       "source_location": "L81",
       "id": "src_adapter_httpadapter_s_l_new",
-      "community": 8,
+      "community": 10,
       "norm_label": ".new()"
     },
     {
@@ -1125,7 +1323,7 @@
       "source_file": "stric-tower\\src\\adapter.rs",
       "source_location": "L91",
       "id": "src_adapter_httpadapter_s_l_clone",
-      "community": 8,
+      "community": 10,
       "norm_label": ".clone()"
     },
     {
@@ -1134,7 +1332,7 @@
       "source_file": "stric-tower\\src\\adapter.rs",
       "source_location": "L114",
       "id": "src_adapter_httpadapter_s_l_poll_ready",
-      "community": 8,
+      "community": 10,
       "norm_label": ".poll_ready()"
     },
     {
@@ -1143,7 +1341,7 @@
       "source_file": "stric-tower\\src\\adapter.rs",
       "source_location": "L118",
       "id": "src_adapter_httpadapter_s_l_call",
-      "community": 8,
+      "community": 10,
       "norm_label": ".call()"
     },
     {
@@ -1179,7 +1377,7 @@
       "source_file": "stric-tower\\src\\client.rs",
       "source_location": "L39",
       "id": "src_client_towerclientservice_poll_ready",
-      "community": 0,
+      "community": 2,
       "norm_label": ".poll_ready()"
     },
     {
@@ -1494,7 +1692,7 @@
       "source_file": "stric-tower\\src\\error.rs",
       "source_location": "L1",
       "id": "stric_tower_src_error_rs",
-      "community": 0,
+      "community": 2,
       "norm_label": "error.rs"
     },
     {
@@ -1503,7 +1701,7 @@
       "source_file": "stric-tower\\src\\error.rs",
       "source_location": "L5",
       "id": "src_error_towererror",
-      "community": 0,
+      "community": 2,
       "norm_label": "towererror"
     },
     {
@@ -1512,7 +1710,7 @@
       "source_file": "stric-tower\\src\\error.rs",
       "source_location": "L64",
       "id": "src_error_towererror_from",
-      "community": 0,
+      "community": 2,
       "norm_label": ".from()"
     },
     {
@@ -1521,7 +1719,7 @@
       "source_file": "stric-tower\\src\\handler.rs",
       "source_location": "L1",
       "id": "stric_tower_src_handler_rs",
-      "community": 20,
+      "community": 22,
       "norm_label": "handler.rs"
     },
     {
@@ -1530,7 +1728,7 @@
       "source_file": "stric-tower\\src\\handler.rs",
       "source_location": "L10",
       "id": "src_handler_handler",
-      "community": 20,
+      "community": 22,
       "norm_label": "handler"
     },
     {
@@ -1539,7 +1737,7 @@
       "source_file": "stric-tower\\src\\handler.rs",
       "source_location": "L18",
       "id": "src_handler_f",
-      "community": 21,
+      "community": 23,
       "norm_label": "f"
     },
     {
@@ -1548,7 +1746,7 @@
       "source_file": "stric-tower\\src\\handler.rs",
       "source_location": "L28",
       "id": "src_handler_f_call",
-      "community": 21,
+      "community": 23,
       "norm_label": ".call()"
     },
     {
@@ -1557,7 +1755,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L1",
       "id": "stric_tower_src_http_rs",
-      "community": 2,
+      "community": 5,
       "norm_label": "http.rs"
     },
     {
@@ -1566,7 +1764,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L13",
       "id": "src_http_request",
-      "community": 2,
+      "community": 5,
       "norm_label": "request"
     },
     {
@@ -1575,7 +1773,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L27",
       "id": "src_http_response",
-      "community": 2,
+      "community": 5,
       "norm_label": "response"
     },
     {
@@ -1620,7 +1818,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L67",
       "id": "src_http_intoresponse",
-      "community": 2,
+      "community": 5,
       "norm_label": "intoresponse"
     },
     {
@@ -1692,7 +1890,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L112",
       "id": "src_http_fromrequest",
-      "community": 2,
+      "community": 5,
       "norm_label": "fromrequest"
     },
     {
@@ -1701,7 +1899,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L125",
       "id": "src_http_json",
-      "community": 2,
+      "community": 5,
       "norm_label": "json"
     },
     {
@@ -1737,7 +1935,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L187",
       "id": "src_http_bincode",
-      "community": 2,
+      "community": 5,
       "norm_label": "bincode"
     },
     {
@@ -1746,7 +1944,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L190",
       "id": "src_http_bincode_t",
-      "community": 1,
+      "community": 2,
       "norm_label": "bincode<t>"
     },
     {
@@ -1755,7 +1953,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L200",
       "id": "src_http_bincode_t_from_request",
-      "community": 1,
+      "community": 2,
       "norm_label": ".from_request()"
     },
     {
@@ -1764,7 +1962,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L225",
       "id": "src_http_bincode_t_into_response",
-      "community": 1,
+      "community": 2,
       "norm_label": ".into_response()"
     },
     {
@@ -1773,7 +1971,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L249",
       "id": "src_http_protobuf",
-      "community": 6,
+      "community": 4,
       "norm_label": "protobuf"
     },
     {
@@ -1836,7 +2034,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L348",
       "id": "src_http_state",
-      "community": 2,
+      "community": 5,
       "norm_label": "state"
     },
     {
@@ -1845,7 +2043,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L351",
       "id": "src_http_state_t",
-      "community": 2,
+      "community": 5,
       "norm_label": "state<t>"
     },
     {
@@ -1854,7 +2052,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L360",
       "id": "src_http_state_t_from_request",
-      "community": 2,
+      "community": 5,
       "norm_label": ".from_request()"
     },
     {
@@ -1908,7 +2106,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L415",
       "id": "src_http_http_response_b",
-      "community": 0,
+      "community": 2,
       "norm_label": "http::response<b>"
     },
     {
@@ -1917,7 +2115,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L416",
       "id": "src_http_http_response_b_from",
-      "community": 0,
+      "community": 2,
       "norm_label": ".from()"
     },
     {
@@ -1926,7 +2124,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L430",
       "id": "src_http_payload",
-      "community": 2,
+      "community": 5,
       "norm_label": "payload"
     },
     {
@@ -1935,7 +2133,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L434",
       "id": "src_http_appstate",
-      "community": 2,
+      "community": 5,
       "norm_label": "appstate"
     },
     {
@@ -1944,7 +2142,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L437",
       "id": "src_http_appstate_as_ref",
-      "community": 2,
+      "community": 5,
       "norm_label": ".as_ref()"
     },
     {
@@ -1962,7 +2160,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L452",
       "id": "src_http_request_and_http_request_round_trip_preserves_path_and_headers",
-      "community": 2,
+      "community": 5,
       "norm_label": "request_and_http_request_round_trip_preserves_path_and_headers()"
     },
     {
@@ -1971,7 +2169,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L472",
       "id": "src_http_invalid_response_status_defaults_to_internal_server_error",
-      "community": 2,
+      "community": 5,
       "norm_label": "invalid_response_status_defaults_to_internal_server_error()"
     },
     {
@@ -1980,7 +2178,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L481",
       "id": "src_http_json_into_response_sets_content_type_and_serializes_body",
-      "community": 2,
+      "community": 5,
       "norm_label": "json_into_response_sets_content_type_and_serializes_body()"
     },
     {
@@ -1989,7 +2187,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L496",
       "id": "src_http_invalid_json_extractor_returns_bad_request",
-      "community": 2,
+      "community": 5,
       "norm_label": "invalid_json_extractor_returns_bad_request()"
     },
     {
@@ -1998,7 +2196,7 @@
       "source_file": "stric-tower\\src\\http.rs",
       "source_location": "L515",
       "id": "src_http_state_extractor_clones_from_router_state",
-      "community": 2,
+      "community": 5,
       "norm_label": "state_extractor_clones_from_router_state()"
     },
     {
@@ -2007,7 +2205,7 @@
       "source_file": "stric-tower\\src\\lib.rs",
       "source_location": "L1",
       "id": "stric_tower_src_lib_rs",
-      "community": 25,
+      "community": 27,
       "norm_label": "lib.rs"
     },
     {
@@ -2016,7 +2214,7 @@
       "source_file": "stric-tower\\src\\routing.rs",
       "source_location": "L1",
       "id": "stric_tower_src_routing_rs",
-      "community": 12,
+      "community": 14,
       "norm_label": "routing.rs"
     },
     {
@@ -2025,7 +2223,7 @@
       "source_file": "stric-tower\\src\\routing.rs",
       "source_location": "L16",
       "id": "src_routing_router",
-      "community": 12,
+      "community": 14,
       "norm_label": "router"
     },
     {
@@ -2034,7 +2232,7 @@
       "source_file": "stric-tower\\src\\routing.rs",
       "source_location": "L21",
       "id": "src_routing_router_s_b",
-      "community": 7,
+      "community": 9,
       "norm_label": "router<s, b>"
     },
     {
@@ -2043,7 +2241,7 @@
       "source_file": "stric-tower\\src\\routing.rs",
       "source_location": "L25",
       "id": "src_routing_router_s_b_clone",
-      "community": 7,
+      "community": 9,
       "norm_label": ".clone()"
     },
     {
@@ -2052,7 +2250,7 @@
       "source_file": "stric-tower\\src\\routing.rs",
       "source_location": "L33",
       "id": "src_routing_router_full_bytes",
-      "community": 7,
+      "community": 9,
       "norm_label": "router<(), full<bytes>>"
     },
     {
@@ -2061,7 +2259,7 @@
       "source_file": "stric-tower\\src\\routing.rs",
       "source_location": "L35",
       "id": "src_routing_router_full_bytes_new",
-      "community": 7,
+      "community": 9,
       "norm_label": ".new()"
     },
     {
@@ -2070,7 +2268,7 @@
       "source_file": "stric-tower\\src\\routing.rs",
       "source_location": "L49",
       "id": "src_routing_router_s_b_route",
-      "community": 7,
+      "community": 9,
       "norm_label": ".route()"
     },
     {
@@ -2079,7 +2277,7 @@
       "source_file": "stric-tower\\src\\routing.rs",
       "source_location": "L66",
       "id": "src_routing_router_s_b_with_state",
-      "community": 7,
+      "community": 9,
       "norm_label": ".with_state()"
     },
     {
@@ -2088,7 +2286,7 @@
       "source_file": "stric-tower\\src\\routing.rs",
       "source_location": "L77",
       "id": "src_routing_router_s_b_layer_standard",
-      "community": 7,
+      "community": 9,
       "norm_label": ".layer_standard()"
     },
     {
@@ -2097,7 +2295,7 @@
       "source_file": "stric-tower\\src\\routing.rs",
       "source_location": "L82",
       "id": "src_routing_handlerservicetrait",
-      "community": 12,
+      "community": 14,
       "norm_label": "handlerservicetrait"
     },
     {
@@ -2106,7 +2304,7 @@
       "source_file": "stric-tower\\src\\routing.rs",
       "source_location": "L86",
       "id": "src_routing_handlerservicewrapper",
-      "community": 12,
+      "community": 14,
       "norm_label": "handlerservicewrapper"
     },
     {
@@ -2115,7 +2313,7 @@
       "source_file": "stric-tower\\src\\routing.rs",
       "source_location": "L91",
       "id": "src_routing_handlerservicewrapper_h_t_s_b",
-      "community": 7,
+      "community": 9,
       "norm_label": "handlerservicewrapper<h, t, s, b>"
     },
     {
@@ -2124,7 +2322,7 @@
       "source_file": "stric-tower\\src\\routing.rs",
       "source_location": "L98",
       "id": "src_routing_handlerservicewrapper_h_t_s_b_call",
-      "community": 7,
+      "community": 9,
       "norm_label": ".call()"
     },
     {
@@ -2133,7 +2331,7 @@
       "source_file": "stric-tower\\src\\routing.rs",
       "source_location": "L113",
       "id": "src_routing_router_s_b_poll_ready",
-      "community": 7,
+      "community": 9,
       "norm_label": ".poll_ready()"
     },
     {
@@ -2142,7 +2340,7 @@
       "source_file": "stric-tower\\src\\routing.rs",
       "source_location": "L117",
       "id": "src_routing_router_s_b_call",
-      "community": 7,
+      "community": 9,
       "norm_label": ".call()"
     },
     {
@@ -2151,7 +2349,7 @@
       "source_file": "stric-tower\\src\\server.rs",
       "source_location": "L1",
       "id": "stric_tower_src_server_rs",
-      "community": 3,
+      "community": 8,
       "norm_label": "server.rs"
     },
     {
@@ -2160,7 +2358,7 @@
       "source_file": "stric-tower\\src\\server.rs",
       "source_location": "L21",
       "id": "src_server_towerconnectionhandler",
-      "community": 3,
+      "community": 8,
       "norm_label": "towerconnectionhandler"
     },
     {
@@ -2205,7 +2403,7 @@
       "source_file": "stric-tower\\src\\server.rs",
       "source_location": "L139",
       "id": "src_server_server",
-      "community": 3,
+      "community": 8,
       "norm_label": "server"
     },
     {
@@ -2214,7 +2412,7 @@
       "source_file": "stric-tower\\src\\server.rs",
       "source_location": "L145",
       "id": "src_server_server_bind",
-      "community": 3,
+      "community": 8,
       "norm_label": ".bind()"
     },
     {
@@ -2232,7 +2430,7 @@
       "source_file": "stric-tower\\src\\wire.rs",
       "source_location": "L1",
       "id": "stric_tower_src_wire_rs",
-      "community": 26,
+      "community": 28,
       "norm_label": "wire.rs"
     },
     {
@@ -2268,7 +2466,7 @@
       "source_file": "stric-tower\\tests\\integration_test.rs",
       "source_location": "L25",
       "id": "tests_integration_test_echo_handler",
-      "community": 2,
+      "community": 5,
       "norm_label": "echo_handler()"
     },
     {
@@ -2286,7 +2484,7 @@
       "source_file": "stric-tower\\tests\\integration_test.rs",
       "source_location": "L38",
       "id": "tests_integration_test_wrappedbody_b",
-      "community": 13,
+      "community": 15,
       "norm_label": "wrappedbody<b>"
     },
     {
@@ -2295,7 +2493,7 @@
       "source_file": "stric-tower\\tests\\integration_test.rs",
       "source_location": "L45",
       "id": "tests_integration_test_wrappedbody_b_poll_frame",
-      "community": 13,
+      "community": 15,
       "norm_label": ".poll_frame()"
     },
     {
@@ -2304,7 +2502,7 @@
       "source_file": "stric-tower\\tests\\integration_test.rs",
       "source_location": "L52",
       "id": "tests_integration_test_wrappedbody_b_is_end_stream",
-      "community": 13,
+      "community": 15,
       "norm_label": ".is_end_stream()"
     },
     {
@@ -2313,7 +2511,7 @@
       "source_file": "stric-tower\\tests\\integration_test.rs",
       "source_location": "L56",
       "id": "tests_integration_test_wrappedbody_b_size_hint",
-      "community": 13,
+      "community": 15,
       "norm_label": ".size_hint()"
     },
     {
@@ -2322,7 +2520,7 @@
       "source_file": "stric-tower\\tests\\integration_test.rs",
       "source_location": "L62",
       "id": "tests_integration_test_addheaderlayer",
-      "community": 3,
+      "community": 8,
       "norm_label": "addheaderlayer"
     },
     {
@@ -2340,7 +2538,7 @@
       "source_file": "stric-tower\\tests\\integration_test.rs",
       "source_location": "L72",
       "id": "tests_integration_test_addheaderlayer_layer",
-      "community": 3,
+      "community": 8,
       "norm_label": ".layer()"
     },
     {
@@ -2436,7 +2634,7 @@
       "captured_at": null,
       "author": null,
       "contributor": null,
-      "community": 27,
+      "community": 29,
       "norm_label": "graphify maintenance rules",
       "id": "gemini_graphify_rules"
     },
@@ -2444,7 +2642,7 @@
       "label": "GEMINI.md",
       "file_type": "document",
       "source_file": "GEMINI.md",
-      "community": 28,
+      "community": 30,
       "norm_label": "gemini.md",
       "id": "doc_gemini"
     }
@@ -4637,6 +4835,450 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L22",
+      "weight": 1.0,
+      "_src": "stric_tower_examples_tower_middleware_rs",
+      "_tgt": "examples_tower_middleware_echorequest",
+      "source": "stric_tower_examples_tower_middleware_rs",
+      "target": "examples_tower_middleware_echorequest",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L27",
+      "weight": 1.0,
+      "_src": "stric_tower_examples_tower_middleware_rs",
+      "_tgt": "examples_tower_middleware_echoresponse",
+      "source": "stric_tower_examples_tower_middleware_rs",
+      "target": "examples_tower_middleware_echoresponse",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L31",
+      "weight": 1.0,
+      "_src": "stric_tower_examples_tower_middleware_rs",
+      "_tgt": "examples_tower_middleware_echo_handler",
+      "source": "stric_tower_examples_tower_middleware_rs",
+      "target": "examples_tower_middleware_echo_handler",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L41",
+      "weight": 1.0,
+      "_src": "stric_tower_examples_tower_middleware_rs",
+      "_tgt": "examples_tower_middleware_unstable_handler",
+      "source": "stric_tower_examples_tower_middleware_rs",
+      "target": "examples_tower_middleware_unstable_handler",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L52",
+      "weight": 1.0,
+      "_src": "stric_tower_examples_tower_middleware_rs",
+      "_tgt": "examples_tower_middleware_slow_handler",
+      "source": "stric_tower_examples_tower_middleware_rs",
+      "target": "examples_tower_middleware_slow_handler",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L58",
+      "weight": 1.0,
+      "_src": "stric_tower_examples_tower_middleware_rs",
+      "_tgt": "examples_tower_middleware_retryonunavailable",
+      "source": "stric_tower_examples_tower_middleware_rs",
+      "target": "examples_tower_middleware_retryonunavailable",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L103",
+      "weight": 1.0,
+      "_src": "stric_tower_examples_tower_middleware_rs",
+      "_tgt": "examples_tower_middleware_main",
+      "source": "stric_tower_examples_tower_middleware_rs",
+      "target": "examples_tower_middleware_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L145",
+      "weight": 1.0,
+      "_src": "stric_tower_examples_tower_middleware_rs",
+      "_tgt": "examples_tower_middleware_run_retry_demo",
+      "source": "stric_tower_examples_tower_middleware_rs",
+      "target": "examples_tower_middleware_run_retry_demo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L174",
+      "weight": 1.0,
+      "_src": "stric_tower_examples_tower_middleware_rs",
+      "_tgt": "examples_tower_middleware_run_buffer_and_limit_demo",
+      "source": "stric_tower_examples_tower_middleware_rs",
+      "target": "examples_tower_middleware_run_buffer_and_limit_demo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L209",
+      "weight": 1.0,
+      "_src": "stric_tower_examples_tower_middleware_rs",
+      "_tgt": "examples_tower_middleware_run_timeout_demo",
+      "source": "stric_tower_examples_tower_middleware_rs",
+      "target": "examples_tower_middleware_run_timeout_demo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L245",
+      "weight": 1.0,
+      "_src": "stric_tower_examples_tower_middleware_rs",
+      "_tgt": "examples_tower_middleware_build_echo_request",
+      "source": "stric_tower_examples_tower_middleware_rs",
+      "target": "examples_tower_middleware_build_echo_request",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L257",
+      "weight": 1.0,
+      "_src": "stric_tower_examples_tower_middleware_rs",
+      "_tgt": "examples_tower_middleware_decode_echo_response",
+      "source": "stric_tower_examples_tower_middleware_rs",
+      "target": "examples_tower_middleware_decode_echo_response",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L262",
+      "weight": 1.0,
+      "_src": "stric_tower_examples_tower_middleware_rs",
+      "_tgt": "examples_tower_middleware_connect_insecure",
+      "source": "stric_tower_examples_tower_middleware_rs",
+      "target": "examples_tower_middleware_connect_insecure",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L280",
+      "weight": 1.0,
+      "_src": "stric_tower_examples_tower_middleware_rs",
+      "_tgt": "examples_tower_middleware_skipserververification",
+      "source": "stric_tower_examples_tower_middleware_rs",
+      "target": "examples_tower_middleware_skipserververification",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L36",
+      "weight": 1.0,
+      "_src": "examples_tower_middleware_echo_handler",
+      "_tgt": "src_http_json",
+      "source": "examples_tower_middleware_echo_handler",
+      "target": "src_http_json"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L45",
+      "weight": 1.0,
+      "_src": "examples_tower_middleware_unstable_handler",
+      "_tgt": "examples_tower_middleware_retryonunavailable_new",
+      "source": "examples_tower_middleware_unstable_handler",
+      "target": "examples_tower_middleware_retryonunavailable_new",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L63",
+      "weight": 1.0,
+      "_src": "examples_tower_middleware_retryonunavailable",
+      "_tgt": "examples_tower_middleware_retryonunavailable_new",
+      "source": "examples_tower_middleware_retryonunavailable",
+      "target": "examples_tower_middleware_retryonunavailable_new",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L74",
+      "weight": 1.0,
+      "_src": "examples_tower_middleware_retryonunavailable",
+      "_tgt": "examples_tower_middleware_retryonunavailable_retry",
+      "source": "examples_tower_middleware_retryonunavailable",
+      "target": "examples_tower_middleware_retryonunavailable_retry",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L97",
+      "weight": 1.0,
+      "_src": "examples_tower_middleware_retryonunavailable",
+      "_tgt": "examples_tower_middleware_retryonunavailable_clone_request",
+      "source": "examples_tower_middleware_retryonunavailable",
+      "target": "examples_tower_middleware_retryonunavailable_clone_request",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L108",
+      "weight": 1.0,
+      "_src": "examples_tower_middleware_main",
+      "_tgt": "examples_tower_middleware_retryonunavailable_new",
+      "source": "examples_tower_middleware_retryonunavailable_new",
+      "target": "examples_tower_middleware_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L158",
+      "weight": 1.0,
+      "_src": "examples_tower_middleware_run_retry_demo",
+      "_tgt": "examples_tower_middleware_retryonunavailable_new",
+      "source": "examples_tower_middleware_retryonunavailable_new",
+      "target": "examples_tower_middleware_run_retry_demo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L220",
+      "weight": 1.0,
+      "_src": "examples_tower_middleware_run_timeout_demo",
+      "_tgt": "examples_tower_middleware_retryonunavailable_new",
+      "source": "examples_tower_middleware_retryonunavailable_new",
+      "target": "examples_tower_middleware_run_timeout_demo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L252",
+      "weight": 1.0,
+      "_src": "examples_tower_middleware_build_echo_request",
+      "_tgt": "examples_tower_middleware_retryonunavailable_new",
+      "source": "examples_tower_middleware_retryonunavailable_new",
+      "target": "examples_tower_middleware_build_echo_request",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L265",
+      "weight": 1.0,
+      "_src": "examples_tower_middleware_connect_insecure",
+      "_tgt": "examples_tower_middleware_retryonunavailable_new",
+      "source": "examples_tower_middleware_retryonunavailable_new",
+      "target": "examples_tower_middleware_connect_insecure",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L130",
+      "weight": 1.0,
+      "_src": "examples_tower_middleware_main",
+      "_tgt": "examples_tower_middleware_retryonunavailable_retry",
+      "source": "examples_tower_middleware_retryonunavailable_retry",
+      "target": "examples_tower_middleware_main",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L122",
+      "weight": 1.0,
+      "_src": "examples_tower_middleware_main",
+      "_tgt": "examples_tower_middleware_connect_insecure",
+      "source": "examples_tower_middleware_main",
+      "target": "examples_tower_middleware_connect_insecure",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L137",
+      "weight": 1.0,
+      "_src": "examples_tower_middleware_main",
+      "_tgt": "examples_tower_middleware_run_retry_demo",
+      "source": "examples_tower_middleware_main",
+      "target": "examples_tower_middleware_run_retry_demo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L138",
+      "weight": 1.0,
+      "_src": "examples_tower_middleware_main",
+      "_tgt": "examples_tower_middleware_run_buffer_and_limit_demo",
+      "source": "examples_tower_middleware_main",
+      "target": "examples_tower_middleware_run_buffer_and_limit_demo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L139",
+      "weight": 1.0,
+      "_src": "examples_tower_middleware_main",
+      "_tgt": "examples_tower_middleware_run_timeout_demo",
+      "source": "examples_tower_middleware_main",
+      "target": "examples_tower_middleware_run_timeout_demo",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L115",
+      "weight": 1.0,
+      "_src": "examples_tower_middleware_main",
+      "_tgt": "src_server_server_bind",
+      "source": "examples_tower_middleware_main",
+      "target": "src_server_server_bind"
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L184",
+      "weight": 1.0,
+      "_src": "examples_tower_middleware_run_buffer_and_limit_demo",
+      "_tgt": "examples_tower_middleware_build_echo_request",
+      "source": "examples_tower_middleware_run_buffer_and_limit_demo",
+      "target": "examples_tower_middleware_build_echo_request",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L199",
+      "weight": 1.0,
+      "_src": "examples_tower_middleware_run_buffer_and_limit_demo",
+      "_tgt": "examples_tower_middleware_decode_echo_response",
+      "source": "examples_tower_middleware_run_buffer_and_limit_demo",
+      "target": "examples_tower_middleware_decode_echo_response",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "confidence": "INFERRED",
+      "confidence_score": 0.8,
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L270",
+      "weight": 1.0,
+      "_src": "examples_tower_middleware_connect_insecure",
+      "_tgt": "src_http_request_b_try_from",
+      "source": "examples_tower_middleware_connect_insecure",
+      "target": "src_http_request_b_try_from"
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L283",
+      "weight": 1.0,
+      "_src": "examples_tower_middleware_skipserververification",
+      "_tgt": "examples_tower_middleware_skipserververification_verify_server_cert",
+      "source": "examples_tower_middleware_skipserververification",
+      "target": "examples_tower_middleware_skipserververification_verify_server_cert",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L294",
+      "weight": 1.0,
+      "_src": "examples_tower_middleware_skipserververification",
+      "_tgt": "examples_tower_middleware_skipserververification_verify_tls12_signature",
+      "source": "examples_tower_middleware_skipserververification",
+      "target": "examples_tower_middleware_skipserververification_verify_tls12_signature",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L303",
+      "weight": 1.0,
+      "_src": "examples_tower_middleware_skipserververification",
+      "_tgt": "examples_tower_middleware_skipserververification_verify_tls13_signature",
+      "source": "examples_tower_middleware_skipserververification",
+      "target": "examples_tower_middleware_skipserververification_verify_tls13_signature",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "stric-tower\\examples\\tower_middleware.rs",
+      "source_location": "L312",
+      "weight": 1.0,
+      "_src": "examples_tower_middleware_skipserververification",
+      "_tgt": "examples_tower_middleware_skipserververification_supported_verify_schemes",
+      "source": "examples_tower_middleware_skipserververification",
+      "target": "examples_tower_middleware_skipserververification_supported_verify_schemes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "stric-tower\\src\\adapter.rs",
       "source_location": "L15",
       "weight": 1.0,
@@ -6201,8 +6843,8 @@
       "source_file": "stric-tower\\tests\\integration_test.rs",
       "source_location": "L126",
       "weight": 1.0,
-      "_src": "tests_integration_test_build_client",
-      "_tgt": "src_http_response_full_bytes_empty",
+      "_src": "src_http_response_full_bytes_empty",
+      "_tgt": "tests_integration_test_build_client",
       "source": "src_http_response_full_bytes_empty",
       "target": "tests_integration_test_build_client"
     },
@@ -6633,8 +7275,8 @@
       "source_file": "stric-tower\\tests\\integration_test.rs",
       "source_location": "L115",
       "weight": 1.0,
-      "_src": "tests_integration_test_build_server_config",
-      "_tgt": "src_http_request_b_try_from",
+      "_src": "src_http_request_b_try_from",
+      "_tgt": "tests_integration_test_build_server_config",
       "source": "src_http_request_b_try_from",
       "target": "tests_integration_test_build_server_config"
     },
@@ -6645,8 +7287,8 @@
       "source_file": "stric-tower\\tests\\integration_test.rs",
       "source_location": "L135",
       "weight": 1.0,
-      "_src": "tests_integration_test_build_client",
-      "_tgt": "src_http_request_b_try_from",
+      "_src": "src_http_request_b_try_from",
+      "_tgt": "tests_integration_test_build_client",
       "source": "src_http_request_b_try_from",
       "target": "tests_integration_test_build_client"
     },
@@ -6705,8 +7347,8 @@
       "source_file": "stric-tower\\tests\\integration_test.rs",
       "source_location": "L128",
       "weight": 1.0,
-      "_src": "tests_integration_test_build_client",
-      "_tgt": "src_http_http_response_b_from",
+      "_src": "src_http_http_response_b_from",
+      "_tgt": "tests_integration_test_build_client",
       "source": "src_http_http_response_b_from",
       "target": "tests_integration_test_build_client"
     },
@@ -7077,8 +7719,8 @@
       "source_file": "stric-tower\\tests\\integration_test.rs",
       "source_location": "L49",
       "weight": 1.0,
-      "_src": "tests_integration_test_wrappedbody_b_poll_frame",
-      "_tgt": "src_server_towerconnectionhandler_s_b_new",
+      "_src": "src_server_towerconnectionhandler_s_b_new",
+      "_tgt": "tests_integration_test_wrappedbody_b_poll_frame",
       "source": "src_server_towerconnectionhandler_s_b_new",
       "target": "tests_integration_test_wrappedbody_b_poll_frame"
     },
@@ -7089,8 +7731,8 @@
       "source_file": "stric-tower\\tests\\integration_test.rs",
       "source_location": "L134",
       "weight": 1.0,
-      "_src": "tests_integration_test_build_client",
-      "_tgt": "src_server_towerconnectionhandler_s_b_new",
+      "_src": "src_server_towerconnectionhandler_s_b_new",
+      "_tgt": "tests_integration_test_build_client",
       "source": "src_server_towerconnectionhandler_s_b_new",
       "target": "tests_integration_test_build_client"
     },
@@ -7125,8 +7767,8 @@
       "source_file": "stric-tower\\tests\\integration_test.rs",
       "source_location": "L232",
       "weight": 1.0,
-      "_src": "tests_integration_test_test_invalid_json_returns_bad_request",
-      "_tgt": "src_server_towerconnectionhandler_s_b_new",
+      "_src": "src_server_towerconnectionhandler_s_b_new",
+      "_tgt": "tests_integration_test_test_invalid_json_returns_bad_request",
       "source": "src_server_towerconnectionhandler_s_b_new",
       "target": "tests_integration_test_test_invalid_json_returns_bad_request"
     },
@@ -7137,8 +7779,8 @@
       "source_file": "stric-tower\\tests\\integration_test.rs",
       "source_location": "L269",
       "weight": 1.0,
-      "_src": "tests_integration_test_test_standard_layer_can_add_headers_and_wrap_body",
-      "_tgt": "src_server_towerconnectionhandler_s_b_new",
+      "_src": "src_server_towerconnectionhandler_s_b_new",
+      "_tgt": "tests_integration_test_test_standard_layer_can_add_headers_and_wrap_body",
       "source": "src_server_towerconnectionhandler_s_b_new",
       "target": "tests_integration_test_test_standard_layer_can_add_headers_and_wrap_body"
     },
