@@ -1328,13 +1328,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "stric"
-version = "0.1.0"
-dependencies = [
- "stric-core",
-]
-
-[[package]]
 name = "stric-core"
 version = "0.1.0"
 dependencies = [

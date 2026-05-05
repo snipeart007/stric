@@ -1,6 +1,6 @@
 [workspace]
 members = [
     "stric-core",
-    "stric", "stric-tower",
+    "stric-tower",
 ]
 resolver = "2"
