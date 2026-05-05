@@ -21,6 +21,9 @@ pub struct TowerClientService {
 
 impl TowerClientService {
     /// Creates a new `TowerClientService` using an established QUIC connection.
+    ///
+    /// The service is cheap to construct around an already connected
+    /// `quinn::Connection` and can then be used like any other Tower client.
     pub fn new(connection: quinn::Connection) -> Self {
         Self {
             connection,

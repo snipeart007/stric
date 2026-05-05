@@ -2,6 +2,12 @@
 //!
 //! `stric-tower` provides integration between the Stric network framework and the [Tower](https://github.com/tower-rs/tower) ecosystem.
 //! It allows users to build high-performance, request-response based services over QUIC using an ergonomic, `axum`-like API.
+//!
+//! The crate is centered around three layers of abstraction:
+//! - request and response primitives plus extractors in [`http`]
+//! - async handler routing in [`routing`] and [`handler`]
+//! - adapters that bridge Stric-native services with standard Tower middleware
+//!   in [`adapter`]
 
 pub mod adapter;
 pub mod client;

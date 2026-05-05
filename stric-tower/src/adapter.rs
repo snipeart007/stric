@@ -7,14 +7,17 @@ use crate::error::TowerError;
 use http::request; 
 use http::response;
 
-/// The Inner Shim: Converts http::Request<B1> to stric_tower::Request<B1>,
-/// calls the inner stric_tower service, then converts stric_tower::Response<B2>
-/// back to http::Response<B2>.
+/// Bridges a Stric-native service into the standard `http` request/response world.
+///
+/// `HttpServiceShim` is the inner half of the sandwich model. It lets a
+/// standard Tower layer operate on `http::Request` and `http::Response` values
+/// even when the real service speaks `stric-tower` request and response types.
 pub struct HttpServiceShim<S> {
     inner: S,
 }
 
 impl<S> HttpServiceShim<S> {
+    /// Wraps a Stric-native service with HTTP compatibility.
     pub fn new(inner: S) -> Self {
         Self { inner }
     }
@@ -59,15 +62,22 @@ where
 }
 
 
-/// The Outer Adapter: Applies a standard Tower Layer to the HttpServiceShim,
-/// then translates the original stric_tower::Request<B1> to http::Request<B1>
-/// and http::Response<B2> back to stric_tower::Response<B2>.
+/// Applies a standard Tower layer around a Stric-native service.
+///
+/// This is the outer half of the sandwich model. The adapter translates the
+/// incoming Stric request into an `http::Request`, runs the standard layer, and
+/// then converts the layered `http::Response` back into a Stric response.
+///
+/// The layered response body type is allowed to differ from the inner service
+/// body type so middleware such as `tower-http::trace::TraceLayer` can wrap or
+/// replace the response body.
 pub struct HttpAdapter<S, L> {
     inner: S,
     layer: L,
 }
 
 impl<S, L> HttpAdapter<S, L> {
+    /// Creates a new adapter from an inner service and a standard Tower layer.
     pub fn new(inner: S, layer: L) -> Self {
         Self { inner, layer }
     }

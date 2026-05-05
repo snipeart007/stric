@@ -2,8 +2,16 @@ use std::future::Future;
 use std::pin::Pin;
 use crate::http::{Request, Response, FromRequest, IntoResponse, Full, Bytes};
 
+/// Abstraction used by the router to invoke async handler functions.
+///
+/// Implementations are generated for plain async functions with up to sixteen
+/// extractor arguments. Each extractor is resolved from the request before the
+/// handler future is executed.
 pub trait Handler<T, S, B = Full<Bytes>>: Clone + Send + Sized + 'static {
+    /// The future returned by the handler after extraction succeeds.
     type Future: Future<Output = Response<Full<Bytes>>> + Send + 'static;
+
+    /// Invokes the handler with the request and shared state.
     fn call(self, req: Request<B>, state: S) -> Self::Future;
 }
 

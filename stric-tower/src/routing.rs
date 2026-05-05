@@ -8,6 +8,11 @@ use crate::handler::Handler;
 use crate::adapter::HttpAdapter;
 
 
+/// A minimal path router for Stric request handlers.
+///
+/// The router stores handlers keyed by the exact request path carried over the
+/// Stric wire protocol. It defaults to a fully buffered byte body but can be
+/// parameterized over another request body type when used behind adapters.
 pub struct Router<S = (), B = Full<Bytes>> {
     routes: HashMap<String, Arc<dyn HandlerServiceTrait<S, B>>>,
     state: S,
@@ -26,6 +31,7 @@ where
 }
 
 impl Router<(), Full<Bytes>> {
+    /// Creates an empty router with unit state and buffered byte bodies.
     pub fn new() -> Self {
         Self {
             routes: HashMap::new(),
@@ -39,6 +45,7 @@ where
     S: Clone + Send + Sync + 'static,
     B: Send + Sync + 'static,
 {
+    /// Registers a handler for an exact path match.
     pub fn route<H, T>(mut self, path: &str, handler: H) -> Self
     where
         H: Handler<T, S, B> + Sync,
@@ -52,6 +59,10 @@ where
         self
     }
 
+    /// Rebuilds the router with a different shared state value.
+    ///
+    /// Existing routes are not carried across; this mirrors the current
+    /// implementation strategy, which constructs a new router instance.
     pub fn with_state<S2>(self, state: S2) -> Router<S2, B> {
         Router {
             routes: HashMap::new(),
@@ -59,9 +70,10 @@ where
         }
     }
 
-    /// Applies a standard Tower Layer to the router, enabling compatibility with
-    /// `tower-http` middleware by translating between `stric-tower`'s types
-    /// and `http` crate's types.
+    /// Wraps the router in a standard Tower layer using the sandwich adapter.
+    ///
+    /// This allows middleware written for `http::Request` and `http::Response`
+    /// to run around a Stric-native router.
     pub fn layer_standard<L>(self, layer: L) -> HttpAdapter<Self, L> {
         HttpAdapter::new(self, layer)
     }

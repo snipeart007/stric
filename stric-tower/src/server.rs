@@ -14,6 +14,10 @@ use crate::codec::{read_request_envelope, write_response_envelope};
 use crate::wire::proto::ResponseEnvelope;
 
 /// A handler that bridges Stric connections to a Tower [`Service`] using an Axum-like API.
+///
+/// Each accepted bidirectional QUIC stream is decoded into a Stric request,
+/// dispatched through the wrapped Tower service, and then encoded back onto the
+/// stream as a response envelope.
 pub struct TowerConnectionHandler<S, B> {
     service: S,
     _marker: PhantomData<B>,
@@ -34,6 +38,9 @@ where
     }
 
     /// Converts the handler into a Stric-compatible `ConnectionHandlerFn`.
+    ///
+    /// The returned handler clones the wrapped service per accepted stream so
+    /// each request can be processed concurrently.
     pub fn into_handler<M>(self) -> ConnectionHandlerFn<M>
     where
         M: Default + Send + Sync + 'static,
@@ -126,6 +133,9 @@ where
 }
 
 /// An ergonomic wrapper for starting a Stric server with Tower services.
+///
+/// `Server` hides the QUIC bootstrap details needed for local development and
+/// offers a single `serve` entry point for a Stric-native Tower service.
 pub struct Server {
     addr: std::net::SocketAddr,
 }
@@ -138,7 +148,9 @@ impl Server {
 
     /// Serves the given Tower service.
     ///
-    /// This method sets up a default QUIC configuration with a self-signed certificate.
+    /// This method sets up a development-oriented QUIC configuration with a
+    /// self-signed certificate and then forwards each accepted request stream to
+    /// the supplied service.
     pub async fn serve<S, B>(self, service: S) -> Result<(), anyhow::Error>
     where
         S: Service<StricRequest<Full<Bytes>>, Response = Response<B>> + Clone + Send + Sync + 'static,
