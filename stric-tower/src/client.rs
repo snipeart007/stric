@@ -4,9 +4,12 @@ use stric_core::stream::BiStream;
 use futures::future::BoxFuture;
 
 use crate::error::TowerError;
-use crate::http::{Request, Response};
+use crate::http::{Request, Response, Full, HeaderMap, HeaderName, HeaderValue, BodyExt};
 use crate::codec::{write_request_envelope, read_response_envelope};
 use crate::wire::proto::{RequestEnvelope};
+use quinn::rustls::pki_types::{CertificateDer, ServerName, UnixTime};
+use quinn::rustls::client::danger::{ServerCertVerifier, ServerCertVerified, HandshakeSignatureValid};
+use quinn::rustls::{Error, SignatureScheme, DigitallySignedStruct};
 
 /// A client-side Tower [`Service`] that sends requests over a QUIC connection.
 ///
@@ -51,21 +54,83 @@ impl Service<Request> for TowerClientService {
             };
 
             // 2. Encode Request Envelope
+            // Direct header conversion: HeaderMap -> Prost HashMap
+            let mut req_headers = std::collections::HashMap::with_capacity(req.headers.len());
+            for (name, value) in req.headers {
+                if let Some(name) = name {
+                    if let Ok(val_str) = value.to_str() {
+                        req_headers.insert(name.to_string(), val_str.to_string());
+                    }
+                }
+            }
+
+            let body = req.body.collect().await.map_err(|e| TowerError::Internal(e.into()))?.to_bytes();
+
             let envelope = RequestEnvelope {
                 path: req.path,
-                headers: req.headers,
-                payload: req.body.into(),
+                headers: req_headers,
+                payload: body.into(),
             };
             write_request_envelope(&mut stream, envelope).await?;
 
             // 3. Decode Response Envelope
             let res_envelope = read_response_envelope(&mut stream).await?;
 
+            // Direct header conversion: Prost HashMap -> HeaderMap
+            let mut res_headers = HeaderMap::with_capacity(res_envelope.headers.len());
+            for (k, v) in res_envelope.headers {
+                if let (Ok(name), Ok(value)) = (HeaderName::from_bytes(k.as_bytes()), HeaderValue::from_str(&v)) {
+                    res_headers.insert(name, value);
+                }
+            }
+
             Ok(Response {
                 status: res_envelope.status_code as u16,
-                headers: res_envelope.headers,
-                body: res_envelope.payload.into(),
+                headers: res_headers,
+                body: Full::new(res_envelope.payload.into()),
             })
         })
+    }
+}
+
+// --- Helper to skip verification for dev ---
+#[derive(Debug)]
+#[allow(dead_code)]
+struct SkipServerVerification;
+
+impl ServerCertVerifier for SkipServerVerification {
+    fn verify_server_cert(
+        &self,
+        _end_entity: &CertificateDer<'_>,
+        _intermediates: &[CertificateDer<'_>],
+        _server_name: &ServerName<'_>,
+        _ocsp_response: &[u8],
+        _now: UnixTime,
+    ) -> Result<ServerCertVerified, Error> {
+        Ok(ServerCertVerified::assertion())
+    }
+
+    fn verify_tls12_signature(
+        &self,
+        _message: &[u8],
+        _cert: &CertificateDer<'_>,
+        _dss: &DigitallySignedStruct,
+    ) -> Result<HandshakeSignatureValid, Error> {
+        Ok(HandshakeSignatureValid::assertion())
+    }
+
+    fn verify_tls13_signature(
+        &self,
+        _message: &[u8],
+        _cert: &CertificateDer<'_>,
+        _dss: &DigitallySignedStruct,
+    ) -> Result<HandshakeSignatureValid, Error> {
+        Ok(HandshakeSignatureValid::assertion())
+    }
+
+    fn supported_verify_schemes(&self) -> Vec<SignatureScheme> {
+        quinn::rustls::crypto::ring::default_provider()
+            .signature_verification_algorithms
+            .supported_schemes()
     }
 }

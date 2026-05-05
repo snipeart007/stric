@@ -3,15 +3,17 @@ use std::sync::Arc;
 use std::task::{Context, Poll};
 use tower::Service;
 use futures::future::{BoxFuture, FutureExt};
-use crate::http::{Request, Response};
+use crate::http::{Request, Response, Full, Bytes};
 use crate::handler::Handler;
+use crate::adapter::HttpAdapter;
 
-pub struct Router<S = ()> {
-    routes: HashMap<String, Arc<dyn HandlerServiceTrait<S>>>,
+
+pub struct Router<S = (), B = Full<Bytes>> {
+    routes: HashMap<String, Arc<dyn HandlerServiceTrait<S, B>>>,
     state: S,
 }
 
-impl<S> Clone for Router<S>
+impl<S, B> Clone for Router<S, B>
 where
     S: Clone,
 {
@@ -23,7 +25,7 @@ where
     }
 }
 
-impl Router<()> {
+impl Router<(), Full<Bytes>> {
     pub fn new() -> Self {
         Self {
             routes: HashMap::new(),
@@ -32,13 +34,14 @@ impl Router<()> {
     }
 }
 
-impl<S> Router<S>
+impl<S, B> Router<S, B>
 where
     S: Clone + Send + Sync + 'static,
+    B: Send + Sync + 'static,
 {
     pub fn route<H, T>(mut self, path: &str, handler: H) -> Self
     where
-        H: Handler<T, S> + Sync,
+        H: Handler<T, S, B> + Sync,
         T: Send + Sync + 'static,
     {
         let wrapper = HandlerServiceWrapper {
@@ -49,40 +52,49 @@ where
         self
     }
 
-    pub fn with_state<S2>(self, state: S2) -> Router<S2> {
+    pub fn with_state<S2>(self, state: S2) -> Router<S2, B> {
         Router {
             routes: HashMap::new(),
             state,
         }
     }
+
+    /// Applies a standard Tower Layer to the router, enabling compatibility with
+    /// `tower-http` middleware by translating between `stric-tower`'s types
+    /// and `http` crate's types.
+    pub fn layer_standard<L>(self, layer: L) -> HttpAdapter<Self, L> {
+        HttpAdapter::new(self, layer)
+    }
 }
 
-trait HandlerServiceTrait<S>: Send + Sync {
-    fn call(&self, req: Request, state: S) -> BoxFuture<'static, Response>;
+trait HandlerServiceTrait<S, B>: Send + Sync {
+    fn call(&self, req: Request<B>, state: S) -> BoxFuture<'static, Response<Full<Bytes>>>;
 }
 
-struct HandlerServiceWrapper<H, T, S> {
+struct HandlerServiceWrapper<H, T, S, B> {
     handler: H,
-    _marker: std::marker::PhantomData<(T, S)>,
+    _marker: std::marker::PhantomData<(T, S, B)>,
 }
 
-impl<H, T, S> HandlerServiceTrait<S> for HandlerServiceWrapper<H, T, S>
+impl<H, T, S, B> HandlerServiceTrait<S, B> for HandlerServiceWrapper<H, T, S, B>
 where
-    H: Handler<T, S> + Sync,
+    H: Handler<T, S, B> + Sync,
     S: Clone + Send + Sync + 'static,
     T: Send + Sync + 'static,
+    B: Send + Sync + 'static,
 {
-    fn call(&self, req: Request, state: S) -> BoxFuture<'static, Response> {
+    fn call(&self, req: Request<B>, state: S) -> BoxFuture<'static, Response<Full<Bytes>>> {
         let handler = self.handler.clone();
         handler.call(req, state).boxed()
     }
 }
 
-impl<S> Service<Request> for Router<S>
+impl<S, B> Service<Request<B>> for Router<S, B>
 where
     S: Clone + Send + Sync + 'static,
+    B: Send + Sync + 'static,
 {
-    type Response = Response;
+    type Response = Response<Full<Bytes>>;
     type Error = std::convert::Infallible;
     type Future = BoxFuture<'static, Result<Self::Response, Self::Error>>;
 
@@ -90,7 +102,7 @@ where
         Poll::Ready(Ok(()))
     }
 
-    fn call(&mut self, req: Request) -> Self::Future {
+    fn call(&mut self, req: Request<B>) -> Self::Future {
         let path = req.path.clone();
         let state = self.state.clone();
         if let Some(service) = self.routes.get(&path) {
@@ -100,7 +112,7 @@ where
             }.boxed()
         } else {
             async move {
-                Ok(Response::new(404))
+                Ok(Response::empty(404))
             }.boxed()
         }
     }

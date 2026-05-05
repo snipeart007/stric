@@ -54,6 +54,10 @@ pub enum TowerError {
     /// An internal boxed error, typically used for Tower layers that return arbitrary errors.
     #[error("Internal error: {0}")]
     Internal(#[from] Box<dyn std::error::Error + Send + Sync>),
+
+    /// An unknown or unexpected error.
+    #[error("Unknown error")]
+    Unknown,
 }
 
 impl From<std::convert::Infallible> for TowerError {

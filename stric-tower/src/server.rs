@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::marker::PhantomData;
 use tower::{Service, ServiceExt};
 use stric_core::connection_wrapper::ConnectionWrapper;
 use stric_core::handler_types::ConnectionHandlerFn;
@@ -8,24 +9,28 @@ use stric_core::server_config::ServerConfig;
 use stric_core::connection_wrapper::ConnectionContext;
 
 use crate::error::TowerError;
-use crate::http::{Request, Response};
+use crate::http::{Request as StricRequest, Response, Full, Bytes, HeaderMap, HeaderName, HeaderValue, Body, BodyExt};
 use crate::codec::{read_request_envelope, write_response_envelope};
 use crate::wire::proto::ResponseEnvelope;
 
 /// A handler that bridges Stric connections to a Tower [`Service`] using an Axum-like API.
-pub struct TowerConnectionHandler<S> {
+pub struct TowerConnectionHandler<S, B> {
     service: S,
+    _marker: PhantomData<B>,
 }
 
-impl<S> TowerConnectionHandler<S>
+impl<S, B> TowerConnectionHandler<S, B>
 where
-    S: Service<Request, Response = Response> + Clone + Send + Sync + 'static,
+    S: Service<StricRequest<Full<Bytes>>, Response = Response<B>> + Clone + Send + Sync + 'static,
     S::Error: Into<TowerError> + Send,
     S::Future: Send,
+    B: Body + Send + 'static,
+    B::Data: Send,
+    B::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
 {
     /// Creates a new `TowerConnectionHandler` with the given service.
     pub fn new(service: S) -> Self {
-        Self { service }
+        Self { service, _marker: PhantomData }
     }
 
     /// Converts the handler into a Stric-compatible `ConnectionHandlerFn`.
@@ -50,7 +55,7 @@ where
                     let mut service = service.clone();
 
                     tokio::spawn(async move {
-                        if let Err(e) = handle_stream_axum(&mut stream, &mut service).await {
+                        if let Err(e) = handle_stream_axum::<S, B>(&mut stream, &mut service).await {
                             eprintln!("Error handling stream: {:?}", e);
                         }
                     });
@@ -62,20 +67,32 @@ where
 }
 
 /// Internal helper to handle an individual bidirectional stream using the axum-like protocol.
-async fn handle_stream_axum<S>(
+async fn handle_stream_axum<S, B>(
     stream: &mut BiStream,
     service: &mut S,
 ) -> Result<(), TowerError>
 where
-    S: Service<Request, Response = Response> + Send,
+    S: Service<StricRequest<Full<Bytes>>, Response = Response<B>> + Send,
     S::Error: Into<TowerError> + Send,
+    B: Body + Send + 'static,
+    B::Data: Send,
+    B::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
 {
     // 1. Decode Request Envelope
     let envelope = read_request_envelope(stream).await?;
-    let req = Request {
+    
+    // Direct header conversion: Prost HashMap -> HeaderMap
+    let mut headers = HeaderMap::with_capacity(envelope.headers.len());
+    for (k, v) in envelope.headers {
+        if let (Ok(name), Ok(value)) = (HeaderName::from_bytes(k.as_bytes()), HeaderValue::from_str(&v)) {
+            headers.insert(name, value);
+        }
+    }
+
+    let req = StricRequest {
         path: envelope.path,
-        headers: envelope.headers,
-        body: envelope.payload.into(),
+        headers,
+        body: Full::new(envelope.payload.into()),
     };
 
     // 2. Call Service
@@ -83,10 +100,22 @@ where
     let res = service.call(req).await.map_err(|e| e.into())?;
 
     // 3. Encode Response Envelope
+    // Direct header conversion: HeaderMap -> Prost HashMap
+    let mut res_headers = std::collections::HashMap::with_capacity(res.headers.len());
+    for (name, value) in res.headers {
+        if let Some(name) = name {
+            if let Ok(val_str) = value.to_str() {
+                res_headers.insert(name.to_string(), val_str.to_string());
+            }
+        }
+    }
+
+    let body = res.body.collect().await.map_err(|e| TowerError::Internal(e.into()))?.to_bytes();
+
     let res_envelope = ResponseEnvelope {
         status_code: res.status as u32,
-        headers: res.headers,
-        payload: res.body.into(),
+        headers: res_headers,
+        payload: body.into(),
     };
     write_response_envelope(stream, res_envelope).await?;
 
@@ -110,11 +139,14 @@ impl Server {
     /// Serves the given Tower service.
     ///
     /// This method sets up a default QUIC configuration with a self-signed certificate.
-    pub async fn serve<S>(self, service: S) -> Result<(), anyhow::Error>
+    pub async fn serve<S, B>(self, service: S) -> Result<(), anyhow::Error>
     where
-        S: Service<Request, Response = Response> + Clone + Send + Sync + 'static,
+        S: Service<StricRequest<Full<Bytes>>, Response = Response<B>> + Clone + Send + Sync + 'static,
         S::Error: Into<TowerError> + Send,
         S::Future: Send,
+        B: Body + Send + 'static,
+        B::Data: Send,
+        B::Error: Into<Box<dyn std::error::Error + Send + Sync>>,
     {
         // Boilerplate for QUIC crypto (using rustls with ring)
         let _ = quinn::rustls::crypto::ring::default_provider().install_default();
@@ -137,7 +169,7 @@ impl Server {
             idle_timeout: Some(std::time::Duration::from_secs(60)),
         };
 
-        let tower_handler = TowerConnectionHandler::new(service);
+        let tower_handler = TowerConnectionHandler::<S, B>::new(service);
         let (mut server, mut error_rx) = ServerInstance::<()>::new(config)?;
         server.register_connection_handler(tower_handler.into_handler());
 

@@ -1,22 +1,23 @@
 use std::future::Future;
 use std::pin::Pin;
-use crate::http::{Request, Response, FromRequest, IntoResponse};
+use crate::http::{Request, Response, FromRequest, IntoResponse, Full, Bytes};
 
-pub trait Handler<T, S>: Clone + Send + Sized + 'static {
-    type Future: Future<Output = Response> + Send + 'static;
-    fn call(self, req: Request, state: S) -> Self::Future;
+pub trait Handler<T, S, B = Full<Bytes>>: Clone + Send + Sized + 'static {
+    type Future: Future<Output = Response<Full<Bytes>>> + Send + 'static;
+    fn call(self, req: Request<B>, state: S) -> Self::Future;
 }
 
-impl<F, Fut, S, R> Handler<(), S> for F
+impl<F, Fut, S, R, B> Handler<(), S, B> for F
 where
     F: FnOnce() -> Fut + Clone + Send + 'static,
     Fut: Future<Output = R> + Send + 'static,
     R: IntoResponse,
     S: Send + Sync + 'static,
+    B: Send + Sync + 'static,
 {
-    type Future = Pin<Box<dyn Future<Output = Response> + Send>>;
+    type Future = Pin<Box<dyn Future<Output = Response<Full<Bytes>>> + Send>>;
 
-    fn call(self, _req: Request, _state: S) -> Self::Future {
+    fn call(self, _req: Request<B>, _state: S) -> Self::Future {
         Box::pin(async move {
             self().await.into_response()
         })
@@ -26,17 +27,18 @@ where
 macro_rules! impl_handler {
     ( $($ty:ident),* $(,)? ) => {
         #[allow(non_snake_case)]
-        impl<F, Fut, S, R, $($ty,)*> Handler<($($ty,)*), S> for F
+        impl<F, Fut, S, R, B, $($ty,)*> Handler<($($ty,)*), S, B> for F
         where
             F: FnOnce($($ty,)*) -> Fut + Clone + Send + 'static,
             Fut: Future<Output = R> + Send + 'static,
             R: IntoResponse,
             S: Send + Sync + 'static,
-            $($ty: FromRequest<S> + Send,)*
+            B: Clone + Send + Sync + 'static,
+            $($ty: FromRequest<S, B> + Send,)*
         {
-            type Future = Pin<Box<dyn Future<Output = Response> + Send>>;
+            type Future = Pin<Box<dyn Future<Output = Response<Full<Bytes>>> + Send>>;
 
-            fn call(self, req: Request, state: S) -> Self::Future {
+            fn call(self, req: Request<B>, state: S) -> Self::Future {
                 Box::pin(async move {
                     $(
                         let $ty = match $ty::from_request(req.clone(), &state).await {

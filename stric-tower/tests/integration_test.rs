@@ -4,7 +4,7 @@ use std::sync::Arc;
 use stric_core::connection_wrapper::ConnectionContext;
 use stric_core::server::ServerInstance;
 use stric_core::server_config::ServerConfig;
-use stric_tower::{Router, Json, TowerClientService, TowerConnectionHandler, Request};
+use stric_tower::{BodyExt, Full, HeaderMap, Json, Request, Router, TowerClientService, TowerConnectionHandler};
 use tower::Service;
 
 #[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
@@ -85,12 +85,13 @@ async fn test_axum_like_tower_integration() {
     let body = serde_json::to_vec(&payload).unwrap();
     let req = Request {
         path: "/echo".to_string(),
-        headers: std::collections::HashMap::new(),
-        body: body.into(),
+        headers: HeaderMap::new(),
+        body: Full::new(body.into()),
     };
-    
+
     let res = client_service.call(req).await.unwrap();
-    let echo_res: EchoResponse = serde_json::from_slice(&res.body).unwrap();
+    let body_bytes = res.body.collect().await.unwrap().to_bytes();
+    let echo_res: EchoResponse = serde_json::from_slice(&body_bytes).unwrap();
 
     assert_eq!(echo_res.message, "Hello Axum-like!");
 }
@@ -142,10 +143,10 @@ async fn test_axum_like_404() {
 
     let req = Request {
         path: "/wrong-path".to_string(),
-        headers: std::collections::HashMap::new(),
-        body: vec![].into(),
+        headers: HeaderMap::new(),
+        body: Full::new(vec![].into()),
     };
-    
+
     let res = client_service.call(req).await.unwrap();
     assert_eq!(res.status, 404);
 }

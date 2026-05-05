@@ -1,26 +1,30 @@
 use serde::{Deserialize, Serialize};
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use std::sync::Arc;
-use stric_tower::{TowerClientService, Request};
+use stric_tower::{HeaderMap, IntoResponse, Json, Request, TowerClientService, BodyExt};
 use tower::Service;
+use std::sync::Arc;
+use quinn::rustls::pki_types::{CertificateDer, ServerName, UnixTime};
+use quinn::rustls::client::danger::{ServerCertVerifier, ServerCertVerified, HandshakeSignatureValid};
+use quinn::rustls::{Error, SignatureScheme, DigitallySignedStruct};
 
-// 1. Define Request/Response types (Should match server)
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct EchoRequest {
-    pub message: String,
+#[derive(Serialize, Deserialize, Debug)]
+struct EchoRequest {
+    message: String,
 }
 
-#[derive(Clone, Serialize, Deserialize, Debug)]
-pub struct EchoResponse {
-    pub message: String,
+#[derive(Serialize, Deserialize, Debug)]
+struct EchoResponse {
+    message: String,
 }
 
 #[tokio::main]
 async fn main() -> Result<(), anyhow::Error> {
-    // Boilerplate for QUIC crypto
+    // 1. Setup QUIC crypto
     let _ = quinn::rustls::crypto::ring::default_provider().install_default();
 
-    // 2. Client endpoint configuration
+    // 2. Configure Client
+    let _roots = quinn::rustls::RootCertStore::empty();
+    
+    // Simplest client config that skips cert verification (DO NOT USE IN PRODUCTION)
     let mut crypto = quinn::rustls::ClientConfig::builder()
         .dangerous()
         .with_custom_certificate_verifier(Arc::new(SkipServerVerification))
@@ -31,85 +35,76 @@ async fn main() -> Result<(), anyhow::Error> {
         quinn::crypto::rustls::QuicClientConfig::try_from(crypto).unwrap(),
     ));
 
-    let mut client_endpoint =
-        quinn::Endpoint::client(SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0))?;
-    client_endpoint.set_default_client_config(client_config);
+    let mut endpoint = quinn::Endpoint::client("0.0.0.0:0".parse().unwrap())?;
+    endpoint.set_default_client_config(client_config);
 
     // 3. Connect to Server
-    let server_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 4433);
-    println!("Connecting to {}...", server_addr);
+    let addr = "127.0.0.1:4433".parse().unwrap();
+    let conn = endpoint.connect(addr, "localhost")?.await?;
+    println!("Connected to {}", addr);
 
-    let connection = client_endpoint.connect(server_addr, "localhost")?.await?;
-    println!("Connected!");
+    // 4. Create Tower Client Service
+    let mut client = TowerClientService::new(conn);
 
-    // 4. Initialize Tower Client Service
-    let mut client = TowerClientService::new(connection);
+    // 5. Build and Send Request
+    let req_payload = EchoRequest {
+        message: "Hello from Tower Client!".to_string(),
+    };
 
-    // 5. Make Requests using the Axum-like wire protocol
-    let messages = vec!["Hello!", "Axum-like API", "stric-tower is revamped"];
+    let req = Request {
+        path: "/echo".to_string(),
+        headers: HeaderMap::new(),
+        body: Json(req_payload).into_response().body,
+    };
 
-    for msg in messages {
-        let payload = EchoRequest {
-            message: msg.to_string(),
-        };
-        let body = serde_json::to_vec(&payload)?;
+    println!("Sending request...");
+    let res = client.call(req).await?;
 
-        let req = Request {
-            path: "/echo".to_string(),
-            headers: std::collections::HashMap::new(),
-            body: body.into(),
-        };
-
-        println!("Sending: {}", msg);
-
-        match client.call(req).await {
-            Ok(res) => {
-                let echo_res: EchoResponse = serde_json::from_slice(&res.body)?;
-                println!("Received: {}", echo_res.message);
-            }
-            Err(e) => eprintln!("Error: {:?}", e),
-        }
-    }
+    println!("Response Status: {}", res.status);
+    
+    // res.body is a Full<Bytes>, we can collect it to get the bytes
+    let body_bytes = res.body.collect().await?.to_bytes();
+    let echo_res: EchoResponse = serde_json::from_slice(&body_bytes)?;
+    println!("Echo Response: {}", echo_res.message);
 
     Ok(())
 }
 
-// --- Helper to skip verification (For Example Only) ---
-
+// --- Helper to skip verification for dev ---
 #[derive(Debug)]
 struct SkipServerVerification;
 
-impl quinn::rustls::client::danger::ServerCertVerifier for SkipServerVerification {
+impl ServerCertVerifier for SkipServerVerification {
     fn verify_server_cert(
         &self,
-        _end_entity: &quinn::rustls::pki_types::CertificateDer<'_>,
-        _intermediates: &[quinn::rustls::pki_types::CertificateDer<'_>],
-        _server_name: &quinn::rustls::pki_types::ServerName<'_>,
+        _end_entity: &CertificateDer<'_>,
+        _intermediates: &[CertificateDer<'_>],
+        _server_name: &ServerName<'_>,
         _ocsp_response: &[u8],
-        _now: quinn::rustls::pki_types::UnixTime,
-    ) -> Result<quinn::rustls::client::danger::ServerCertVerified, quinn::rustls::Error> {
-        Ok(quinn::rustls::client::danger::ServerCertVerified::assertion())
+        _now: UnixTime,
+    ) -> Result<ServerCertVerified, Error> {
+        Ok(ServerCertVerified::assertion())
     }
 
     fn verify_tls12_signature(
         &self,
         _message: &[u8],
-        _cert: &quinn::rustls::pki_types::CertificateDer<'_>,
-        _dss: &quinn::rustls::DigitallySignedStruct,
-    ) -> Result<quinn::rustls::client::danger::HandshakeSignatureValid, quinn::rustls::Error> {
-        Ok(quinn::rustls::client::danger::HandshakeSignatureValid::assertion())
+        _cert: &CertificateDer<'_>,
+        _dss: &DigitallySignedStruct,
+    ) -> Result<HandshakeSignatureValid, Error> {
+        Ok(HandshakeSignatureValid::assertion())
     }
 
     fn verify_tls13_signature(
         &self,
         _message: &[u8],
-        _cert: &quinn::rustls::pki_types::CertificateDer<'_>,
-        _dss: &quinn::rustls::DigitallySignedStruct,
-    ) -> Result<quinn::rustls::client::danger::HandshakeSignatureValid, quinn::rustls::Error> {
-        Ok(quinn::rustls::client::danger::HandshakeSignatureValid::assertion())
+        _cert: &CertificateDer<'_>,
+        _dss: &DigitallySignedStruct,
+    ) -> Result<HandshakeSignatureValid, Error> {
+        Ok(HandshakeSignatureValid::assertion())
     }
 
-    fn supported_verify_schemes(&self) -> Vec<quinn::rustls::SignatureScheme> {
+    fn supported_verify_schemes(&self) -> Vec<SignatureScheme> {
         quinn::rustls::crypto::ring::default_provider()
             .signature_verification_algorithms
             .supported_schemes()
