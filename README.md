@@ -8,6 +8,20 @@ Stric is a modern networking ecosystem for Rust, built on top of QUIC. It provid
 - **`stric-tower`**: An `axum`-like request-response framework built on `stric-core`, supporting Tower middleware and Axum extractors.
 - **`stric-flow`** (Upcoming): A generic, mesh-routed overlay network for stateful, coordinated data flows with exact-once delivery and Dijkstra-based pathfinding.
 
+## Getting Started
+
+To explore the ecosystem, check out the individual crates:
+
+- [stric-core](./stric-core/README.md): Low-level symmetric QUIC transport.
+- [stric-tower](./stric-tower/README.md): High-level request/response framework.
+
+To see Stric in action, run the examples:
+
+```bash
+# Run the stric-tower echo server
+cargo run -p stric-tower --example server
+```
+
 ## Project Vision
 
 Stric aims to solve the mismatch between local async task models and network communication by treating data as continuous, stateful **flows** rather than discrete, stateless requests.

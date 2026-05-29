@@ -98,6 +98,14 @@ Fails if the connection attempt is rejected by the peer or times out.
 ### `QuicNode::get_unistream` / `get_bistream`
 Returns `NodeStreamError` if the connection ID is unknown or if the connection has closed.
 
+## Verification
+
+To run the integration tests and verify the symmetric node behavior:
+
+```bash
+cargo test -p stric-core
+```
+
 ## Implementation Notes
 
 - **`stric-core`** is intentionally lean. It does not handle high-level routing, protobuf serialization, or session coordination. These are delegated to **`stric-flow`**.

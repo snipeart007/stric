@@ -211,6 +211,23 @@ async fn main() -> Result<(), anyhow::Error> {
 }
 ```
 
+## Running Examples
+
+The crate includes several examples demonstrating its capabilities. To run them, use `cargo run -p stric-tower --example <name>`.
+
+| Example | Description |
+| :--- | :--- |
+| `server` / `client` | Basic request/response echo service. |
+| `middleware` | Demonstrates `tower-http` integration (TraceLayer). |
+| `tower_middleware` | Advanced Tower policies (Retry, Timeout, Concurrency). |
+| `protobuf` | Schema-driven binary payload communication. |
+| `mixed_codec` | Handling multiple payload formats in one service. |
+
+```bash
+# Example: Run the echo server
+cargo run -p stric-tower --example server
+```
+
 ## Proper TLS Setup
 
 ### Proper server verification on the client
