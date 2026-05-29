@@ -1,0 +1,4 @@
+graphify-out/** linguist-generated
+graphify-out/*.html linguist-vendored
+graphify-out/*.json linguist-vendored
+*.json linguist-vendored
