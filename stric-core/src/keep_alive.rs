@@ -35,7 +35,7 @@ enum WorkerCommand {
 /// A stream managed by the keep-alive system.
 pub(crate) struct ManagedStream {
     /// The unidirectional stream used for heartbeats.
-    pub stream: ServerUniStream,
+    pub stream: SendUniStream,
     /// The interval at which pings are sent.
     pub interval: Duration,
     /// The timestamp of the last ping sent.
@@ -77,7 +77,7 @@ impl KeepAlivePool {
     }
 
     /// Adds a new stream to the keep-alive pool.
-    pub(crate) async fn add_stream(&self, stream: ServerUniStream, interval: Duration) {
+    pub(crate) async fn add_stream(&self, stream: SendUniStream, interval: Duration) {
         debug!("Requesting to add new stream to keep-alive pool");
         if self
             .sender

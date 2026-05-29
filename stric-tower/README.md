@@ -15,7 +15,7 @@ Use this crate when you want:
 
 Import from the crate root:
 
-```rust
+```rust,no_run
 use stric_tower::{
     Bincode, BincodeFormat, Body, BodyExt, Bytes, FromRequest, Full, HeaderMap,
     HeaderName, HeaderValue, HttpAdapter, HttpError, IntoResponse, Json, Method,
@@ -36,9 +36,9 @@ What each export is for:
 - `TowerClientService`
   Client-side Tower `Service` over an established QUIC connection.
 - `Server`
-  Development-oriented server bootstrap helper. Uses a generated self-signed certificate.
+  Development-oriented server bootstrap helper. Uses a generated self-signed certificate and the symmetric `QuicNode`.
 - `TowerConnectionHandler`
-  Low-level bridge from a Stric/Tower service into `stric-core::ServerInstance`. Use this for real TLS configuration.
+  Low-level bridge from a Stric/Tower service into `stric-core::QuicNode`. Use this for real TLS configuration.
 - `HttpAdapter`
   The adapter type returned by `Router::layer_standard`. Treat it as an implementation detail that is public only because it appears in the return type.
 - `ServiceCodec`, `ProstCodec`, `SerdeCodec`, `SerdeFormat`, `BincodeFormat`
@@ -79,8 +79,8 @@ Use:
 
 - `Router`
 - `TowerConnectionHandler::new(router).into_handler()`
-- `stric_core::ServerConfig`
-- `stric_core::ServerInstance`
+- `stric_core::NodeConfig`
+- `stric_core::QuicNode`
 
 Do not use:
 
@@ -88,7 +88,7 @@ Do not use:
 
 Reason:
 
-- `stric-core` is where certificate loading, ALPN selection, and server construction happen
+- `stric-core` is where certificate loading, ALPN selection, and node construction happen
 
 ### 3. Client requests over an existing QUIC connection
 
@@ -133,7 +133,7 @@ Use:
 
 ### Minimal server
 
-```rust
+```rust,no_run
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 
 use stric_tower::{Json, Router, Server};
@@ -163,7 +163,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
 ### Minimal client
 
-```rust
+```rust,no_run
 use std::sync::Arc;
 
 use stric_tower::{BodyExt, HeaderMap, Json, Request, SkipServerVerification, TowerClientService};
@@ -231,39 +231,41 @@ That API is exported only for local development and examples.
 
 ### Proper server configuration
 
-For real TLS, do not use `stric_tower::Server::serve`. Use `stric_core::ServerInstance` with your own `ServerConfig` and bridge your router through `TowerConnectionHandler`.
+For real TLS, do not use `stric_tower::Server::serve`. Use `stric_core::QuicNode` with your own `NodeConfig` and bridge your router through `TowerConnectionHandler`.
 
 Sketch:
 
-```rust
+```rust,no_run
 use std::sync::Arc;
 
-use stric_core::{ConnectionContext, ServerConfig, ServerInstance};
+use stric_core::{ConnectionContext, NodeConfig, QuicNode};
 use stric_tower::{Router, TowerConnectionHandler};
 
 let app = Router::new();
 let handler = TowerConnectionHandler::new(app);
 
-let config = ServerConfig {
-    certs: server_chain,
-    key: server_private_key,
+let config = NodeConfig {
+    certs: Some(server_chain),
+    key: Some(server_private_key),
     socket_addr: bind_addr,
     alpn_protocol_names: vec![b"stric".to_vec()],
     error_channel_len: 16,
     default_conn_context: ConnectionContext::default(),
     keep_alive_limit_per_thread: 0,
     idle_timeout: None,
+    root_cert_store: None,
+    danger_accept_invalid_certs: false,
 };
 
-let (mut server, mut error_rx) = ServerInstance::<()>::new(config)?;
-server.register_connection_handler(handler.into_handler());
+let (mut node, mut error_rx) = QuicNode::<()>::new(config)?;
+node.on_inbound(handler.into_handler());
 ```
 
 ### Proper client verification by the server
 
 Current limitation:
 
-- `stric_core::ServerInstance::new` currently builds rustls with `with_no_client_auth()`
+- `stric_core::QuicNode::new` currently builds rustls with `with_no_client_auth()`
 - `stric_tower::Server::serve` therefore also does not support mutual TLS
 
 So today:
@@ -324,7 +326,7 @@ Returned error type:
 Common propagated inner errors:
 
 - `rcgen` certificate generation errors
-- `stric_core::ServerInstance::new` initialization errors
+- `stric_core::QuicNode::new` initialization errors
 - async handler failures received from the `stric-core` error channel
 
 Operational meaning:

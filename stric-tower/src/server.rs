@@ -2,8 +2,8 @@ use std::sync::Arc;
 use std::marker::PhantomData;
 use tower::{Service, ServiceExt};
 use stric_core::{
-    BiStream, ConnectionContext, ConnectionHandlerFn, ConnectionWrapper, ServerConfig,
-    ServerInstance,
+    BiStream, ConnectionContext, ConnectionHandlerFn, ConnectionWrapper, NodeConfig,
+    QuicNode,
 };
 
 use crate::error::TowerError;
@@ -33,7 +33,7 @@ where
     /// Creates a new `TowerConnectionHandler` with the given service.
     ///
     /// Use this when you want `stric-tower` routing or middleware behavior on
-    /// top of a manually configured [`stric_core::ServerInstance`]. If the
+    /// top of a manually configured [`stric_core::QuicNode`]. If the
     /// development server helper is enough, prefer [`Server::serve`].
     pub fn new(service: S) -> Self {
         Self { service, _marker: PhantomData }
@@ -46,7 +46,7 @@ where
     ///
     /// This is the low-level bridge for `stric-core` integration. It should not
     /// be used as a general request handler abstraction outside a
-    /// `ServerInstance::register_connection_handler` call.
+    /// `QuicNode::on_inbound` call.
     pub fn into_handler<M>(self) -> ConnectionHandlerFn<M>
     where
         M: Default + Send + Sync + 'static,
@@ -159,13 +159,13 @@ impl Server {
     ///
     /// # Errors
     /// Returns `anyhow::Error` when self-signed certificate generation fails,
-    /// when the underlying [`stric_core::ServerInstance::new`] call fails, or
+    /// when the underlying [`stric_core::QuicNode::new`] call fails, or
     /// when the async Stric error channel reports a connection handler failure.
     ///
     /// # Edge Cases
     /// This helper always generates a fresh self-signed certificate for
     /// `localhost`. It is intended for development and examples only. Use
-    /// [`TowerConnectionHandler`] together with [`stric_core::ServerInstance`]
+    /// [`TowerConnectionHandler`] together with [`stric_core::QuicNode`]
     /// when you need production TLS or client-certificate verification.
     pub async fn serve<S, B>(self, service: S) -> Result<(), anyhow::Error>
     where
@@ -186,25 +186,27 @@ impl Server {
         let certs = vec![quinn::rustls::pki_types::CertificateDer::from(cert_der)];
         let key = quinn::rustls::pki_types::PrivateKeyDer::try_from(key_der).unwrap();
 
-        let config = ServerConfig {
-            certs,
-            key,
+        let config = NodeConfig {
+            certs: Some(certs),
+            key: Some(key),
             socket_addr: self.addr,
             alpn_protocol_names: vec![b"stric".to_vec()],
             error_channel_len: 10,
             default_conn_context: ConnectionContext::default(),
             keep_alive_limit_per_thread: 0,
             idle_timeout: Some(std::time::Duration::from_secs(60)),
+            root_cert_store: None,
+            danger_accept_invalid_certs: false,
         };
 
         let tower_handler = TowerConnectionHandler::<S, B>::new(service);
-        let (mut server, mut error_rx) = ServerInstance::<()>::new(config)?;
-        server.register_connection_handler(tower_handler.into_handler());
+        let (mut node, mut error_rx) = QuicNode::<()>::new(config)?;
+        node.on_inbound(tower_handler.into_handler());
 
         println!("Server listening on {}", self.addr);
 
         tokio::select! {
-            _ = server.listen_connections() => {},
+            _ = node.listen() => {},
             Some(err) = error_rx.recv() => {
                 return Err(err);
             }

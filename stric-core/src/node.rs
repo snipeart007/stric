@@ -158,7 +158,9 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> QuicNode<ConnectionMet
             let handler = self.inbound_handler.clone();
             let error_tx = self.error_tx.clone();
 
-            tokio::spawn(Self::handle_incoming(incoming, manager, handler, error_tx));
+            tokio::spawn(Self::handle_incoming(
+                incoming, manager, handler, error_tx,
+            ));
         }
     }
 
@@ -174,10 +176,7 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> QuicNode<ConnectionMet
         addr: std::net::SocketAddr,
         server_name: &str,
     ) -> Result<u64, anyhow::Error> {
-        info!(
-            "Initiating outbound connection to {} ({})",
-            addr, server_name
-        );
+        info!("Initiating outbound connection to {} ({})", addr, server_name);
         let connection = self.endpoint.connect(addr, server_name)?.await?;
         let id = connection.stable_id() as u64;
 
@@ -221,11 +220,7 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> QuicNode<ConnectionMet
             return;
         };
 
-        info!(
-            "Established inbound connection with {} (stable_id: {})",
-            remote_addr,
-            connection.stable_id()
-        );
+        info!("Established inbound connection with {} (stable_id: {})", remote_addr, connection.stable_id());
         Self::setup_connection(connection, manager, handler, error_tx).await;
     }
 
@@ -266,7 +261,7 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> QuicNode<ConnectionMet
     }
 
     /// Opens a new unidirectional stream on the connection with the given ID.
-    pub async fn get_unistream(&self, id: &u64) -> Result<ServerUniStream, NodeStreamError> {
+    pub async fn get_unistream(&self, id: &u64) -> Result<SendUniStream, NodeStreamError> {
         let conn = self
             .conn_manager
             .store
@@ -277,7 +272,7 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> QuicNode<ConnectionMet
 
         debug!("Opening unidirectional stream on connection {}", id);
         let stream = conn.open_uni().await?;
-        Ok(ServerUniStream::new(stream))
+        Ok(SendUniStream::new(stream))
     }
 
     /// Opens a new bidirectional stream on the connection with the given ID.

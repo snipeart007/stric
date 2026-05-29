@@ -6,7 +6,7 @@ use std::task::{Context, Poll};
 use futures::FutureExt;
 use http_body::{Body as HttpBody, Frame, SizeHint};
 use http_body_util::Full as HttpFull;
-use stric_core::{ConnectionContext, ServerConfig, ServerInstance};
+use stric_core::{ConnectionContext, NodeConfig, QuicNode};
 use stric_tower::{BodyExt, Bytes, Full, HeaderMap, HeaderValue, Json, Request, Router, TowerClientService, TowerConnectionHandler, TowerError};
 use tower::{Layer, Service};
 
@@ -103,20 +103,22 @@ where
     }
 }
 
-fn build_server_config(
+fn build_node_config(
     cert_der: Vec<u8>,
     key_der: Vec<u8>,
     addr: SocketAddr,
-) -> ServerConfig {
-    ServerConfig {
-        certs: vec![quinn::rustls::pki_types::CertificateDer::from(cert_der)],
-        key: quinn::rustls::pki_types::PrivateKeyDer::try_from(key_der).unwrap(),
+) -> NodeConfig {
+    NodeConfig {
+        certs: Some(vec![quinn::rustls::pki_types::CertificateDer::from(cert_der)]),
+        key: Some(quinn::rustls::pki_types::PrivateKeyDer::try_from(key_der).unwrap()),
         socket_addr: addr,
         alpn_protocol_names: vec![b"stric".to_vec()],
         error_channel_len: 10,
         default_conn_context: ConnectionContext::default(),
         keep_alive_limit_per_thread: 0,
         idle_timeout: None,
+        root_cert_store: None,
+        danger_accept_invalid_certs: false,
     }
 }
 
@@ -153,20 +155,20 @@ async fn test_axum_like_tower_integration() {
     let cert_der = cert.cert.der().to_vec();
     let key_der = cert.signing_key.serialize_der();
     let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0);
-    let config = build_server_config(cert_der.clone(), key_der, addr);
+    let config = build_node_config(cert_der.clone(), key_der, addr);
 
     let app = Router::new().route("/echo", echo_handler);
     let tower_handler = TowerConnectionHandler::new(app);
 
-    let (mut server, mut _error_rx) = ServerInstance::<()>::new(config).unwrap();
-    let server_addr = server.local_addr().unwrap();
+    let (mut node, mut _error_rx) = QuicNode::<()>::new(config).unwrap();
+    let server_addr = node.local_addr().unwrap();
 
-    server.register_connection_handler(tower_handler.into_handler());
+    node.on_inbound(tower_handler.into_handler());
 
-    let server_arc = Arc::new(server);
-    let server_clone = server_arc.clone();
+    let node_arc = Arc::new(node);
+    let node_clone = node_arc.clone();
     tokio::spawn(async move {
-        server_clone.listen_connections().await;
+        node_clone.listen().await;
     });
 
     let mut client_service = build_client(cert_der, server_addr).await;
@@ -194,19 +196,19 @@ async fn test_axum_like_404() {
     let cert_der = cert.cert.der().to_vec();
     let key_der = cert.signing_key.serialize_der();
     let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0);
-    let config = build_server_config(cert_der.clone(), key_der, addr);
+    let config = build_node_config(cert_der.clone(), key_der, addr);
 
     let app = Router::new().route("/echo", echo_handler);
     let tower_handler = TowerConnectionHandler::new(app);
 
-    let (mut server, mut _error_rx) = ServerInstance::<()>::new(config).unwrap();
-    let server_addr = server.local_addr().unwrap();
-    server.register_connection_handler(tower_handler.into_handler());
+    let (mut node, mut _error_rx) = QuicNode::<()>::new(config).unwrap();
+    let server_addr = node.local_addr().unwrap();
+    node.on_inbound(tower_handler.into_handler());
 
-    let server_arc = Arc::new(server);
-    let server_clone = server_arc.clone();
+    let node_arc = Arc::new(node);
+    let node_clone = node_arc.clone();
     tokio::spawn(async move {
-        server_clone.listen_connections().await;
+        node_clone.listen().await;
     });
 
     let mut client_service = build_client(cert_der, server_addr).await;
@@ -228,19 +230,19 @@ async fn test_invalid_json_returns_bad_request() {
     let cert_der = cert.cert.der().to_vec();
     let key_der = cert.signing_key.serialize_der();
     let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0);
-    let config = build_server_config(cert_der.clone(), key_der, addr);
+    let config = build_node_config(cert_der.clone(), key_der, addr);
 
     let app = Router::new().route("/echo", echo_handler);
     let tower_handler = TowerConnectionHandler::new(app);
 
-    let (mut server, mut _error_rx) = ServerInstance::<()>::new(config).unwrap();
-    let server_addr = server.local_addr().unwrap();
-    server.register_connection_handler(tower_handler.into_handler());
+    let (mut node, mut _error_rx) = QuicNode::<()>::new(config).unwrap();
+    let server_addr = node.local_addr().unwrap();
+    node.on_inbound(tower_handler.into_handler());
 
-    let server_arc = Arc::new(server);
-    let server_clone = server_arc.clone();
+    let node_arc = Arc::new(node);
+    let node_clone = node_arc.clone();
     tokio::spawn(async move {
-        server_clone.listen_connections().await;
+        node_clone.listen().await;
     });
 
     let mut client_service = build_client(cert_der, server_addr).await;
@@ -265,21 +267,21 @@ async fn test_standard_layer_can_add_headers_and_wrap_body() {
     let cert_der = cert.cert.der().to_vec();
     let key_der = cert.signing_key.serialize_der();
     let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::LOCALHOST), 0);
-    let config = build_server_config(cert_der.clone(), key_der, addr);
+    let config = build_node_config(cert_der.clone(), key_der, addr);
 
     let app = Router::new()
         .route("/echo", echo_handler)
         .layer_standard(AddHeaderLayer);
     let tower_handler = TowerConnectionHandler::new(app);
 
-    let (mut server, mut _error_rx) = ServerInstance::<()>::new(config).unwrap();
-    let server_addr = server.local_addr().unwrap();
-    server.register_connection_handler(tower_handler.into_handler());
+    let (mut node, mut _error_rx) = QuicNode::<()>::new(config).unwrap();
+    let server_addr = node.local_addr().unwrap();
+    node.on_inbound(tower_handler.into_handler());
 
-    let server_arc = Arc::new(server);
-    let server_clone = server_arc.clone();
+    let node_arc = Arc::new(node);
+    let node_clone = node_arc.clone();
     tokio::spawn(async move {
-        server_clone.listen_connections().await;
+        node_clone.listen().await;
     });
 
     let mut client_service = build_client(cert_der, server_addr).await;

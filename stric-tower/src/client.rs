@@ -51,7 +51,7 @@ impl Service<Request> for TowerClientService {
         Box::pin(async move {
             // 1. Open new BiStream
             let (send, recv) = conn.open_bi().await?;
-            let mut stream = BiStream::new(true, send, recv);
+            let mut stream = BiStream::new(false, send, recv);
 
             // 2. Encode Request Envelope
             // Direct header conversion: HeaderMap -> Prost HashMap
