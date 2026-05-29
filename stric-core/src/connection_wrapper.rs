@@ -4,7 +4,7 @@
 /// `quinn` connection with Stric-specific metadata and context flags.
 ///
 /// `ConnectionWrapper` is intended for use inside connection handlers registered
-/// through [`ServerInstance::register_connection_handler`](crate::ServerInstance::register_connection_handler).
+/// through [`QuicNode`](crate::QuicNode).
 /// It should not be treated as a long-lived connection registry entry; use
 /// [`ConnectionManager`](crate::ConnectionManager) for post-registration tracking.
 #[derive(Clone)]
@@ -24,12 +24,12 @@ pub struct ConnectionContext {
     pub id: u64,
     /// Whether to keep the connection alive using heartbeat pings.
     pub keep_alive: bool,
-    /// Whether the client initiated a unidirectional stream.
-    pub client_uni: bool,
-    /// Whether the client initiated a bidirectional stream.
-    pub client_bi: bool,
-    /// Whether the server initiated a unidirectional stream.
-    pub server_uni: bool,
-    /// Whether the server initiated a bidirectional stream.
-    pub server_bi: bool,
+    /// Whether the initiator of the connection is allowed to open unidirectional streams.
+    pub initiator_uni: bool,
+    /// Whether the initiator of the connection is allowed to open bidirectional streams.
+    pub initiator_bi: bool,
+    /// Whether the responder of the connection is allowed to open unidirectional streams.
+    pub responder_uni: bool,
+    /// Whether the responder of the connection is allowed to open bidirectional streams.
+    pub responder_bi: bool,
 }

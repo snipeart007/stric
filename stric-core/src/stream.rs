@@ -3,12 +3,12 @@
 //! This module provides wrappers around `quinn`'s unidirectional and bidirectional streams,
 //! offering a simplified API for reading and writing data.
 
-/// A unidirectional stream where the server is the sender.
-pub struct ServerUniStream {
+/// A unidirectional stream used for sending data to a peer.
+pub struct SendUniStream {
     pub(crate) stream: quinn::SendStream,
 }
 
-impl ServerUniStream {
+impl SendUniStream {
     pub(crate) fn new(stream: quinn::SendStream) -> Self {
         Self { stream }
     }
@@ -47,12 +47,16 @@ impl ServerUniStream {
     }
 }
 
-/// A unidirectional stream where the client is the receiver.
-pub struct ClientUniStream {
+/// A unidirectional stream used for receiving data from a peer.
+pub struct RecvUniStream {
     pub(crate) stream: quinn::RecvStream,
 }
 
-impl ClientUniStream {
+impl RecvUniStream {
+    pub(crate) fn new(stream: quinn::RecvStream) -> Self {
+        Self { stream }
+    }
+
     /// Reads data from the stream into the provided buffer.
     ///
     /// # Errors
@@ -99,8 +103,8 @@ impl ClientUniStream {
 /// Bidirectional streams allow both peers to send and receive data simultaneously.
 /// In QUIC, a bidirectional stream consists of a `SendStream` and a `RecvStream`.
 pub struct BiStream {
-    /// Whether the stream was initiated by the server.
-    server_initiated: bool,
+    /// Whether the stream was initiated by the responder (the side that accepted the connection).
+    responder_initiated: bool,
     recv_stream: quinn::RecvStream,
     send_stream: quinn::SendStream,
 }
@@ -111,20 +115,20 @@ impl BiStream {
     /// This constructor is primarily intended for transport integrations such as
     /// `stric-tower`, not for ordinary application code.
     pub fn new(
-        server_initiated: bool,
+        responder_initiated: bool,
         send_stream: quinn::SendStream,
         recv_stream: quinn::RecvStream,
     ) -> Self {
         Self {
-            server_initiated,
+            responder_initiated,
             recv_stream,
             send_stream,
         }
     }
 
-    /// Returns `true` when this stream was opened by the server side of the connection.
-    pub fn is_server_initiated(&self) -> bool {
-        self.server_initiated
+    /// Returns `true` when this stream was opened by the responder side of the connection.
+    pub fn is_responder_initiated(&self) -> bool {
+        self.responder_initiated
     }
 
     /// Writes data to the sending half of the stream.

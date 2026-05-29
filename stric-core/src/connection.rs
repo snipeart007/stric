@@ -1,6 +1,7 @@
 use dashmap::DashMap;
 use std::sync::Arc;
 use std::time::Duration;
+use tracing::{debug, warn};
 
 use crate::{
     connection_wrapper::{ConnectionContext, ConnectionWrapper},
@@ -53,6 +54,7 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ConnectionManager<Conn
     /// task. If the connection closes before the task opens the stream, the
     /// call still returns `Ok(())` and no keep-alive stream is started.
     pub fn set_keep_alive(&self, id: u64, val: bool) -> Result<(), ConnectionManagerError> {
+        debug!("Updating keep-alive for {}: {}", id, val);
         let mut connection = self
             .store
             .get_mut(&id)
@@ -65,9 +67,12 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ConnectionManager<Conn
                     let pool = self.keep_alive_pool.clone();
                     let interval = self.idle_timeout / 2;
                     tokio::spawn(async move {
+                        debug!("Spawning keep-alive stream for connection {}", id);
                         if let Ok(stream) = conn.open_uni().await {
-                    pool.add_stream(ServerUniStream::new(stream), interval)
+                    pool.add_stream(SendUniStream::new(stream), interval)
                         .await;
+                        } else {
+                            warn!("Failed to open keep-alive stream for connection {}", id);
                         }
                     });
         }
@@ -75,76 +80,80 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ConnectionManager<Conn
         Ok(())
     }
 
-    /// Sets whether the client is allowed to initiate unidirectional streams.
+    /// Sets whether the connection initiator is allowed to open unidirectional streams.
     ///
     /// # Errors
     /// Returns [`ConnectionManagerError::IdNotFound`] when the connection has
     /// not been registered or has already been removed.
-    pub fn set_client_uni(&self, id: u64, val: bool) -> Result<(), ConnectionManagerError> {
+    pub fn set_initiator_uni(&self, id: u64, val: bool) -> Result<(), ConnectionManagerError> {
+        debug!("Setting initiator_uni for {}: {}", id, val);
         let mut connection = self
             .store
             .get_mut(&id)
             .ok_or(ConnectionManagerError::IdNotFound(id))?;
 
-        connection.context.client_uni = val;
+        connection.context.initiator_uni = val;
 
         Ok(())
     }
 
-    /// Sets whether the client is allowed to initiate bidirectional streams.
+    /// Sets whether the connection initiator is allowed to open bidirectional streams.
     ///
     /// # Errors
     /// Returns [`ConnectionManagerError::IdNotFound`] when the connection has
     /// not been registered or has already been removed.
-    pub fn set_client_bi(&self, id: u64, val: bool) -> Result<(), ConnectionManagerError> {
+    pub fn set_initiator_bi(&self, id: u64, val: bool) -> Result<(), ConnectionManagerError> {
+        debug!("Setting initiator_bi for {}: {}", id, val);
         let mut connection = self
             .store
             .get_mut(&id)
             .ok_or(ConnectionManagerError::IdNotFound(id))?;
 
-        connection.context.client_bi = val;
+        connection.context.initiator_bi = val;
 
         Ok(())
     }
 
-    /// Sets whether the server is allowed to initiate unidirectional streams.
+    /// Sets whether the connection responder is allowed to open unidirectional streams.
     ///
     /// # Errors
     /// Returns [`ConnectionManagerError::IdNotFound`] when the connection has
     /// not been registered or has already been removed.
-    pub fn set_server_uni(&self, id: u64, val: bool) -> Result<(), ConnectionManagerError> {
+    pub fn set_responder_uni(&self, id: u64, val: bool) -> Result<(), ConnectionManagerError> {
+        debug!("Setting responder_uni for {}: {}", id, val);
         let mut connection = self
             .store
             .get_mut(&id)
             .ok_or(ConnectionManagerError::IdNotFound(id))?;
 
-        connection.context.server_uni = val;
+        connection.context.responder_uni = val;
 
         Ok(())
     }
 
-    /// Sets whether the server is allowed to initiate bidirectional streams.
+    /// Sets whether the connection responder is allowed to open bidirectional streams.
     ///
     /// # Errors
     /// Returns [`ConnectionManagerError::IdNotFound`] when the connection has
     /// not been registered or has already been removed.
-    pub fn set_server_bi(&self, id: u64, val: bool) -> Result<(), ConnectionManagerError> {
+    pub fn set_responder_bi(&self, id: u64, val: bool) -> Result<(), ConnectionManagerError> {
+        debug!("Setting responder_bi for {}: {}", id, val);
         let mut connection = self
             .store
             .get_mut(&id)
             .ok_or(ConnectionManagerError::IdNotFound(id))?;
 
-        connection.context.server_bi = val;
+        connection.context.responder_bi = val;
 
         Ok(())
     }
 
     /// Adds a connection wrapper to the manager's store.
     pub(crate) fn add_connection(&self, wrapper: ConnectionWrapper<ConnectionMetadata>) {
+        debug!("Adding connection {} to manager", wrapper.context.id);
         self.store.insert(wrapper.context.id, wrapper);
     }
-}
-
+    }
 /// Errors related to connection management.
 #[derive(Debug, thiserror::Error)]
 pub enum ConnectionManagerError {
