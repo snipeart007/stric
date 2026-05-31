@@ -78,18 +78,15 @@ While QUIC handles congestion at the byte level, `stric-flow` handles it at the 
 
 ---
 
-## PENDING ARCHITECTURAL QUESTIONS (Must be resolved before implementation)
+## 7. Resolved Architectural Decisions
 
-1.  **Topology Bootstrapping:** How does a node learn about the initial graph? Should we support a "Seed List" in the configuration, or a DHT-like discovery mechanism?
-2.  **Dijkstra Metrics:** What defines a "best path" in your vision? Is it purely the lowest number of hops, or should we factor in dynamic metrics like RTT (latency) or current bandwidth usage reported by nodes?
-3.  **Message Uniqueness:** To ensure "Exact-Once" delivery in a mesh, how should we handle loop prevention? Should every message have a `Nonce/UUID` that nodes track in a short-term TTL cache to detect duplicates?
-4.  **Generic Message Registry:** How should the system map a Protobuf message name (string) from the handshake to a concrete Rust type at runtime? Should we implement a global `MessageRegistry` macro?
-5.  **Transit forwarding & Merging:** If two logical paths overlap on one physical connection (Node A -> Node B), should the "Data Merging" happen at the **Source** (merging headers) or should intermediate **Transit Nodes** also attempt to deduplicate if they receive two identical payloads for different paths?
-6.  **Aggregator Bias:** How does an `AggregatorNode` declare its subscription bias? Is it a simple wildcard (e.g., "Flow.*") or a more complex predicate?
-7.  **Control Flow Priority:** Since the Control Flow handles backpressure (`PAUSE`/`RESUME`), should it use QUIC's stream priority features to ensure it is always processed before data streams?
-8.  **Session Conflict Strategy:** For "Conflict Reconciliation" in state synchronization, should we provide a default (like Last-Writer-Wins) or require the user to provide a merge function?
-9.  **Transit Immunity:** You mentioned transit nodes must ignore deadlines. Does this mean transit nodes should have **infinite buffers**, or should they drop data if their internal OS-level buffers are full (standard backpressure)?
-10. **Node Identity Proof:** Since `stric-core` handles the TLS, should `stric-flow` perform an additional "Identity Handshake" on the Control Flow to verify the permanent `NodeID` against the certificate?
-
----
-**CRITICAL MANDATE:** No implementation code shall be written until all 10 questions above have been moved from this list into the formal sections of this document.
+1. **Topology Bootstrapping:** We implement a hybrid approach where a static "Seed List" of addresses in the node configuration is used to bootstrap and join a dynamic DHT-like discovery network.
+2. **Dijkstra Metrics:** The routing engine initially optimizes based on the lowest number of hops, but routes are computed via a pluggable metric trait so that dynamic pathfinding metrics (e.g. RTT, bandwidth) can be seamlessly integrated later.
+3. **Message Uniqueness:** Loop prevention and duplicate message detection strategy is defined via a dedicated setting in the `stric-flow` nodes cluster configuration.
+4. **Generic Message Registry:** We implement a compile-time procedural macro/builder API to register Protobuf schemas and construct a global `MessageRegistry` mapping message names to their concrete deserializers.
+5. **Transit Forwarding & Merging:** Logical path merging and deduplication are done at the source node (e.g., by combining header destinations/lists) to enable intermediate transit nodes to perform simple, stateless forwarding.
+6. **Aggregator Bias:** `AggregatorNode` subscription bias is expressed through wildcard topic pattern matching (e.g., standard MQTT/AMQP-like wildcards: `flow.*`, `sensor/#`).
+7. **Control Flow Priority:** Internal control flows (PAUSE/RESUME) utilize QUIC's built-in stream priority features to ensure control messages bypass queued data streams.
+8. **Session Conflict Strategy:** State synchronization uses a default Last-Writer-Wins (LWW) conflict reconciliation strategy based on physical timestamps, but allows the developer to register a custom merge function.
+9. **Transit Immunity:** Intermediate transit nodes apply standard backpressure upstream when their internal memory buffers/queues fill up, but they do not proactively drop or expire packets based on message deadlines.
+10. **Node Identity Proof:** The system supports both verification options: an additional cryptographic handshake on the Control Flow to verify the permanent `NodeID` against the certificate, as well as a TLS-based verification option mapping the certificate CN/SAN to the `NodeID` inside `stric-core`.

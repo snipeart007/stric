@@ -107,7 +107,7 @@ async fn test_node_connection_lifecycle() {
         .get_bistream(&node_id)
         .await
         .expect("Node should be able to open bi stream");
-    assert!(bi.is_server_initiated());
+    assert!(bi.is_responder_initiated());
 }
 
 #[tokio::test]

@@ -18,7 +18,7 @@ use crate::{
 /// * `ConnectionMetadata`: A user-defined type for storing custom metadata associated with each connection.
 pub struct ConnectionManager<ConnectionMetadata: Default + Send + Sync + 'static> {
     /// A thread-safe map of active connections, keyed by their stable ID.
-    pub(crate) store: DashMap<u64, ConnectionWrapper<ConnectionMetadata>>,
+    pub store: DashMap<u64, ConnectionWrapper<ConnectionMetadata>>,
     /// The default context used when initializing new connections.
     pub(crate) default_conn_context: ConnectionContext,
     /// A background pool for managing keep-alive heartbeats.

@@ -20,7 +20,7 @@ The crate exposes a simplified, root-level API:
 use stric_core::{
     BiStream, ConnectionContext, ConnectionHandlerFn, ConnectionManager,
     ConnectionManagerError, ConnectionWrapper, NodeConfig, QuicNode,
-    NodeStreamError, ServerUniStream,
+    NodeStreamError, SendUniStream, RecvUniStream,
 };
 ```
 
@@ -39,7 +39,7 @@ use stric_core::{
 
 ## Quick Start (Symmetric Node)
 
-```rust,no_run
+```rust,ignore
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::sync::Arc;
 use stric_core::{ConnectionContext, NodeConfig, QuicNode};

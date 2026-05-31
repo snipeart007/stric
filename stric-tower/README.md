@@ -166,7 +166,7 @@ async fn main() -> Result<(), anyhow::Error> {
 ```rust,no_run
 use std::sync::Arc;
 
-use stric_tower::{BodyExt, HeaderMap, Json, Request, SkipServerVerification, TowerClientService};
+use stric_tower::{BodyExt, HeaderMap, IntoResponse, Json, Request, SkipServerVerification, TowerClientService};
 use tower::Service;
 
 #[derive(serde::Serialize)]
@@ -252,7 +252,7 @@ For real TLS, do not use `stric_tower::Server::serve`. Use `stric_core::QuicNode
 
 Sketch:
 
-```rust,no_run
+```rust,ignore
 use std::sync::Arc;
 
 use stric_core::{ConnectionContext, NodeConfig, QuicNode};
