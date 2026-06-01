@@ -8,29 +8,6 @@
 
 `stric-flow` separates logical communication into two distinct pathways: the **Control Plane** and the **Data Plane**. By utilizing QUIC's multi-streaming capabilities, it prevents control plane bottlenecks (e.g., heartbeats, routing updates) from being blocked by head-of-line congestion on data-heavy streams.
 
-```mermaid
-graph TD
-    subgraph FlowNode [FlowNode (node.rs)]
-        QuicNode[stric-core::QuicNode]
-        GlobalGraph[GlobalGraph (routing.rs)]
-        RoutingTable[RoutingTable (discovery.rs)]
-        SessionsMap[sessions: DashMap<String, Session>]
-        MergeFnsMap[merge_fns: DashMap<String, StateMergeFn>]
-        TopicHandlers[topic_handlers: DashMap<String, Arc<dyn FlowHandler>>]
-        FlowLimiters[flow_limiters: DashMap<String, TokenBucketRateLimiter>]
-        Registry[MessageRegistry (registry.rs)]
-        ControlLoop[Control Event Loop (run_control_loop)]
-    end
-
-    Peer[Remote Peer] <-->|Bidirectional Control Stream| ControlLoop
-    Peer <-->|Unidirectional Data Streams| QuicNode
-    QuicNode -->|Delivers Payload| TopicHandlers
-    QuicNode -->|Routes Forwarding| FlowNode
-    ControlLoop -->|Updates Graph| GlobalGraph
-    ControlLoop -->|Updates DHT| RoutingTable
-    ControlLoop -->|Reconciles State| SessionsMap
-```
-
 ---
 
 ## 2. Core Internal Workings
