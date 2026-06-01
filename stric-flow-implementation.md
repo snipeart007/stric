@@ -6,7 +6,7 @@ The system is divided into three crates to separate the wire protocol from the r
 
 ### 1.1. `stric-flow-proto` (The Grammar)
 - **Role:** Houses all Protobuf definitions and generated Rust code.
-- **Core Types:** `FlowHandshake`, `ControlMessage`, `Envelope`, `RoutingHeader`.
+- **Core Types:** `FlowHandshake`, `ControlMessage`, `Envelope`, `RoutingHeader`, `ForwardingTargets`.
 - **Dependencies:** `prost`, `prost-build`.
 
 ### 1.2. `stric-flow-core` (The Fundamentals)
@@ -32,16 +32,26 @@ Every message sent over a stream is a length-prefixed `Envelope` Protobuf:
 message Envelope {
     RoutingHeader header = 1;
     string message_type = 2; // The Protobuf name of the payload
-    bytes payload = 3;       // The generic MessageType bytes
+    Codec  codec = 3;        // How payload is encoded (protobuf, json, bincode, raw)
+    bytes  payload = 4;      // The generic MessageType bytes
 }
 
 message RoutingHeader {
     string source_node_id = 1;
-    repeated string path = 2; // Computed Dijkstra path
-    string flow_id = 3;
-    string topic_id = 4;
-    uint64 timestamp = 5;
-    uint64 deadline = 6;
+    string flow_id = 2;
+    string topic_id = 3;
+    string session_id = 4;       // Optional. Empty if not session-scoped.
+    string nonce = 5;            // UUID for duplicate detection.
+    uint64 timestamp = 6;
+    uint64 deadline = 7;         // 0 = no deadline.
+    DeliveryMode delivery_mode = 8;
+    map<string, ForwardingTargets> forwarding_table = 9;
+}
+
+// Pre-computed by the source. Transit nodes perform an O(1) lookup
+// using their own node ID as the key to retrieve their forwarding targets.
+message ForwardingTargets {
+    repeated string send_to = 1;  // The direct neighbors to forward to.
 }
 ```
 
@@ -93,7 +103,7 @@ where C: NodeContext, M: MessageType
 
 1. **Topology Sync:** Every time a node joins/leaves or a subscription changes, a `TopologyUpdate` message is sent on all peer Control Flows.
 2. **Dijkstra Tree:** Using `petgraph`, we compute a spanning tree for a topic's subscribers.
-3. **Multi-Hop Forwarding:** The `ForwardingEngine` reads the `RoutingHeader.path`. If the next hop is Node B, it looks up Node B's `ConnectionID` in the registry and writes the `Envelope`.
+3. **Multi-Hop Forwarding:** The `ForwardingEngine` reads the `RoutingHeader.forwarding_table`. It performs an O(1) lookup using its own node ID as the key, then sends the envelope **unmodified** to each `send_to` neighbor. Transit nodes perform zero graph computation — no header rewriting, no re-serialization.
 
 ---
 

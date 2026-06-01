@@ -38,11 +38,13 @@ Every node maintains a local representation of the **Global Interconnection Grap
 When a message enters the system at Node A for a set of subscribers {B, C, D}:
 1. Node A calculates a **Delivery Tree** using a modified Dijkstra algorithm.
 2. The algorithm optimizes for path efficiency while respecting node-type penalties (e.g., avoiding `AggregatorNode` for transit).
-3. The routing instructions are embedded in the message header.
+3. The source pre-computes a **Forwarding Table** — a map of `ForwardingTargets` keyed by forwarder node ID — and embeds it in the message header.
+4. Each entry maps a `forwarder` node ID to a list of direct neighbors to forward to (`send_to`). Transit nodes perform zero graph computation: they do an O(1) lookup on their own ID in the map and forward the envelope byte-for-byte.
 
 ### 3.3. Transit Integrity & Forwarding
 Nodes operate under a **Forwarding Mandate**:
-- If a node is an intermediate hop in a calculated path, it MUST forward the bytes to the next hop.
+- If a node finds its own `node_id` in the `forwarding_table` map, it MUST forward the envelope unmodified to each listed `send_to` neighbor.
+- **Stateless Transit:** Transit nodes never consult the topology graph, rewrite headers, or re-serialize the envelope. They perform a simple O(1) key-value lookup and forward.
 - **Transit Immunity:** Intermediate nodes ignore application-level deadlines and subscription logic; their only job is movement.
 
 ---

@@ -52,11 +52,13 @@ When a node produces a message for a Topic:
 1. It queries the Global Graph for all nodes subscribed to that Topic.
 2. It utilizes Dijkstra's algorithm (or a specialized spanning-tree derivative) to compute a delivery tree that reaches all subscribers.
 3. The calculation optimizes for latency, bandwidth, and node types (e.g., avoiding AggregatorNodes for transit).
-4. The calculated path (or routing instructions) is embedded into the message's metadata.
+4. The source pre-computes a **Forwarding Table** — a map of `ForwardingTargets` keyed by forwarder node ID — and embeds it in the message's routing header.
+5. Each entry maps a `forwarder` node ID to a list of direct neighbors to forward to (`send_to`). Transit nodes perform zero graph computation.
 
 ### 3.3. Transit Integrity
 Nodes play a cooperative role in the mesh:
-- **Forwarding Mandate:** If a node receives a message and it is on the calculated transit path for that message, it **MUST** forward the data to the next hop. This mandate applies regardless of whether the transit node itself subscribes to the topic, and regardless of any application-level time limits.
+- **Forwarding Mandate:** If a node finds its own `node_id` in the `forwarding_table` map, it **MUST** forward the envelope unmodified to each listed `send_to` neighbor. This mandate applies regardless of whether the transit node itself subscribes to the topic, and regardless of any application-level time limits.
+- **Stateless Transit:** Transit nodes never consult the topology graph, rewrite headers, or re-serialize the envelope. They perform a simple O(1) key-value lookup and forward.
 
 ### 3.4. Data Merging and Transmission Efficiency
 To conserve bandwidth, the `stric-flow` engine performs aggressive data deduplication at the transmission layer.
