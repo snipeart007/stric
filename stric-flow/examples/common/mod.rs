@@ -5,7 +5,7 @@ pub fn init_logging() {
     let filter_str = if rust_log.to_lowercase().contains("debug") || rust_log.to_lowercase().contains("trace") {
         rust_log
     } else {
-        format!("stric_flow=info,stric_core=warn,{}", rust_log.replace("info", "off"))
+        format!("{},stric_core=warn", rust_log)
     };
     let _ = tracing_subscriber::registry()
         .with(fmt::layer())
