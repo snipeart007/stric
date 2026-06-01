@@ -37,6 +37,7 @@ The entire system's design and protocols are fully specified under the [rfcs](./
   * [RFC 2026-0005: stric-flow Mesh Routing and Dijkstra Spanning Tree forwarding](./rfcs/2026-0005-stric-flow-spanning-tree-routing.md)
   * [RFC 2026-0006: stric-flow Wire Schema and Protocol Specifications](./rfcs/2026-0006-stric-flow-wire-schema-specifications.md)
   * [RFC 2026-0007: stric-flow Engine Concurrency and Mesh Reconciliation](./rfcs/2026-0007-stric-flow-engine-reconciliation.md)
+  * [RFC 2026-0008: stric-flow Protocol Specification](./rfcs/2026-0008-stric-flow-protocol-specification.md)
 
 ## Project Vision
 
