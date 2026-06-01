@@ -6,3 +6,4 @@ pub mod backpressure;
 pub mod discovery;
 pub mod reconciliation;
 pub mod node;
+pub mod frame;
