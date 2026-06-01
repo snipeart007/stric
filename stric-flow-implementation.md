@@ -76,38 +76,183 @@ pub trait FlowHandler<M>: Send + Sync {
 }
 ```
 
----
-
-## 4. The FlowNode Instance
-
-The `FlowNode` wraps `stric-core::QuicNode` and adds the mesh logic.
-
+### 3.3. Pluggable `RoutingMetric`
 ```rust
-pub struct FlowNode<C, M> 
-where C: NodeContext, M: MessageType 
-{
-    core: QuicNode<C>,
-    graph: Arc<GlobalGraph>,
-    sessions: DashMap<String, Session>,
-    topic_handlers: DashMap<String, Arc<dyn FlowHandler<M>>>,
+pub trait RoutingMetric: Send + Sync {
+    /// Computes the cost of traversing the physical connection edge between two nodes.
+    /// The routing engine chooses the path with the lowest overall cost.
+    fn cost(&self, from: &str, to: &str, graph: &GlobalGraph, env: &Envelope) -> f64;
+}
+
+/// Default metric implementation based purely on hop count.
+pub struct HopCountMetric;
+impl RoutingMetric for HopCountMetric {
+    fn cost(&self, _from: &str, _to: &str, _graph: &GlobalGraph, _env: &Envelope) -> f64 {
+        1.0
+    }
 }
 ```
 
-### 4.1. Connection Handlers
+### 3.4. Dynamic `MessageRegistry`
+Provides a central lookup system mapping `message_type` string descriptors to dynamic parser functions for zero-code runtime decoding.
+```rust
+pub struct MessageRegistry {
+    parsers: HashMap<
+        String, 
+        Box<dyn Fn(&[u8]) -> Result<Box<dyn Any + Send + Sync>, String> + Send + Sync>
+    >,
+}
+
+impl MessageRegistry {
+    pub fn new() -> Self {
+        Self { parsers: HashMap::new() }
+    }
+
+    /// Registers a parser function for a given message type name.
+    pub fn register<T>(&mut self, message_type: &str, parser: fn(&[u8]) -> Result<T, String>)
+    where 
+        T: Send + Sync + 'static 
+    {
+        self.parsers.insert(
+            message_type.to_string(),
+            Box::new(move |bytes| parser(bytes).map(|val| Box::new(val) as Box<dyn Any + Send + Sync>))
+        );
+    }
+
+    /// Decodes raw envelope bytes into the registered concrete Rust type.
+    pub fn decode(&self, message_type: &str, data: &[u8]) -> Result<Box<dyn Any + Send + Sync>, String> {
+        let parser = self.parsers.get(message_type)
+            .ok_or_else(|| format!("No parser registered for type '{}'", message_type))?;
+        parser(data)
+    }
+}
+```
+
+---
+
+## 4. The FlowNode Instance & API
+
+The `FlowNode` wraps `stric-core::QuicNode` and coordinates the mesh logic, topology state, dynamic sessions, and the routing metrics engine.
+
+```rust
+pub struct FlowNode<C, M> 
+where C: NodeContext, M: Send + Sync + 'static 
+{
+    core: QuicNode<C>,
+    graph: Arc<RwLock<GlobalGraph>>,
+    sessions: DashMap<String, Session>,
+    topic_handlers: DashMap<String, Arc<dyn FlowHandler<M>>>,
+    metric: Arc<dyn RoutingMetric>,
+    registry: Arc<MessageRegistry>,
+}
+```
+
+### 4.1. Local Application Node API
+These methods run on the local `FlowNode` to publish, subscribe, and manage traffic directly.
+
+```rust
+impl<C, M> FlowNode<C, M> 
+where C: NodeContext, M: Send + Sync + 'static
+{
+    /// Starts the node, spawning the background connection listeners and control loop tasks.
+    pub async fn start(&self) -> Result<()> {
+        // Initialize QUIC stack and loop on incoming connection streams.
+        Ok(())
+    }
+
+    /// Subscribes to a topic pattern. Returns a tokio channel stream of incoming messages
+    /// and triggers a SubscriptionUpdate broadcast on the mesh control flow.
+    pub async fn subscribe(&self, topic_pattern: &str) -> Result<impl tokio_stream::Stream<Item = (M, MessageContext)>> {
+        // Add pattern to local subscriptions, send SubscriptionUpdate, return receiver stream.
+        let (tx, rx) = tokio::sync::mpsc::channel(100);
+        Ok(tokio_stream::wrappers::ReceiverStream::new(rx))
+    }
+
+    /// Unsubscribes from a topic pattern and broadcasts the subscription deletion.
+    pub async fn unsubscribe(&self, topic_pattern: &str) -> Result<()> {
+        // Update local maps and send SubscriptionUpdate with UNSUBSCRIBE action.
+        Ok(())
+    }
+
+    /// Publishes a message to a topic. Computes routing path via Dijkstra metric, 
+    /// builds the forwarding map, wraps payload in Envelope, and writes downstream.
+    pub async fn publish(&self, flow_id: &str, topic: &str, msg: M, delivery: DeliveryMode) -> Result<()> {
+        // Run Dijkstra over the graph using self.metric, construct forwarding map, transmit.
+        Ok(())
+    }
+}
+```
+
+### 4.2. Connection Handlers
 - **`on_inbound`:** Immediately opens the **Control Flow** stream and exchanges `NodeContext` and Topology updates.
 - **`on_outbound`:** Same as inbound; symmetry is maintained.
+
+### 4.3. Concurrency & Internal Task Layout
+To prevent latency spikes and lock contention, processing is distributed across specialized background tasks:
+
+1. **Listener Task:** Monitors physical connections and registers reader/writer tasks per peer node connection.
+2. **Control Flow Manager Task:** Handles the bidirectional control stream for topology, subscription, and session updates.
+3. **Forwarding Engine Task:** Processes incoming `Envelope` packets:
+   - Performs a read lock (`.read()`) on the `GlobalGraph` when verifying hops or building routing trees.
+   - Performs a quick $O(1)$ key lookup on its own ID in the map-based `forwarding_table`.
+   - Clones and dispatches the raw unmodified packet to downstream peer connection writer queues if listed.
+   - Decodes via `MessageRegistry` and pushes to the subscriber's tokio channel if subscribed.
+
+```mermaid
+graph TD
+    IncomingQUIC[Incoming QUIC Stream] -->|Read length-prefixed bytes| ConnTask[Connection Reader Task]
+    ConnTask -->|ControlMessage| ControlEngine[Control Flow Manager]
+    ConnTask -->|Envelope| ForwardingEngine[Forwarding Engine]
+    
+    ControlEngine -->|TopologyUpdate| GraphWrite[Acquire Graph Write Lock & Update Graph]
+    ControlEngine -->|SubscriptionUpdate| SubsUpdate[Update Topic Subscriptions]
+    ControlEngine -->|Backpressure PAUSE/RESUME| BPHandler[Throttle Connection Writer]
+
+    ForwardingEngine -->|O(1) Map Lookup for my_node_id| ForwardCheck{Is Forwarder?}
+    ForwardCheck -->|Yes| DownstreamQueue[Clone & Push to Downstream Neighbors Connection Queues]
+    ForwardCheck -->|No / Complete| LocalCheck{Is Subscriber?}
+    
+    LocalCheck -->|Yes| Registry[Decode via MessageRegistry]
+    Registry -->|Decoded Message| ClientStream[Push to Subscriber tokio::sync::mpsc channel]
+    
+    DownstreamQueue -->|QUIC Frame| DirectPeer[Outbound QUIC Connection Writer]
+```
 
 ---
 
 ## 5. Routing Logic Implementation
 
 1. **Topology Sync:** Every time a node joins/leaves or a subscription changes, a `TopologyUpdate` message is sent on all peer Control Flows.
-2. **Dijkstra Tree:** Using `petgraph`, we compute a spanning tree for a topic's subscribers.
+2. **Dijkstra Tree:** Using `petgraph` and `FlowNode.metric`, we compute a spanning tree for a topic's subscribers, passing the envelope metadata to the cost function to determine link preference.
 3. **Multi-Hop Forwarding:** The `ForwardingEngine` reads the `RoutingHeader.forwarding_table`. It performs an O(1) lookup using its own node ID as the key, then sends the envelope **unmodified** to each `send_to` neighbor. Transit nodes perform zero graph computation — no header rewriting, no re-serialization.
 
 ---
 
-## 6. Resolved Architectural Decisions
+## 6. Partition Recovery & State Reconciliation
+
+To ensure the mesh recovers seamlessly from temporary dropouts or network partitions:
+
+### 6.1. Reconnection Backoff
+When a peer connection is interrupted, the node initiates reconnection backoff:
+* **Algorithm:** Exponential Backoff with jitter.
+* **Timing:** Starts at 1 second, doubling on consecutive failures up to a maximum cap of 60 seconds (e.g., 1s, 2s, 4s, 8s ... 60s).
+* **State:** During reconnect attempts, the peer is marked as `unreachable` in the local topology graph, penalizing transit routes without triggering instant cluster-wide deletion.
+
+### 6.2. Full State Reconciliation (On Reconnect)
+Upon successful reconnection, delta gossips are bypassed in favor of a **Full Graph State Sync**:
+1. The reconnected nodes exchange full `TopologyUpdate` snapshots containing every known node and link descriptor in their graphs.
+2. Each node merges descriptors based on physical timestamps (Last-Writer-Wins) or monotonically incremented epoch versions.
+3. Both nodes sync active subscriptions via a full `SubscriptionUpdate` exchange to recalculate optimal Dijkstra routing structures.
+
+### 6.3. Session State & Garbage Collection
+* **Heartbeat Timeout:** If a node remains disconnected/unreachable for longer than the configured `session_ttl` (default: 300 seconds):
+  - Its current active sessions are pruned.
+  - The remaining active nodes execute an automatic `SessionLeave` or garbage-collect outstanding stale state records.
+  - A clean eviction notification is propagated across the surviving cluster members.
+
+---
+
+## 7. Resolved Architectural Decisions
 
 1. **Topology Bootstrapping:** We implement a hybrid approach where a static "Seed List" of addresses in the node configuration is used to bootstrap and join a dynamic DHT-like discovery network.
 2. **Dijkstra Metrics:** The routing engine initially optimizes based on the lowest number of hops, but routes are computed via a pluggable metric trait so that dynamic pathfinding metrics (e.g. RTT, bandwidth) can be seamlessly integrated later.
