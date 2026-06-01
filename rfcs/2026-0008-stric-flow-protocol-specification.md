@@ -75,7 +75,7 @@ When a QUIC connection is established, the nodes must perform the `stric-flow` h
 * It sends a `Ping` control message containing `sent_at` (Unix epoch milliseconds).
 * The peer immediately replies with a `Pong` control message.
 * RTT is calculated as:
-  $$\text{RTT} = \text{now\_ms} - \text{ping\_sent\_at\_ms}$$
+  $\text{RTT} = \text{now-ms} - \text{ping-sent-at-ms}$
 * The calculated RTT is mapped to the peer link in the topology graph to calculate routing costs.
 
 ### B. Topology Gossip Deduplication
@@ -84,7 +84,7 @@ Topology state is gossiped across the network using `TopologyUpdate` frames:
 2. It sends this update to all direct peers.
 3. Upon receiving a `TopologyUpdate`, a node tracks `last_epochs` mapped by `origin_node_id`.
 4. **Deduplication Check**:
-   $$\text{incoming\_epoch} > \text{stored\_epoch}$$
+   $\text{incoming-epoch} \gt \text{stored-epoch}$
    If true, the node updates its topology graph, updates the stored epoch, and forwards the update to all active peers except the sender and the origin node. Otherwise, the message is ignored.
 
 ### C. Subscription Gossip Deduplication
@@ -92,7 +92,7 @@ Subscription filters (topic patterns) are gossiped similarly using `Subscription
 1. When a node adds/removes subscription patterns, it increments its subscription epoch.
 2. Direct peers receive this update and track epochs in a `last_subscription_epochs` map.
 3. **Deduplication Check**:
-   $$\text{incoming\_sub\_epoch} > \text{stored\_sub\_epoch}$$
+   $\text{incoming-sub-epoch} \gt \text{stored-sub-epoch}$
    If true, the node updates its graph node capabilities (adding or removing prefix entries like `sub:<pattern>`), stores the new epoch, and forwards the update to all other peers.
 
 ---
@@ -102,11 +102,11 @@ Subscription filters (topic patterns) are gossiped similarly using `Subscription
 ### A. DHT XOR Distance Metric
 Nodes maintain a Kademlia DHT routing table for node discovery.
 * **ID Space**: Node IDs are hashed into 256-bit space using SHA-256:
-  $$\text{hash}(ID) \in [0, 2^{256} - 1]$$
+  $\text{hash}(ID) \in [0, 2^{256} - 1]$
 * **Distance Metric**: The logical distance $d$ between two nodes is defined as the bitwise XOR of their hashes:
-  $$d(x, y) = \text{hash}(x) \oplus \text{hash}(y)$$
+  $d(x, y) = \text{hash}(x) \oplus \text{hash}(y)$
 * **Bucket Assignment**: The table contains 256 buckets. A peer with distance $d$ goes into bucket index:
-  $$\text{bucket\_idx} = \text{leading\_zeros}(d)$$
+  $\text{bucket-idx} = \text{leading-zeros}(d)$
 * **Eviction Policy**: Buckets contain at most $K = 20$ nodes. If a bucket is full:
   1. Ping the oldest node in the bucket.
   2. If it responds, keep it, move it to the tail, and drop the new node.
@@ -116,12 +116,12 @@ Nodes maintain a Kademlia DHT routing table for node discovery.
 For a publish request from source $S$ to a set of subscriber nodes $T$:
 1. A directed graph $G = (V, E)$ is built from active nodes and links.
 2. Edge weight calculation:
-   $$w(u, v) = \text{hop\_cost} + \text{rtt\_cost\_factor}$$
+   $w(u, v) = \text{hop-cost} + \text{rtt-cost-factor}$
 3. **Aggregator Penalty**: If node $v$ has role `NODE_ROLE_AGGREGATOR`, add a cost penalty of $10,000$ to $w(u, v)$ to route traffic around it.
 4. Run Dijkstra's algorithm to compute the shortest path tree from source $S$ to all nodes in $T$.
 5. Prune all leaves that do not belong to $T$, leaving a minimal forwarding tree.
 6. Convert the tree into a map of `forwarding_table` representing parent $\to$ children relationships:
-   $$\text{forwarding\_table}[u] = \{ v_1, v_2, \dots \}$$
+   $\text{forwarding-table}[u] = \{ v_1, v_2, \dots \}$
 
 ### C. Wildcard Topic Matching
 Topic filters match hierarchical dot-separated patterns:
@@ -188,11 +188,11 @@ When a receiver detects queue saturation in its handlers:
 ### B. Conflict Resolution
 When a node receives a `SessionStateSync` frame:
 1. **Custom Merger**: If a custom StateMergeFn is registered for the session, execute:
-   $$\text{new\_state} = \text{merge\_fn}(\text{local\_state}, \text{incoming\_state})$$
+   $\text{new-state} = \text{merge-fn}(\text{local-state}, \text{incoming-state})$
    Increment `state_version` and update the timestamp.
 2. **LWW (Last-Write-Wins)**: If no custom merger is registered, compare:
-   - If $\text{incoming\_timestamp} > \text{local\_timestamp}$, accept the incoming state.
-   - If timestamps are equal and $\text{incoming\_version} > \text{local\_version}$, accept the incoming state.
+   - If $\text{incoming-timestamp} \gt \text{local-timestamp}$, accept the incoming state.
+   - If timestamps are equal and $\text{incoming-version} \gt \text{local-version}$, accept the incoming state.
    - Otherwise, reject/drop the update.
 
 ### C. Garbage Collection (GC)
@@ -201,5 +201,5 @@ To prevent memory exhaustion:
 2. A background timer runs every 10 seconds.
 3. For each session:
    - Locate `creator_node` in `node_last_seen`.
-   - If $\text{now} - \text{last\_seen} > \text{session\_ttl}$ (default: 300 seconds), evict the session.
+   - If $\text{now} - \text{last-seen} \gt \text{session-ttl}$ (default: 300 seconds), evict the session.
    - Broadcast a `SessionClose` message to propagate the eviction globally.
