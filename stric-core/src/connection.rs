@@ -155,6 +155,12 @@ impl<ConnectionMetadata: Default + Send + Sync + 'static> ConnectionManager<Conn
         debug!("Adding connection {} to manager", wrapper.context.id);
         self.store.insert(wrapper.context.id, wrapper);
     }
+
+    /// Removes a connection wrapper from the manager's store.
+    pub fn remove_connection(&self, id: u64) -> Option<ConnectionWrapper<ConnectionMetadata>> {
+        debug!("Removing connection {} from manager", id);
+        self.store.remove(&id).map(|(_, wrapper)| wrapper)
+    }
 }
 
 /// Errors related to connection management.

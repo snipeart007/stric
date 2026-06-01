@@ -159,6 +159,7 @@ message LinkRemoved {
 message SubscriptionUpdate {
   string                     node_id = 1;  // The node changing its subscriptions.
   repeated SubscriptionEntry entries = 2;
+  uint64                     epoch = 3;
 }
 
 message SubscriptionEntry {

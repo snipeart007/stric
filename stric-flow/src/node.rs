@@ -1,7 +1,6 @@
 use std::any::Any;
 use std::collections::{HashMap, HashSet};
 use std::net::SocketAddr;
-use std::pin::Pin;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use async_trait::async_trait;
@@ -10,7 +9,7 @@ use prost::Message;
 use tokio::sync::{mpsc, RwLock};
 use tracing::{debug, error, info, warn};
 
-use stric_core::{ConnectionWrapper, NodeConfig, QuicNode};
+use stric_core::{BoxFuture, ConnectionWrapper, NodeConfig, QuicNode};
 
 use crate::error::FlowError;
 use crate::frame::{read_frame, write_frame};
@@ -67,7 +66,7 @@ pub struct FlowNode {
     local_subscriptions: Arc<RwLock<HashSet<String>>>,
     control_tx: mpsc::Sender<ControlEvent>,
     last_epochs: Arc<DashMap<String, u64>>,
-    peer_connections: Arc<DashMap<String, quinn::Connection>>,
+    last_subscription_epochs: Arc<DashMap<String, u64>>,
     flow_limiters: Arc<DashMap<String, crate::backpressure::TokenBucketRateLimiter>>,
     peer_addresses: Arc<DashMap<String, (SocketAddr, String)>>,
     pending_connects: Arc<DashMap<SocketAddr, String>>,
@@ -89,6 +88,13 @@ enum ControlEvent {
     },
 }
 
+fn make_connection_handler<F>(f: F) -> stric_core::ConnectionHandlerFn<FlowConnectionMetadata>
+where
+    F: for<'a> Fn(&'a mut ConnectionWrapper<FlowConnectionMetadata>) -> BoxFuture<'a, Result<(), anyhow::Error>> + Send + Sync + 'static,
+{
+    Arc::new(f)
+}
+
 impl FlowNode {
     /// Creates a new `FlowNode` instance and begins listening/handshaking logic.
     pub fn new(
@@ -97,73 +103,61 @@ impl FlowNode {
         metric: Arc<dyn RoutingMetric>,
         registry: Arc<MessageRegistry>,
     ) -> Result<(Arc<Self>, mpsc::Receiver<anyhow::Error>), FlowError> {
-        let (conn_tx, mut conn_rx) = mpsc::channel::<(ConnectionWrapper<FlowConnectionMetadata>, bool)>(50);
-
-        // Bind core node callbacks
-        let inbound_tx = conn_tx.clone();
-        let outbound_tx = conn_tx.clone();
-
-        let inbound_handler = Arc::new(move |conn_wrapper: &mut ConnectionWrapper<FlowConnectionMetadata>| {
-            let tx = inbound_tx.clone();
-            let conn = conn_wrapper.clone();
-            Box::pin(async move {
-                let _ = tx.send((conn, false)).await;
-                Ok(())
-            }) as Pin<Box<dyn std::future::Future<Output = Result<(), anyhow::Error>> + Send>>
-        });
-
-        let outbound_handler = Arc::new(move |conn_wrapper: &mut ConnectionWrapper<FlowConnectionMetadata>| {
-            let tx = outbound_tx.clone();
-            let conn = conn_wrapper.clone();
-            Box::pin(async move {
-                let _ = tx.send((conn, true)).await;
-                Ok(())
-            }) as Pin<Box<dyn std::future::Future<Output = Result<(), anyhow::Error>> + Send>>
-        });
-
         // Set ALPN protocol to ensure connection compatibility
         if config.alpn_protocol_names.is_empty() {
             config.alpn_protocol_names = vec![b"stric-flow".to_vec()];
         }
 
         let (mut core_node, error_rx) = QuicNode::<FlowConnectionMetadata>::new(config)?;
-        core_node.on_inbound(inbound_handler);
-        core_node.on_outbound(outbound_handler);
-
-        let core = Arc::new(core_node);
         let (control_tx, control_rx) = mpsc::channel(100);
 
-        let node = Arc::new(Self {
-            node_id: node_id.clone(),
-            core,
-            graph: Arc::new(RwLock::new(GlobalGraph::new())),
-            sessions: Arc::new(DashMap::new()),
-            merge_fns: Arc::new(DashMap::new()),
-            topic_handlers: Arc::new(DashMap::new()),
-            metric,
-            registry,
-            peer_writers: Arc::new(DashMap::new()),
-            local_subscriptions: Arc::new(RwLock::new(HashSet::new())),
-            control_tx,
-            last_epochs: Arc::new(DashMap::new()),
-            peer_connections: Arc::new(DashMap::new()),
-            flow_limiters: Arc::new(DashMap::new()),
-            peer_addresses: Arc::new(DashMap::new()),
-            pending_connects: Arc::new(DashMap::new()),
-            reconnecting_peers: Arc::new(DashMap::new()),
-            node_last_seen: Arc::new(DashMap::new()),
-        });
-
-        // Spawn connection manager loop to process incoming connections
-        let node_clone = node.clone();
-        tokio::spawn(async move {
-            while let Some((conn, is_initiator)) = conn_rx.recv().await {
-                let node_ref = node_clone.clone();
-                tokio::spawn(async move {
-                    if let Err(e) = node_ref.handle_new_connection(conn, is_initiator).await {
-                        error!("Failed handling connection: {}", e);
+        let node = Arc::new_cyclic(|weak_self: &std::sync::Weak<Self>| {
+            let weak_inbound = weak_self.clone();
+            let inbound_handler = make_connection_handler(move |conn_wrapper| {
+                let weak = weak_inbound.clone();
+                Box::pin(async move {
+                    if let Some(node_ref) = weak.upgrade() {
+                        node_ref.handle_new_connection(conn_wrapper, false).await
+                    } else {
+                        Err(anyhow::anyhow!("Node dropped"))
                     }
-                });
+                })
+            });
+
+            let weak_outbound = weak_self.clone();
+            let outbound_handler = make_connection_handler(move |conn_wrapper| {
+                let weak = weak_outbound.clone();
+                Box::pin(async move {
+                    if let Some(node_ref) = weak.upgrade() {
+                        node_ref.handle_new_connection(conn_wrapper, true).await
+                    } else {
+                        Err(anyhow::anyhow!("Node dropped"))
+                    }
+                })
+            });
+
+            core_node.on_inbound(inbound_handler);
+            core_node.on_outbound(outbound_handler);
+
+            Self {
+                node_id: node_id.clone(),
+                core: Arc::new(core_node),
+                graph: Arc::new(RwLock::new(GlobalGraph::new())),
+                sessions: Arc::new(DashMap::new()),
+                merge_fns: Arc::new(DashMap::new()),
+                topic_handlers: Arc::new(DashMap::new()),
+                metric,
+                registry,
+                peer_writers: Arc::new(DashMap::new()),
+                local_subscriptions: Arc::new(RwLock::new(HashSet::new())),
+                control_tx,
+                last_epochs: Arc::new(DashMap::new()),
+                last_subscription_epochs: Arc::new(DashMap::new()),
+                flow_limiters: Arc::new(DashMap::new()),
+                peer_addresses: Arc::new(DashMap::new()),
+                pending_connects: Arc::new(DashMap::new()),
+                reconnecting_peers: Arc::new(DashMap::new()),
+                node_last_seen: Arc::new(DashMap::new()),
             }
         });
 
@@ -231,7 +225,7 @@ impl FlowNode {
     /// Handles a newly established physical connection, negotiating the control stream.
     async fn handle_new_connection(
         &self,
-        conn: ConnectionWrapper<FlowConnectionMetadata>,
+        conn: &mut ConnectionWrapper<FlowConnectionMetadata>,
         is_initiator: bool,
     ) -> Result<(), anyhow::Error> {
         debug!(
@@ -314,8 +308,8 @@ impl FlowNode {
             .unwrap_or_else(|| peer_id.clone());
         self.peer_addresses.insert(peer_id.clone(), (remote_addr, server_name));
 
-        // Task 3.1: Register active peer connection
-        self.peer_connections.insert(peer_id.clone(), conn.conn.clone());
+        // Task 3.1: Register active peer connection metadata
+        conn.metadata.peer_node_id = Some(peer_id.clone());
 
         // Register peer writer
         let (peer_control_tx, mut peer_control_rx) = mpsc::channel::<ControlMessage>(100);
@@ -341,6 +335,7 @@ impl FlowNode {
         };
         let _ = peer_control_tx.send(topo_sync).await;
 
+        let my_sub_epoch = self.last_subscription_epochs.get(&self.node_id).map(|r| *r).unwrap_or(0);
         let subs = self.local_subscriptions.read().await;
         let sub_sync = ControlMessage {
             message: Some(proto::control_message::Message::SubscriptionUpdate(SubscriptionUpdate {
@@ -350,6 +345,7 @@ impl FlowNode {
                     pattern: pattern.clone(),
                     action: proto::SubscriptionAction::Subscribe as i32,
                 }).collect(),
+                epoch: my_sub_epoch,
             })),
         };
         let _ = peer_control_tx.send(sub_sync).await;
@@ -357,7 +353,7 @@ impl FlowNode {
         // Task 2.1: Spawn control Ping/Pong loop
         let ping_tx = peer_control_tx.clone();
         tokio::spawn(async move {
-            let mut interval = tokio::time::interval(Duration::from_secs(5));
+            let mut interval = tokio::time::interval(Duration::from_secs(1));
             loop {
                 interval.tick().await;
                 let ping = ControlMessage {
@@ -387,7 +383,8 @@ impl FlowNode {
         // Spawn reader loop
         let control_tx_clone = self.control_tx.clone();
         let peer_id_clone = peer_id.clone();
-        let peer_conns_clone = self.peer_connections.clone();
+        let core_clone = self.core.clone();
+        let conn_id = conn.context.id;
         tokio::spawn(async move {
             loop {
                 match read_frame(&mut recv_stream).await {
@@ -401,7 +398,7 @@ impl FlowNode {
                     }
                     Err(e) => {
                         warn!("Control stream closed for peer {}: {}", peer_id_clone, e);
-                        peer_conns_clone.remove(&peer_id_clone); // Cleanup connection
+                        core_clone.connection_manager().remove_connection(conn_id); // Cleanup connection
                         let _ = control_tx_clone.send(ControlEvent::PeerDisconnected {
                             node_id: peer_id_clone.clone(),
                         }).await;
@@ -416,14 +413,14 @@ impl FlowNode {
         let registry = self.registry.clone();
         let handlers = self.topic_handlers.clone();
         let node_id_clone = self.node_id.clone();
-        let peer_conns = self.peer_connections.clone();
+        let core_node = self.core.clone();
         let flow_limiters = self.flow_limiters.clone();
         tokio::spawn(async move {
             while let Ok(mut recv) = conn_clone.accept_uni().await {
                 let registry_ref = registry.clone();
                 let handlers_ref = handlers.clone();
                 let node_id_ref = node_id_clone.clone();
-                let peer_conns_ref = peer_conns.clone();
+                let core_node_ref = core_node.clone();
                 let flow_limiters_ref = flow_limiters.clone();
                 
                 tokio::spawn(async move {
@@ -436,7 +433,10 @@ impl FlowNode {
                                 // Task 3.2: Stateless Forwarding Lookup
                                 if let Some(targets) = header.forwarding_table.get(&node_id_ref) {
                                     for next_hop in &targets.send_to {
-                                        if let Some(conn) = peer_conns_ref.get(next_hop) {
+                                        let next_conn = core_node_ref.connection_manager().store.iter()
+                                            .find(|entry| entry.value().metadata.peer_node_id.as_deref() == Some(next_hop.as_str()))
+                                            .map(|entry| entry.value().conn.clone());
+                                        if let Some(conn) = next_conn {
                                             let conn = conn.clone();
                                             let envelope_clone = envelope.clone();
                                             let flow_limiters_clone = flow_limiters_ref.clone();
@@ -444,7 +444,8 @@ impl FlowNode {
                                             
                                             tokio::spawn(async move {
                                                 // Task 3.3: Apply outbound backpressure
-                                                if let Some(limiter) = flow_limiters_clone.get(&flow_id_clone) {
+                                                let limiter = flow_limiters_clone.get(&flow_id_clone).map(|r| r.value().clone());
+                                                if let Some(limiter) = limiter {
                                                     let size = envelope_clone.encoded_len() as u32;
                                                     limiter.wait_for_bytes(size).await;
                                                 }
@@ -487,9 +488,15 @@ impl FlowNode {
         let local_subs = self.local_subscriptions.clone();
         let control_tx = self.control_tx.clone();
         let node_id = self.node_id.clone();
+        let last_sub_epochs = self.last_subscription_epochs.clone();
         tokio::spawn(async move {
             let mut subs = local_subs.write().await;
             subs.insert(topic_pattern);
+            
+            let my_epoch = {
+                let current = last_sub_epochs.get(&node_id).map(|r| *r).unwrap_or(0);
+                current + 1
+            };
             
             // Broadcast SubscriptionUpdate to all peers
             let update = ControlMessage {
@@ -500,6 +507,7 @@ impl FlowNode {
                         pattern: pattern.clone(),
                         action: proto::SubscriptionAction::Subscribe as i32,
                     }).collect(),
+                    epoch: my_epoch,
                 })),
             };
             let _ = control_tx.send(ControlEvent::ControlMsgReceived {
@@ -584,19 +592,30 @@ impl FlowNode {
         if let Some(header) = &envelope.header {
             if let Some(targets) = header.forwarding_table.get(&self.node_id) {
                 for next_hop in &targets.send_to {
-                    if let Some(conn) = self.peer_connections.get(next_hop) {
+                    let next_conn = self.core.connection_manager().store.iter()
+                        .find(|entry| entry.value().metadata.peer_node_id.as_deref() == Some(next_hop.as_str()))
+                        .map(|entry| entry.value().conn.clone());
+                    if let Some(conn) = next_conn {
                         let conn = conn.clone();
                         let envelope_clone = envelope.clone();
                         let flow_limiters = self.flow_limiters.clone();
                         let flow_id_clone = flow_id.clone();
                         
                         tokio::spawn(async move {
-                            if let Some(limiter) = flow_limiters.get(&flow_id_clone) {
+                            let limiter = flow_limiters.get(&flow_id_clone).map(|r| r.value().clone());
+                            if let Some(limiter) = limiter {
                                 let size = envelope_clone.encoded_len() as u32;
                                 limiter.wait_for_bytes(size).await;
                             }
-                            if let Ok(mut send) = conn.open_uni().await {
-                                let _ = write_frame(&mut send, &envelope_clone).await;
+                            match conn.open_uni().await {
+                                Ok(mut send) => {
+                                    if let Err(e) = write_frame(&mut send, &envelope_clone).await {
+                                        error!("Failed to write data frame: {}", e);
+                                    }
+                                }
+                                Err(e) => {
+                                    error!("Failed to open unidirectional stream for publishing: {}", e);
+                                }
                             }
                         });
                     }
@@ -637,7 +656,9 @@ impl FlowNode {
                                 );
                                 
                                 loop {
-                                    if self_clone.peer_connections.contains_key(&node_id_clone) {
+                                    let is_connected = self_clone.core.connection_manager().store.iter()
+                                        .any(|entry| entry.value().metadata.peer_node_id.as_deref() == Some(node_id_clone.as_str()));
+                                    if is_connected {
                                         self_clone.reconnecting_peers.remove(&node_id_clone);
                                         break;
                                     }
@@ -646,7 +667,9 @@ impl FlowNode {
                                     info!("Attempting reconnection to {} in {:?}", node_id_clone, delay);
                                     tokio::time::sleep(delay).await;
                                     
-                                    if self_clone.peer_connections.contains_key(&node_id_clone) {
+                                    let is_connected_after = self_clone.core.connection_manager().store.iter()
+                                        .any(|entry| entry.value().metadata.peer_node_id.as_deref() == Some(node_id_clone.as_str()));
+                                    if is_connected_after {
                                         self_clone.reconnecting_peers.remove(&node_id_clone);
                                         break;
                                     }
@@ -675,8 +698,9 @@ impl FlowNode {
                                 for node in &update.nodes_added {
                                     self.node_last_seen.insert(node.node_id.clone(), Instant::now());
                                 }
+                                let has_epoch = self.last_epochs.contains_key(&update.origin_node_id);
                                 let current_epoch = self.last_epochs.get(&update.origin_node_id).map(|r| *r).unwrap_or(0);
-                                if update.epoch > current_epoch {
+                                if !has_epoch || update.epoch > current_epoch {
                                     self.last_epochs.insert(update.origin_node_id.clone(), update.epoch);
                                     {
                                         let mut graph = self.graph.write().await;
@@ -695,31 +719,36 @@ impl FlowNode {
                             }
                             proto::control_message::Message::SubscriptionUpdate(update) => {
                                 self.node_last_seen.insert(update.node_id.clone(), Instant::now());
-                                {
-                                    let mut graph = self.graph.write().await;
-                                    let mut capabilities = HashMap::new();
-                                    for entry in &update.entries {
-                                        if entry.action == proto::SubscriptionAction::Subscribe as i32 {
-                                            capabilities.insert(format!("sub:{}", entry.pattern), String::new());
+                                let has_epoch = self.last_subscription_epochs.contains_key(&update.node_id);
+                                let current_epoch = self.last_subscription_epochs.get(&update.node_id).map(|r| *r).unwrap_or(0);
+                                if !has_epoch || update.epoch > current_epoch {
+                                    self.last_subscription_epochs.insert(update.node_id.clone(), update.epoch);
+                                    {
+                                        let mut graph = self.graph.write().await;
+                                        let mut capabilities = HashMap::new();
+                                        for entry in &update.entries {
+                                            if entry.action == proto::SubscriptionAction::Subscribe as i32 {
+                                                capabilities.insert(format!("sub:{}", entry.pattern), String::new());
+                                            }
                                         }
+                                        graph.add_node(NodeDescriptor {
+                                            node_id: update.node_id.clone(),
+                                            role: NodeRole::Flow as i32,
+                                            capabilities,
+                                            last_seen: std::time::SystemTime::now()
+                                                .duration_since(std::time::UNIX_EPOCH)
+                                                .unwrap_or_default()
+                                                .as_millis() as u64,
+                                        });
                                     }
-                                    graph.add_node(NodeDescriptor {
-                                        node_id: update.node_id.clone(),
-                                        role: NodeRole::Flow as i32,
-                                        capabilities,
-                                        last_seen: std::time::SystemTime::now()
-                                            .duration_since(std::time::UNIX_EPOCH)
-                                            .unwrap_or_default()
-                                            .as_millis() as u64,
-                                    });
-                                }
-                                let gossip = ControlMessage {
-                                    message: Some(proto::control_message::Message::SubscriptionUpdate(update.clone())),
-                                };
-                                let peers = self.get_peer_writers();
-                                for (peer, tx) in peers {
-                                    if peer != from && peer != update.node_id {
-                                        let _ = tx.send(gossip.clone()).await;
+                                    let gossip = ControlMessage {
+                                        message: Some(proto::control_message::Message::SubscriptionUpdate(update.clone())),
+                                    };
+                                    let peers = self.get_peer_writers();
+                                    for (peer, tx) in peers {
+                                        if peer != from && peer != update.node_id {
+                                            let _ = tx.send(gossip.clone()).await;
+                                        }
                                     }
                                 }
                             }
@@ -744,13 +773,52 @@ impl FlowNode {
                                     .unwrap_or_default()
                                     .as_millis() as u64;
                                 let rtt = now.saturating_sub(pong.ping_sent_at);
-                                let mut graph = self.graph.write().await;
-                                graph.add_link(LinkDescriptor {
-                                    node_a: self.node_id.clone(),
-                                    node_b: from.clone(),
-                                    hop_cost: 1,
-                                    rtt_micros: rtt * 1000,
-                                });
+                                
+                                let mut is_new_link = false;
+                                {
+                                    let mut graph = self.graph.write().await;
+                                    let idx_a = graph.node_indices.get(&self.node_id).copied();
+                                    let idx_b = graph.node_indices.get(&from).copied();
+                                    let link_exists = match (idx_a, idx_b) {
+                                        (Some(a), Some(b)) => graph.graph.find_edge(a, b).is_some(),
+                                        _ => false,
+                                    };
+                                    if !link_exists {
+                                        is_new_link = true;
+                                    }
+                                    graph.add_link(LinkDescriptor {
+                                        node_a: self.node_id.clone(),
+                                        node_b: from.clone(),
+                                        hop_cost: 1,
+                                        rtt_micros: rtt * 1000,
+                                    });
+                                }
+
+                                if is_new_link {
+                                    let my_epoch = {
+                                        let mut entry = self.last_epochs.entry(self.node_id.clone()).or_insert(0);
+                                        *entry += 1;
+                                        *entry
+                                    };
+                                    let (nodes_added, links_added) = {
+                                        let graph = self.graph.read().await;
+                                        graph.get_descriptors()
+                                    };
+                                    let topo_update = ControlMessage {
+                                        message: Some(proto::control_message::Message::TopologyUpdate(TopologyUpdate {
+                                            origin_node_id: self.node_id.clone(),
+                                            epoch: my_epoch,
+                                            nodes_added,
+                                            nodes_removed: Vec::new(),
+                                            links_added,
+                                            links_removed: Vec::new(),
+                                        })),
+                                    };
+                                    let peers = self.get_peer_writers();
+                                    for (_peer, tx) in peers {
+                                        let _ = tx.send(topo_update.clone()).await;
+                                    }
+                                }
                             }
                             proto::control_message::Message::Backpressure(signal) => {
                                 let limiter_opt = self.flow_limiters.entry(signal.flow_id.clone()).or_insert_with(|| {
@@ -1054,6 +1122,57 @@ impl FlowNode {
         self.sessions.get(session_id).map(|s| s.state_data.clone())
     }
 
+    pub fn peer_connections(&self) -> Vec<String> {
+        self.core.connection_manager().store.iter()
+            .filter_map(|entry| entry.value().metadata.peer_node_id.clone())
+            .collect()
+    }
+
+    pub async fn print_debug_info(&self) {
+        use petgraph::visit::EdgeRef;
+        let graph = self.graph.read().await;
+        println!("FlowNode Debug Info for: {}", self.node_id);
+        println!("- Peer connections: {:?}", self.peer_connections());
+        println!("- Node metadata keys (nodes in graph): {:?}", graph.node_metadata.keys().collect::<Vec<_>>());
+        println!("- Edges in graph: {:?}", graph.graph.edge_references().map(|e| (graph.graph[e.source()].clone(), graph.graph[e.target()].clone())).collect::<Vec<_>>());
+        
+        let mut subs = Vec::new();
+        for (node_id, desc) in &graph.node_metadata {
+            for pattern in &desc.capabilities {
+                if pattern.0.starts_with("sub:") {
+                    subs.push((node_id.clone(), pattern.0.clone()));
+                }
+            }
+        }
+        println!("- Subscription capabilities in graph: {:?}", subs);
+    }
+
+    pub fn sessions(&self) -> Vec<String> {
+        self.sessions.iter().map(|entry| entry.key().clone()).collect()
+    }
+
+    pub fn local_addr(&self) -> Result<SocketAddr, std::io::Error> {
+        self.core.local_addr()
+    }
+
+    pub async fn send_backpressure(
+        &self,
+        flow_id: String,
+        action: proto::BackpressureAction,
+        max_rate: u32,
+    ) -> Result<(), FlowError> {
+        let msg = ControlMessage {
+            message: Some(proto::control_message::Message::Backpressure(proto::BackpressureSignal {
+                flow_id,
+                topic_id: String::new(),
+                action: action as i32,
+                max_rate,
+            })),
+        };
+        self.broadcast_control_message(msg).await;
+        Ok(())
+    }
+
     async fn broadcast_control_message(&self, msg: ControlMessage) {
         let senders = self.get_peer_writers();
         for (_, sender) in senders {
@@ -1172,8 +1291,8 @@ mod tests {
         // Verify connection exists
         println!("Verifying connections...");
         std::io::stdout().flush().unwrap();
-        assert!(node_a.peer_connections.contains_key("node_b"));
-        assert!(node_b.peer_connections.contains_key("node_a"));
+        assert!(node_a.peer_connections().contains(&"node_b".to_string()));
+        assert!(node_b.peer_connections().contains(&"node_a".to_string()));
 
         // 5. Test create session
         println!("Creating session sess_123...");

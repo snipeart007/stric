@@ -1,7 +1,6 @@
 use std::num::NonZeroU32;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU32, Ordering};
-use std::time::Duration;
 use governor::{Quota, RateLimiter, clock::Clock};
 use tokio::sync::RwLock;
 
@@ -13,6 +12,7 @@ pub struct TokenBucketRateLimiter {
     limiter: Arc<RwLock<InnerLimiter>>,
     paused: Arc<RwLock<bool>>,
     max_rate: Arc<AtomicU32>,
+    notify: Arc<tokio::sync::Notify>,
 }
 
 impl TokenBucketRateLimiter {
@@ -25,6 +25,7 @@ impl TokenBucketRateLimiter {
             limiter,
             paused: Arc::new(RwLock::new(false)),
             max_rate: Arc::new(AtomicU32::new(max_rate)),
+            notify: Arc::new(tokio::sync::Notify::new()),
         }
     }
 
@@ -46,8 +47,11 @@ impl TokenBucketRateLimiter {
     }
 
     pub async fn resume(&self) {
-        let mut paused = self.paused.write().await;
-        *paused = false;
+        {
+            let mut paused = self.paused.write().await;
+            *paused = false;
+        }
+        self.notify.notify_waiters();
     }
 
     pub async fn is_paused(&self) -> bool {
@@ -59,7 +63,7 @@ impl TokenBucketRateLimiter {
             if !self.is_paused().await {
                 break;
             }
-            tokio::time::sleep(Duration::from_millis(100)).await;
+            self.notify.notified().await;
         }
 
         let max_rate = self.get_rate().await;
@@ -92,7 +96,7 @@ impl TokenBucketRateLimiter {
             }
             
             while self.is_paused().await {
-                tokio::time::sleep(Duration::from_millis(100)).await;
+                self.notify.notified().await;
             }
         }
     }

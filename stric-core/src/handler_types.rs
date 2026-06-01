@@ -15,9 +15,9 @@ pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 /// * `ConnectionMetadata`: The custom metadata type associated with the connection.
 #[allow(type_alias_bounds)]
 pub type ConnectionHandlerFn<ConnectionMetadata: Default + Send + Sync + 'static> = Arc<
-    dyn Fn(
-            &mut ConnectionWrapper<ConnectionMetadata>,
-        ) -> BoxFuture<'static, Result<(), anyhow::Error>>
+    dyn for<'a> Fn(
+            &'a mut ConnectionWrapper<ConnectionMetadata>,
+        ) -> BoxFuture<'a, Result<(), anyhow::Error>>
         + Send
         + Sync,
 >;
