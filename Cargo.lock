@@ -1553,6 +1553,7 @@ dependencies = [
  "prost-build",
  "quinn",
  "rand 0.8.6",
+ "rcgen",
  "serde",
  "sha2",
  "stric-core",

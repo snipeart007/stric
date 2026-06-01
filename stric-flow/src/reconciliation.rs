@@ -1,7 +1,10 @@
 use std::collections::HashMap;
 use std::time::{Duration, Instant};
+use std::sync::Arc;
 use rand::Rng;
 use dashmap::DashMap;
+
+pub type StateMergeFn = Arc<dyn Fn(&[u8], &[u8]) -> Result<Vec<u8>, String> + Send + Sync>;
 
 pub struct ExponentialBackoff {
     base: Duration,

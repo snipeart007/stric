@@ -23,3 +23,6 @@ petgraph = "0.6.5"
 
 [build-dependencies]
 prost-build = "0.14.3"
+
+[dev-dependencies]
+rcgen = "0.14.7"

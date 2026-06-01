@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use std::net::SocketAddr;
 use std::pin::Pin;
 use std::sync::Arc;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use async_trait::async_trait;
 use dashmap::DashMap;
 use prost::Message;
@@ -59,6 +59,7 @@ pub struct FlowNode {
     core: Arc<QuicNode<FlowConnectionMetadata>>,
     graph: Arc<RwLock<GlobalGraph>>,
     sessions: Arc<DashMap<String, Session>>,
+    merge_fns: Arc<DashMap<String, crate::reconciliation::StateMergeFn>>,
     topic_handlers: Arc<DashMap<String, Arc<dyn FlowHandler>>>,
     metric: Arc<dyn RoutingMetric>,
     registry: Arc<MessageRegistry>,
@@ -68,6 +69,10 @@ pub struct FlowNode {
     last_epochs: Arc<DashMap<String, u64>>,
     peer_connections: Arc<DashMap<String, quinn::Connection>>,
     flow_limiters: Arc<DashMap<String, crate::backpressure::TokenBucketRateLimiter>>,
+    peer_addresses: Arc<DashMap<String, (SocketAddr, String)>>,
+    pending_connects: Arc<DashMap<SocketAddr, String>>,
+    reconnecting_peers: Arc<DashMap<String, ()>>,
+    node_last_seen: Arc<DashMap<String, Instant>>,
 }
 
 enum ControlEvent {
@@ -133,6 +138,7 @@ impl FlowNode {
             core,
             graph: Arc::new(RwLock::new(GlobalGraph::new())),
             sessions: Arc::new(DashMap::new()),
+            merge_fns: Arc::new(DashMap::new()),
             topic_handlers: Arc::new(DashMap::new()),
             metric,
             registry,
@@ -142,6 +148,10 @@ impl FlowNode {
             last_epochs: Arc::new(DashMap::new()),
             peer_connections: Arc::new(DashMap::new()),
             flow_limiters: Arc::new(DashMap::new()),
+            peer_addresses: Arc::new(DashMap::new()),
+            pending_connects: Arc::new(DashMap::new()),
+            reconnecting_peers: Arc::new(DashMap::new()),
+            node_last_seen: Arc::new(DashMap::new()),
         });
 
         // Spawn connection manager loop to process incoming connections
@@ -163,6 +173,38 @@ impl FlowNode {
             node_clone.run_control_loop(control_rx).await;
         });
 
+        // Spawn session garbage collection task
+        let sessions_clone = node.sessions.clone();
+        let last_seen_clone = node.node_last_seen.clone();
+        let control_tx_clone = node.control_tx.clone();
+        let node_id_clone = node.node_id.clone();
+        tokio::spawn(async move {
+            let mut interval = tokio::time::interval(Duration::from_secs(10));
+            loop {
+                interval.tick().await;
+                let evicted = crate::reconciliation::gc_inactive_sessions(
+                    &sessions_clone,
+                    &last_seen_clone,
+                    Duration::from_secs(300),
+                );
+                for session_id in evicted {
+                    let close_msg = ControlMessage {
+                        message: Some(proto::control_message::Message::SessionControl(proto::SessionControl {
+                            message: Some(proto::session_control::Message::Close(proto::SessionClose {
+                                session_id,
+                                closed_by: node_id_clone.clone(),
+                                reason: "Session TTL expired (creator inactive)".to_string(),
+                            })),
+                        })),
+                    };
+                    let _ = control_tx_clone.send(ControlEvent::ControlMsgReceived {
+                        from: node_id_clone.clone(),
+                        msg: close_msg,
+                    }).await;
+                }
+            }
+        });
+
         Ok((node, error_rx))
     }
 
@@ -176,7 +218,14 @@ impl FlowNode {
 
     /// Connects to a remote peer node.
     pub async fn connect(&self, addr: SocketAddr, server_name: &str) -> Result<u64, FlowError> {
-        Ok(self.core.connect(addr, server_name).await?)
+        self.pending_connects.insert(addr, server_name.to_string());
+        match self.core.connect(addr, server_name).await {
+            Ok(val) => Ok(val),
+            Err(e) => {
+                self.pending_connects.remove(&addr);
+                Err(FlowError::from(e))
+            }
+        }
     }
 
     /// Handles a newly established physical connection, negotiating the control stream.
@@ -257,6 +306,13 @@ impl FlowNode {
         }
 
         info!("Control stream successfully negotiated with peer {}", peer_id);
+
+        // Register peer socket address and server name
+        let remote_addr = conn.conn.remote_address();
+        let server_name = self.pending_connects.remove(&remote_addr)
+            .map(|(_, name)| name)
+            .unwrap_or_else(|| peer_id.clone());
+        self.peer_addresses.insert(peer_id.clone(), (remote_addr, server_name));
 
         // Task 3.1: Register active peer connection
         self.peer_connections.insert(peer_id.clone(), conn.conn.clone());
@@ -551,7 +607,13 @@ impl FlowNode {
         Ok(())
     }
 
-    async fn run_control_loop(&self, mut rx: mpsc::Receiver<ControlEvent>) {
+    fn get_peer_writers(&self) -> Vec<(String, mpsc::Sender<ControlMessage>)> {
+        self.peer_writers.iter()
+            .map(|entry| (entry.key().clone(), entry.value().clone()))
+            .collect()
+    }
+
+    async fn run_control_loop(self: Arc<Self>, mut rx: mpsc::Receiver<ControlEvent>) {
         while let Some(event) = rx.recv().await {
             match event {
                 ControlEvent::PeerConnected { node_id, tx } => {
@@ -561,11 +623,58 @@ impl FlowNode {
                 ControlEvent::PeerDisconnected { node_id } => {
                     self.peer_writers.remove(&node_id);
                     info!("Peer deregistered from control engine: {}", node_id);
+
+                    if let Some(addr_info) = self.peer_addresses.get(&node_id) {
+                        let (addr, server_name) = addr_info.value().clone();
+                        let self_clone = self.clone();
+                        let node_id_clone = node_id.clone();
+                        
+                        if self.reconnecting_peers.insert(node_id.clone(), ()).is_none() {
+                            tokio::spawn(async move {
+                                let mut backoff = crate::reconciliation::ExponentialBackoff::new(
+                                    Duration::from_secs(1),
+                                    Duration::from_secs(60),
+                                );
+                                
+                                loop {
+                                    if self_clone.peer_connections.contains_key(&node_id_clone) {
+                                        self_clone.reconnecting_peers.remove(&node_id_clone);
+                                        break;
+                                    }
+                                    
+                                    let delay = backoff.next_backoff();
+                                    info!("Attempting reconnection to {} in {:?}", node_id_clone, delay);
+                                    tokio::time::sleep(delay).await;
+                                    
+                                    if self_clone.peer_connections.contains_key(&node_id_clone) {
+                                        self_clone.reconnecting_peers.remove(&node_id_clone);
+                                        break;
+                                    }
+                                    
+                                    match self_clone.connect(addr, &server_name).await {
+                                        Ok(_) => {
+                                            info!("Successfully reconnected to peer {}", node_id_clone);
+                                            self_clone.reconnecting_peers.remove(&node_id_clone);
+                                            break;
+                                        }
+                                        Err(e) => {
+                                            warn!("Reconnection attempt to {} failed: {}", node_id_clone, e);
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }
                 }
                 ControlEvent::ControlMsgReceived { from, msg } => {
+                    self.node_last_seen.insert(from.clone(), Instant::now());
                     if let Some(payload) = msg.message {
                         match payload {
                             proto::control_message::Message::TopologyUpdate(update) => {
+                                self.node_last_seen.insert(update.origin_node_id.clone(), Instant::now());
+                                for node in &update.nodes_added {
+                                    self.node_last_seen.insert(node.node_id.clone(), Instant::now());
+                                }
                                 let current_epoch = self.last_epochs.get(&update.origin_node_id).map(|r| *r).unwrap_or(0);
                                 if update.epoch > current_epoch {
                                     self.last_epochs.insert(update.origin_node_id.clone(), update.epoch);
@@ -576,15 +685,16 @@ impl FlowNode {
                                     let gossip = ControlMessage {
                                         message: Some(proto::control_message::Message::TopologyUpdate(update.clone())),
                                     };
-                                    for entry in self.peer_writers.iter() {
-                                        let peer = entry.key();
-                                        if peer != &from && peer != &update.origin_node_id {
-                                            let _ = entry.value().send(gossip.clone()).await;
+                                    let peers = self.get_peer_writers();
+                                    for (peer, tx) in peers {
+                                        if peer != from && peer != update.origin_node_id {
+                                            let _ = tx.send(gossip.clone()).await;
                                         }
                                     }
                                 }
                             }
                             proto::control_message::Message::SubscriptionUpdate(update) => {
+                                self.node_last_seen.insert(update.node_id.clone(), Instant::now());
                                 {
                                     let mut graph = self.graph.write().await;
                                     let mut capabilities = HashMap::new();
@@ -606,15 +716,16 @@ impl FlowNode {
                                 let gossip = ControlMessage {
                                     message: Some(proto::control_message::Message::SubscriptionUpdate(update.clone())),
                                 };
-                                for entry in self.peer_writers.iter() {
-                                    let peer = entry.key();
-                                    if peer != &from && peer != &update.node_id {
-                                        let _ = entry.value().send(gossip.clone()).await;
+                                let peers = self.get_peer_writers();
+                                for (peer, tx) in peers {
+                                    if peer != from && peer != update.node_id {
+                                        let _ = tx.send(gossip.clone()).await;
                                     }
                                 }
                             }
                             proto::control_message::Message::Ping(ping) => {
-                                if let Some(tx) = self.peer_writers.get(&from) {
+                                let tx_opt = self.peer_writers.get(&from).map(|entry| entry.value().clone());
+                                if let Some(tx) = tx_opt {
                                     let pong = ControlMessage {
                                         message: Some(proto::control_message::Message::Pong(Pong {
                                             ping_sent_at: ping.sent_at,
@@ -642,24 +753,164 @@ impl FlowNode {
                                 });
                             }
                             proto::control_message::Message::Backpressure(signal) => {
-                                let limiter = self.flow_limiters.entry(signal.flow_id.clone()).or_insert_with(|| {
+                                let limiter_opt = self.flow_limiters.entry(signal.flow_id.clone()).or_insert_with(|| {
                                     crate::backpressure::TokenBucketRateLimiter::new(0)
-                                });
+                                }).clone();
                                 match signal.action {
                                     0 => { // PAUSE
-                                        limiter.pause().await;
+                                        limiter_opt.pause().await;
                                         info!("Backpressure PAUSED flow: {}", signal.flow_id);
                                     }
                                     1 => { // RESUME
-                                        limiter.resume().await;
+                                        limiter_opt.resume().await;
                                         info!("Backpressure RESUMED flow: {}", signal.flow_id);
                                     }
                                     2 => { // THROTTLE
-                                        limiter.resume().await;
-                                        limiter.set_rate(signal.max_rate).await;
+                                        limiter_opt.resume().await;
+                                        limiter_opt.set_rate(signal.max_rate).await;
                                         info!("Backpressure THROTTLED flow: {} to {} B/s", signal.flow_id, signal.max_rate);
                                     }
                                     _ => {}
+                                }
+                            }
+                            proto::control_message::Message::SessionControl(session_ctrl) => {
+                                if let Some(sub_msg) = session_ctrl.message {
+                                    match sub_msg {
+                                        proto::session_control::Message::Create(create) => {
+                                            let mut added = false;
+                                            if !self.sessions.contains_key(&create.session_id) {
+                                                let session = Session {
+                                                    session_id: create.session_id.clone(),
+                                                    creator_node: create.creator_node.clone(),
+                                                    flow_ids: create.flow_ids.clone(),
+                                                    created_at: create.created_at,
+                                                    metadata: create.metadata.clone(),
+                                                    state_data: Vec::new(),
+                                                    state_version: 0,
+                                                    state_timestamp: 0,
+                                                };
+                                                self.sessions.insert(create.session_id.clone(), session);
+                                                added = true;
+                                            }
+                                            if added {
+                                                let gossip = ControlMessage {
+                                                    message: Some(proto::control_message::Message::SessionControl(proto::SessionControl {
+                                                        message: Some(proto::session_control::Message::Create(create.clone())),
+                                                    })),
+                                                };
+                                                let peers = self.get_peer_writers();
+                                                for (peer, tx) in peers {
+                                                    if peer != from && peer != create.creator_node {
+                                                        let _ = tx.send(gossip.clone()).await;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        proto::session_control::Message::Join(join) => {
+                                            let gossip = ControlMessage {
+                                                message: Some(proto::control_message::Message::SessionControl(proto::SessionControl {
+                                                    message: Some(proto::session_control::Message::Join(join.clone())),
+                                                })),
+                                            };
+                                            let peers = self.get_peer_writers();
+                                            for (peer, tx) in peers {
+                                                if peer != from && peer != join.node_id {
+                                                    let _ = tx.send(gossip.clone()).await;
+                                                }
+                                            }
+                                        }
+                                        proto::session_control::Message::Leave(leave) => {
+                                            let gossip = ControlMessage {
+                                                message: Some(proto::control_message::Message::SessionControl(proto::SessionControl {
+                                                    message: Some(proto::session_control::Message::Leave(leave.clone())),
+                                                })),
+                                            };
+                                            let peers = self.get_peer_writers();
+                                            for (peer, tx) in peers {
+                                                if peer != from && peer != leave.node_id {
+                                                    let _ = tx.send(gossip.clone()).await;
+                                                }
+                                            }
+                                        }
+                                        proto::session_control::Message::Close(close) => {
+                                            let removed = self.sessions.remove(&close.session_id).is_some();
+                                            if removed || close.closed_by == self.node_id {
+                                                let gossip = ControlMessage {
+                                                    message: Some(proto::control_message::Message::SessionControl(proto::SessionControl {
+                                                        message: Some(proto::session_control::Message::Close(close.clone())),
+                                                    })),
+                                                };
+                                                let peers = self.get_peer_writers();
+                                                for (peer, tx) in peers {
+                                                    if peer != from && peer != close.closed_by {
+                                                        let _ = tx.send(gossip.clone()).await;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        proto::session_control::Message::StateSync(state_sync) => {
+                                            let mut should_update = false;
+                                            let mut updated_state = Vec::new();
+                                            let mut updated_version = 0;
+                                            let mut updated_timestamp = 0;
+
+                                            if let Some(mut session) = self.sessions.get_mut(&state_sync.session_id) {
+                                                should_update = if let Some(merge_fn) = self.merge_fns.get(&state_sync.session_id) {
+                                                    match merge_fn(&session.state_data, &state_sync.data) {
+                                                        Ok(merged_data) => {
+                                                            session.state_data = merged_data.clone();
+                                                            session.state_version = std::cmp::max(session.state_version, state_sync.version) + 1;
+                                                            session.state_timestamp = std::cmp::max(session.state_timestamp, state_sync.timestamp);
+                                                            updated_state = merged_data;
+                                                            updated_version = session.state_version;
+                                                            updated_timestamp = session.state_timestamp;
+                                                            true
+                                                        }
+                                                        Err(e) => {
+                                                            error!("Error merging state for session {}: {}", state_sync.session_id, e);
+                                                            false
+                                                        }
+                                                    }
+                                                } else {
+                                                    if state_sync.timestamp > session.state_timestamp 
+                                                        || (state_sync.timestamp == session.state_timestamp && state_sync.version > session.state_version) 
+                                                    {
+                                                        session.state_data = state_sync.data.clone();
+                                                        session.state_version = state_sync.version;
+                                                        session.state_timestamp = state_sync.timestamp;
+                                                        updated_state = state_sync.data.clone();
+                                                        updated_version = state_sync.version;
+                                                        updated_timestamp = state_sync.timestamp;
+                                                        true
+                                                    } else {
+                                                        false
+                                                    }
+                                                };
+                                            }
+
+                                            if should_update {
+                                                let gossip = ControlMessage {
+                                                    message: Some(proto::control_message::Message::SessionControl(proto::SessionControl {
+                                                        message: Some(proto::session_control::Message::StateSync(proto::SessionStateSync {
+                                                            session_id: state_sync.session_id.clone(),
+                                                            sender: self.node_id.clone(),
+                                                            mode: state_sync.mode,
+                                                            timestamp: updated_timestamp,
+                                                            version: updated_version,
+                                                            data: updated_state,
+                                                            codec: state_sync.codec,
+                                                        })),
+                                                    })),
+                                                };
+                                                let peers = self.get_peer_writers();
+                                                for (peer, tx) in peers {
+                                                    if peer != from && peer != state_sync.sender {
+                                                        let _ = tx.send(gossip.clone()).await;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                             }
                             _ => {}
@@ -669,4 +920,320 @@ impl FlowNode {
             }
         }
     }
+
+    pub fn register_merge_fn(&self, session_id: String, merge_fn: crate::reconciliation::StateMergeFn) {
+        self.merge_fns.insert(session_id, merge_fn);
+    }
+
+    pub async fn create_session(
+        &self,
+        session_id: String,
+        flow_ids: Vec<String>,
+        metadata: HashMap<String, String>,
+    ) -> Result<(), FlowError> {
+        let session = Session {
+            session_id: session_id.clone(),
+            creator_node: self.node_id.clone(),
+            flow_ids: flow_ids.clone(),
+            created_at: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_millis() as u64,
+            metadata: metadata.clone(),
+            state_data: Vec::new(),
+            state_version: 0,
+            state_timestamp: 0,
+        };
+        self.sessions.insert(session_id.clone(), session);
+
+        let msg = ControlMessage {
+            message: Some(proto::control_message::Message::SessionControl(proto::SessionControl {
+                message: Some(proto::session_control::Message::Create(proto::SessionCreate {
+                    session_id,
+                    creator_node: self.node_id.clone(),
+                    flow_ids,
+                    created_at: std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap_or_default()
+                        .as_millis() as u64,
+                    metadata,
+                })),
+            })),
+        };
+        self.broadcast_control_message(msg).await;
+        Ok(())
+    }
+
+    pub async fn join_session(&self, session_id: String) -> Result<(), FlowError> {
+        let msg = ControlMessage {
+            message: Some(proto::control_message::Message::SessionControl(proto::SessionControl {
+                message: Some(proto::session_control::Message::Join(proto::SessionJoin {
+                    session_id,
+                    node_id: self.node_id.clone(),
+                })),
+            })),
+        };
+        self.broadcast_control_message(msg).await;
+        Ok(())
+    }
+
+    pub async fn leave_session(&self, session_id: String) -> Result<(), FlowError> {
+        let msg = ControlMessage {
+            message: Some(proto::control_message::Message::SessionControl(proto::SessionControl {
+                message: Some(proto::session_control::Message::Leave(proto::SessionLeave {
+                    session_id,
+                    node_id: self.node_id.clone(),
+                })),
+            })),
+        };
+        self.broadcast_control_message(msg).await;
+        Ok(())
+    }
+
+    pub async fn close_session(&self, session_id: String, reason: String) -> Result<(), FlowError> {
+        if self.sessions.remove(&session_id).is_some() {
+            let msg = ControlMessage {
+                message: Some(proto::control_message::Message::SessionControl(proto::SessionControl {
+                    message: Some(proto::session_control::Message::Close(proto::SessionClose {
+                        session_id,
+                        closed_by: self.node_id.clone(),
+                        reason,
+                    })),
+                })),
+            };
+            self.broadcast_control_message(msg).await;
+            Ok(())
+        } else {
+            Err(FlowError::Session(format!("Session {} not found", session_id)))
+        }
+    }
+
+    pub async fn sync_session_state(&self, session_id: String, data: Vec<u8>) -> Result<(), FlowError> {
+        if let Some(mut session) = self.sessions.get_mut(&session_id) {
+            session.state_version += 1;
+            session.state_timestamp = std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_millis() as u64;
+
+            if let Some(merge_fn) = self.merge_fns.get(&session_id) {
+                match merge_fn(&session.state_data, &data) {
+                    Ok(merged) => {
+                        session.state_data = merged;
+                    }
+                    Err(e) => {
+                        return Err(FlowError::Session(format!("Local merge error: {}", e)));
+                    }
+                }
+            } else {
+                session.state_data = data.clone();
+            }
+
+            let msg = ControlMessage {
+                message: Some(proto::control_message::Message::SessionControl(proto::SessionControl {
+                    message: Some(proto::session_control::Message::StateSync(proto::SessionStateSync {
+                        session_id,
+                        sender: self.node_id.clone(),
+                        mode: proto::SyncMode::Snapshot as i32,
+                        timestamp: session.state_timestamp,
+                        version: session.state_version,
+                        data,
+                        codec: proto::Codec::Raw as i32,
+                    })),
+                })),
+            };
+            drop(session); // Drop RefMut before broadcast_control_message!
+            self.broadcast_control_message(msg).await;
+            Ok(())
+        } else {
+            Err(FlowError::Session(format!("Session {} not found", session_id)))
+        }
+    }
+
+    pub fn get_session_state(&self, session_id: &str) -> Option<Vec<u8>> {
+        self.sessions.get(session_id).map(|s| s.state_data.clone())
+    }
+
+    async fn broadcast_control_message(&self, msg: ControlMessage) {
+        let senders = self.get_peer_writers();
+        for (_, sender) in senders {
+            let _ = sender.send(msg.clone()).await;
+        }
+    }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::registry::MessageRegistry;
+    use std::time::Duration;
+
+    fn make_node_config(port: u16, cert_der: &[u8], key_der: &[u8]) -> NodeConfig {
+        let certs = vec![quinn::rustls::pki_types::CertificateDer::from(cert_der.to_vec())];
+        let key = quinn::rustls::pki_types::PrivateKeyDer::try_from(key_der.to_vec()).unwrap();
+        
+        let mut roots = quinn::rustls::RootCertStore::empty();
+        roots.add(quinn::rustls::pki_types::CertificateDer::from(cert_der.to_vec())).unwrap();
+
+        NodeConfig {
+            certs: Some(certs),
+            key: Some(key),
+            socket_addr: SocketAddr::new(std::net::IpAddr::V4(std::net::Ipv4Addr::LOCALHOST), port),
+            alpn_protocol_names: vec![b"stric-flow".to_vec()],
+            error_channel_len: 100,
+            default_conn_context: stric_core::ConnectionContext {
+                id: 0,
+                keep_alive: true,
+                initiator_uni: true,
+                initiator_bi: true,
+                responder_uni: true,
+                responder_bi: true,
+            },
+            keep_alive_limit_per_thread: 0,
+            idle_timeout: None,
+            root_cert_store: Some(roots),
+            danger_accept_invalid_certs: true,
+        }
+    }
+
+    #[tokio::test]
+    async fn test_flow_node_sessions_and_reconciliation() {
+        use std::io::Write;
+        println!("test_flow_node_sessions_and_reconciliation START");
+        std::io::stdout().flush().unwrap();
+        let _ = quinn::rustls::crypto::ring::default_provider().install_default();
+
+        // 1. Generate certificates
+        println!("Generating certs...");
+        std::io::stdout().flush().unwrap();
+        let cert = rcgen::generate_simple_self_signed(vec!["localhost".to_string()]).unwrap();
+        let cert_der = cert.cert.der().to_vec();
+        let key_der = cert.signing_key.serialize_der();
+
+        // 2. Start node_a
+        println!("Starting node_a...");
+        std::io::stdout().flush().unwrap();
+        let config_a = make_node_config(0, &cert_der, &key_der);
+        let registry = Arc::new(MessageRegistry::new());
+        let (node_a, mut error_rx_a) = FlowNode::new(
+            "node_a".to_string(),
+            config_a,
+            Arc::new(HopCountMetric),
+            registry.clone(),
+        ).unwrap();
+        node_a.start().await;
+        let addr_a = node_a.core.local_addr().unwrap();
+        println!("node_a listening on {}", addr_a);
+        std::io::stdout().flush().unwrap();
+
+        // 3. Start node_b
+        println!("Starting node_b...");
+        std::io::stdout().flush().unwrap();
+        let config_b = make_node_config(0, &cert_der, &key_der);
+        let (node_b, mut error_rx_b) = FlowNode::new(
+            "node_b".to_string(),
+            config_b,
+            Arc::new(HopCountMetric),
+            registry.clone(),
+        ).unwrap();
+        node_b.start().await;
+
+        // Give listener task time to bind
+        tokio::time::sleep(Duration::from_millis(500)).await;
+
+        // Spawn error handler tasks so error channels don't block
+        tokio::spawn(async move {
+            while let Some(e) = error_rx_a.recv().await {
+                println!("node_a error: {:?}", e);
+                std::io::stdout().flush().unwrap();
+            }
+        });
+        tokio::spawn(async move {
+            while let Some(e) = error_rx_b.recv().await {
+                println!("node_b error: {:?}", e);
+                std::io::stdout().flush().unwrap();
+            }
+        });
+
+        // 4. Connect node_b to node_a
+        println!("Connecting node_b to node_a...");
+        std::io::stdout().flush().unwrap();
+        node_b.connect(addr_a, "localhost").await.unwrap();
+        println!("node_b connected call finished!");
+        std::io::stdout().flush().unwrap();
+
+        // Wait for control stream handshakes and topology gossip to complete
+        println!("Sleeping for 2000ms...");
+        std::io::stdout().flush().unwrap();
+        tokio::time::sleep(Duration::from_millis(2000)).await;
+        println!("Wake up from sleep!");
+        std::io::stdout().flush().unwrap();
+
+        // Verify connection exists
+        println!("Verifying connections...");
+        std::io::stdout().flush().unwrap();
+        assert!(node_a.peer_connections.contains_key("node_b"));
+        assert!(node_b.peer_connections.contains_key("node_a"));
+
+        // 5. Test create session
+        println!("Creating session sess_123...");
+        std::io::stdout().flush().unwrap();
+        let flow_ids = vec!["flow1".to_string()];
+        let mut metadata = HashMap::new();
+        metadata.insert("key".to_string(), "val".to_string());
+        
+        node_a.create_session("sess_123".to_string(), flow_ids, metadata).await.unwrap();
+        
+        // Wait for create session to propagate
+        tokio::time::sleep(Duration::from_millis(1000)).await;
+
+        // Check if session exists on node_b
+        assert!(node_b.sessions.contains_key("sess_123"));
+        {
+            let sess_b = node_b.sessions.get("sess_123").unwrap();
+            assert_eq!(sess_b.creator_node, "node_a");
+        }
+
+        // 6. Test state sync (LWW)
+        println!("Syncing state version 1...");
+        std::io::stdout().flush().unwrap();
+        node_a.sync_session_state("sess_123".to_string(), b"hello_version_1".to_vec()).await.unwrap();
+        tokio::time::sleep(Duration::from_millis(1000)).await;
+
+        // Verify version 1 state propagated
+        let state_b = node_b.get_session_state("sess_123").unwrap();
+        assert_eq!(state_b, b"hello_version_1".to_vec());
+
+        // 7. Test custom state merge function
+        println!("Testing merge function...");
+        std::io::stdout().flush().unwrap();
+        let merge_fn = Arc::new(|old_state: &[u8], new_state: &[u8]| {
+            let mut merged = old_state.to_vec();
+            merged.extend_from_slice(new_state);
+            Ok(merged)
+        });
+        node_a.register_merge_fn("sess_123".to_string(), merge_fn.clone());
+        node_b.register_merge_fn("sess_123".to_string(), merge_fn.clone());
+
+        // Perform sync from node_a
+        node_a.sync_session_state("sess_123".to_string(), b"_appended".to_vec()).await.unwrap();
+        tokio::time::sleep(Duration::from_millis(1000)).await;
+
+        // Check if state is merged correctly (should be hello_version_1_appended)
+        let state_b = node_b.get_session_state("sess_123").unwrap();
+        assert_eq!(state_b, b"hello_version_1_appended".to_vec());
+
+        // 8. Test session close/eviction propagation
+        println!("Closing session...");
+        std::io::stdout().flush().unwrap();
+        node_a.close_session("sess_123".to_string(), "done".to_string()).await.unwrap();
+        tokio::time::sleep(Duration::from_millis(1000)).await;
+
+        // Session should be removed on both
+        assert!(!node_a.sessions.contains_key("sess_123"));
+        assert!(!node_b.sessions.contains_key("sess_123"));
+        println!("test_flow_node_sessions_and_reconciliation FINISHED");
+        std::io::stdout().flush().unwrap();
+    }
+}
+
