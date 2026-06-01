@@ -94,3 +94,17 @@ Outbound transmission speeds are managed via a token-bucket rate limiter:
 * **[backpressure.rs](file:///home/snipeart007/repos/stric/stric-flow/src/backpressure.rs)**: Governor token-bucket limits, thread notifications, and pausing.
 * **[registry.rs](file:///home/snipeart007/repos/stric/stric-flow/src/registry.rs)**: Generic type-erased registry mapping message name strings to parsing closures.
 * **[frame.rs](file:///home/snipeart007/repos/stric/stric-flow/src/frame.rs)**: Length-prefixed stream parser that handles frame safety limits up to 16 MiB.
+
+---
+
+## 4. Simulation Mesh Topology
+
+To verify multi-hop routing at scale, the `large_network_simulation` example builds a complex 40-node mesh based on three main topology rules:
+1. **Ring Connections**: Every node `i` is connected to node `i+1` (for `0 <= i < 39`) to guarantee complete network connectivity.
+2. **Chord +5**: Every node `i` divisible by 3 is connected to `(i + 5) % 40` (where `target > i`).
+3. **Chord +13**: Every node `i` divisible by 7 is connected to `(i + 13) % 40` (where `target > i`).
+
+Below is the visualized network topology for this 40-node simulation:
+
+![Large Network Simulation Mesh](./examples/large_network_simulation_mesh.svg)
+
