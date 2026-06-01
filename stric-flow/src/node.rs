@@ -1131,10 +1131,10 @@ impl FlowNode {
     pub async fn print_debug_info(&self) {
         use petgraph::visit::EdgeRef;
         let graph = self.graph.read().await;
-        println!("FlowNode Debug Info for: {}", self.node_id);
-        println!("- Peer connections: {:?}", self.peer_connections());
-        println!("- Node metadata keys (nodes in graph): {:?}", graph.node_metadata.keys().collect::<Vec<_>>());
-        println!("- Edges in graph: {:?}", graph.graph.edge_references().map(|e| (graph.graph[e.source()].clone(), graph.graph[e.target()].clone())).collect::<Vec<_>>());
+        debug!("FlowNode Debug Info for: {}", self.node_id);
+        debug!("- Peer connections: {:?}", self.peer_connections());
+        debug!("- Node metadata keys (nodes in graph): {:?}", graph.node_metadata.keys().collect::<Vec<_>>());
+        debug!("- Edges in graph: {:?}", graph.graph.edge_references().map(|e| (graph.graph[e.source()].clone(), graph.graph[e.target()].clone())).collect::<Vec<_>>());
         
         let mut subs = Vec::new();
         for (node_id, desc) in &graph.node_metadata {
@@ -1144,7 +1144,7 @@ impl FlowNode {
                 }
             }
         }
-        println!("- Subscription capabilities in graph: {:?}", subs);
+        debug!("- Subscription capabilities in graph: {:?}", subs);
     }
 
     pub fn sessions(&self) -> Vec<String> {
@@ -1215,23 +1215,34 @@ mod tests {
         }
     }
 
+    fn init_logging() {
+        use tracing_subscriber::{fmt, prelude::*, EnvFilter};
+        let rust_log = std::env::var("RUST_LOG").unwrap_or_else(|_| "info".to_string());
+        let filter_str = if rust_log.to_lowercase().contains("debug") || rust_log.to_lowercase().contains("trace") {
+            rust_log
+        } else {
+            format!("stric_flow=info,stric_core=warn,{}", rust_log.replace("info", "off"))
+        };
+        let _ = tracing_subscriber::registry()
+            .with(fmt::layer())
+            .with(EnvFilter::new(filter_str))
+            .try_init();
+    }
+
     #[tokio::test]
     async fn test_flow_node_sessions_and_reconciliation() {
-        use std::io::Write;
-        println!("test_flow_node_sessions_and_reconciliation START");
-        std::io::stdout().flush().unwrap();
+        init_logging();
+        info!("test_flow_node_sessions_and_reconciliation START");
         let _ = quinn::rustls::crypto::ring::default_provider().install_default();
 
         // 1. Generate certificates
-        println!("Generating certs...");
-        std::io::stdout().flush().unwrap();
+        info!("Generating certs...");
         let cert = rcgen::generate_simple_self_signed(vec!["localhost".to_string()]).unwrap();
         let cert_der = cert.cert.der().to_vec();
         let key_der = cert.signing_key.serialize_der();
 
         // 2. Start node_a
-        println!("Starting node_a...");
-        std::io::stdout().flush().unwrap();
+        info!("Starting node_a...");
         let config_a = make_node_config(0, &cert_der, &key_der);
         let registry = Arc::new(MessageRegistry::new());
         let (node_a, mut error_rx_a) = FlowNode::new(
@@ -1242,12 +1253,10 @@ mod tests {
         ).unwrap();
         node_a.start().await;
         let addr_a = node_a.core.local_addr().unwrap();
-        println!("node_a listening on {}", addr_a);
-        std::io::stdout().flush().unwrap();
+        info!("node_a listening on {}", addr_a);
 
         // 3. Start node_b
-        println!("Starting node_b...");
-        std::io::stdout().flush().unwrap();
+        info!("Starting node_b...");
         let config_b = make_node_config(0, &cert_der, &key_der);
         let (node_b, mut error_rx_b) = FlowNode::new(
             "node_b".to_string(),
@@ -1263,40 +1272,32 @@ mod tests {
         // Spawn error handler tasks so error channels don't block
         tokio::spawn(async move {
             while let Some(e) = error_rx_a.recv().await {
-                println!("node_a error: {:?}", e);
-                std::io::stdout().flush().unwrap();
+                error!("node_a error: {:?}", e);
             }
         });
         tokio::spawn(async move {
             while let Some(e) = error_rx_b.recv().await {
-                println!("node_b error: {:?}", e);
-                std::io::stdout().flush().unwrap();
+                error!("node_b error: {:?}", e);
             }
         });
 
         // 4. Connect node_b to node_a
-        println!("Connecting node_b to node_a...");
-        std::io::stdout().flush().unwrap();
+        info!("Connecting node_b to node_a...");
         node_b.connect(addr_a, "localhost").await.unwrap();
-        println!("node_b connected call finished!");
-        std::io::stdout().flush().unwrap();
+        info!("node_b connected call finished!");
 
         // Wait for control stream handshakes and topology gossip to complete
-        println!("Sleeping for 2000ms...");
-        std::io::stdout().flush().unwrap();
+        info!("Sleeping for 2000ms...");
         tokio::time::sleep(Duration::from_millis(2000)).await;
-        println!("Wake up from sleep!");
-        std::io::stdout().flush().unwrap();
+        info!("Wake up from sleep!");
 
         // Verify connection exists
-        println!("Verifying connections...");
-        std::io::stdout().flush().unwrap();
+        info!("Verifying connections...");
         assert!(node_a.peer_connections().contains(&"node_b".to_string()));
         assert!(node_b.peer_connections().contains(&"node_a".to_string()));
 
         // 5. Test create session
-        println!("Creating session sess_123...");
-        std::io::stdout().flush().unwrap();
+        info!("Creating session sess_123...");
         let flow_ids = vec!["flow1".to_string()];
         let mut metadata = HashMap::new();
         metadata.insert("key".to_string(), "val".to_string());
@@ -1314,8 +1315,7 @@ mod tests {
         }
 
         // 6. Test state sync (LWW)
-        println!("Syncing state version 1...");
-        std::io::stdout().flush().unwrap();
+        info!("Syncing state version 1...");
         node_a.sync_session_state("sess_123".to_string(), b"hello_version_1".to_vec()).await.unwrap();
         tokio::time::sleep(Duration::from_millis(1000)).await;
 
@@ -1324,8 +1324,7 @@ mod tests {
         assert_eq!(state_b, b"hello_version_1".to_vec());
 
         // 7. Test custom state merge function
-        println!("Testing merge function...");
-        std::io::stdout().flush().unwrap();
+        info!("Testing merge function...");
         let merge_fn = Arc::new(|old_state: &[u8], new_state: &[u8]| {
             let mut merged = old_state.to_vec();
             merged.extend_from_slice(new_state);
@@ -1343,16 +1342,14 @@ mod tests {
         assert_eq!(state_b, b"hello_version_1_appended".to_vec());
 
         // 8. Test session close/eviction propagation
-        println!("Closing session...");
-        std::io::stdout().flush().unwrap();
+        info!("Closing session...");
         node_a.close_session("sess_123".to_string(), "done".to_string()).await.unwrap();
         tokio::time::sleep(Duration::from_millis(1000)).await;
 
         // Session should be removed on both
         assert!(!node_a.sessions.contains_key("sess_123"));
         assert!(!node_b.sessions.contains_key("sess_123"));
-        println!("test_flow_node_sessions_and_reconciliation FINISHED");
-        std::io::stdout().flush().unwrap();
+        info!("test_flow_node_sessions_and_reconciliation FINISHED");
     }
 }
 

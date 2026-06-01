@@ -1,3 +1,6 @@
+#[path = "common/mod.rs"]
+mod common;
+
 use std::any::Any;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -8,6 +11,7 @@ use stric_flow::node::{FlowNode, FlowHandler, HopCountMetric};
 use stric_flow::registry::MessageRegistry;
 use stric_flow::proto;
 use tokio::sync::mpsc;
+use tracing::info;
 
 fn make_node_config(port: u16, cert_der: &[u8], key_der: &[u8]) -> NodeConfig {
     let certs = vec![quinn::rustls::pki_types::CertificateDer::from(cert_der.to_vec())];
@@ -50,7 +54,7 @@ impl FlowHandler for ReceiverHandler {
         message: Box<dyn Any + Send + Sync>,
     ) -> Result<(), String> {
         if let Some(msg_str) = message.downcast_ref::<String>() {
-            println!("Receiver node got message: '{}' from flow '{}' on topic '{}'", msg_str, flow_id, topic_id);
+            info!("Receiver node got message: '{}' from flow '{}' on topic '{}'", msg_str, flow_id, topic_id);
             let _ = self.tx.send(msg_str.clone()).await;
             Ok(())
         } else {
@@ -61,6 +65,7 @@ impl FlowHandler for ReceiverHandler {
 
 #[tokio::main]
 async fn main() {
+    common::init_logging();
     let _ = quinn::rustls::crypto::ring::default_provider().install_default();
 
     let cert = rcgen::generate_simple_self_signed(vec!["localhost".to_string()]).unwrap();
@@ -75,18 +80,18 @@ async fn main() {
         r
     });
 
-    println!("Starting node_a (Sender)...");
+    info!("Starting node_a (Sender)...");
     let config_a = make_node_config(0, &cert_der, &key_der);
     let (node_a, mut error_rx_a) = FlowNode::new("node_a".to_string(), config_a, Arc::new(HopCountMetric), registry.clone()).unwrap();
     node_a.start().await;
 
-    println!("Starting node_b (Transit)...");
+    info!("Starting node_b (Transit)...");
     let config_b = make_node_config(0, &cert_der, &key_der);
     let (node_b, mut error_rx_b) = FlowNode::new("node_b".to_string(), config_b, Arc::new(HopCountMetric), registry.clone()).unwrap();
     node_b.start().await;
     let addr_b = node_b.local_addr().unwrap();
 
-    println!("Starting node_c (Receiver)...");
+    info!("Starting node_c (Receiver)...");
     let config_c = make_node_config(0, &cert_der, &key_der);
     let (node_c, mut error_rx_c) = FlowNode::new("node_c".to_string(), config_c, Arc::new(HopCountMetric), registry.clone()).unwrap();
     node_c.start().await;
@@ -98,7 +103,7 @@ async fn main() {
     tokio::time::sleep(Duration::from_millis(500)).await;
 
     // Connect node_a to node_b, and node_c to node_b (forming path node_a <-> node_b <-> node_c)
-    println!("Connecting topology node_a <-> node_b <-> node_c...");
+    info!("Connecting topology node_a <-> node_b <-> node_c...");
     node_a.connect(addr_b, "localhost").await.unwrap();
     node_c.connect(addr_b, "localhost").await.unwrap();
 
@@ -112,7 +117,7 @@ async fn main() {
     // Wait for subscription gossip update to propagate to node_a
     tokio::time::sleep(Duration::from_millis(1000)).await;
 
-    println!("Publishing message from node_a...");
+    info!("Publishing message from node_a...");
     node_a.publish(
         "flow_x".to_string(),
         "data/topic".to_string(),
@@ -125,5 +130,5 @@ async fn main() {
     let received = tokio::time::timeout(Duration::from_secs(3), rx.recv()).await.unwrap().unwrap();
     assert_eq!(received, "Hello through transit node_b!");
 
-    println!("SUCCESS: Message statelessly routed via transit node_b and delivered to node_c!");
+    info!("SUCCESS: Message statelessly routed via transit node_b and delivered to node_c!");
 }

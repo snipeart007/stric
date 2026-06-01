@@ -3,6 +3,7 @@ use std::time::{Duration, Instant};
 use std::sync::Arc;
 use rand::Rng;
 use dashmap::DashMap;
+use tracing::info;
 
 pub type StateMergeFn = Arc<dyn Fn(&[u8], &[u8]) -> Result<Vec<u8>, String> + Send + Sync>;
 
@@ -70,6 +71,7 @@ pub fn gc_inactive_sessions(
     sessions.retain(|session_id, session| {
         if let Some(last_seen) = node_last_seen.get(&session.creator_node) {
             if now.duration_since(*last_seen) > session_ttl {
+                info!("Session {} evicted due to creator node {} TTL expiry", session_id, session.creator_node);
                 evicted.push(session_id.clone());
                 false // Evict
             } else {

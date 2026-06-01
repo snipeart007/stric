@@ -1,3 +1,6 @@
+#[path = "common/mod.rs"]
+mod common;
+
 use std::any::Any;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -8,6 +11,7 @@ use stric_flow::node::{FlowNode, FlowHandler, HopCountMetric};
 use stric_flow::registry::MessageRegistry;
 use stric_flow::proto;
 use tokio::sync::mpsc;
+use tracing::info;
 
 fn make_node_config(port: u16, cert_der: &[u8], key_der: &[u8]) -> NodeConfig {
     let certs = vec![quinn::rustls::pki_types::CertificateDer::from(cert_der.to_vec())];
@@ -50,7 +54,7 @@ impl FlowHandler for FinalHandler {
         message: Box<dyn Any + Send + Sync>,
     ) -> Result<(), String> {
         if let Some(msg_str) = message.downcast_ref::<String>() {
-            println!("Final destination handler got message: '{}' from flow '{}' on topic '{}'", msg_str, flow_id, topic_id);
+            info!("Final destination handler got message: '{}' from flow '{}' on topic '{}'", msg_str, flow_id, topic_id);
             let _ = self.tx.send(msg_str.clone()).await;
             Ok(())
         } else {
@@ -61,9 +65,10 @@ impl FlowHandler for FinalHandler {
 
 #[tokio::main]
 async fn main() {
+    common::init_logging();
     let _ = quinn::rustls::crypto::ring::default_provider().install_default();
 
-    println!("Generating self-signed TLS certificates for nodes...");
+    info!("Generating self-signed TLS certificates for nodes...");
     let cert = rcgen::generate_simple_self_signed(vec!["localhost".to_string()]).unwrap();
     let cert_der = cert.cert.der().to_vec();
     let key_der = cert.signing_key.serialize_der();
@@ -80,10 +85,10 @@ async fn main() {
     let mut addrs = Vec::new();
 
     let num_nodes = 40;
-    println!("Creating {} stric-flow nodes in memory...", num_nodes);
+    info!("Creating {} stric-flow nodes in memory...", num_nodes);
     for i in 0..num_nodes {
         if i % 10 == 0 {
-            println!("Initializing nodes {} to {}...", i, std::cmp::min(i + 9, num_nodes - 1));
+            info!("Initializing nodes {} to {}...", i, std::cmp::min(i + 9, num_nodes - 1));
         }
         let config = make_node_config(0, &cert_der, &key_der);
         let node_id = format!("node_{}", i);
@@ -100,7 +105,7 @@ async fn main() {
     // Connect them to form a complex mesh graph:
     // 1. Ring connections to guarantee complete network connectivity: node_i <-> node_i+1
     // 2. Chords (+5 and +13) to form a complex mesh network with multiple alternative routes
-    println!("Connecting {} nodes to form a complex mesh graph...", num_nodes);
+    info!("Connecting {} nodes to form a complex mesh graph...", num_nodes);
     let mut conn_count = 0;
     for i in 0..(num_nodes - 1) {
         nodes[i].connect(addrs[i + 1], "localhost").await.unwrap();
@@ -125,10 +130,10 @@ async fn main() {
             }
         }
     }
-    println!("Established {} bidirectional links across {} nodes to form the complex mesh.", conn_count, num_nodes);
+    info!("Established {} bidirectional links across {} nodes to form the complex mesh.", conn_count, num_nodes);
 
     // Wait for network handshake negotiation, graph updates, and Dijkstra tree stabilization
-    println!("Waiting 8 seconds for network topology to stabilize...");
+    info!("Waiting 8 seconds for network topology to stabilize...");
     tokio::time::sleep(Duration::from_secs(8)).await;
 
     // Register a subscription at node_39 (the final node)
@@ -136,10 +141,10 @@ async fn main() {
     nodes[num_nodes - 1].subscribe("chain/data".to_string(), Arc::new(FinalHandler { tx }));
 
     // Wait for subscription filters to gossip upstream back to node_0
-    println!("Gossiping subscription filters back to sender node_0...");
+    info!("Gossiping subscription filters back to sender node_0...");
     tokio::time::sleep(Duration::from_secs(5)).await;
 
-    println!("Publishing message from node_0...");
+    info!("Publishing message from node_0...");
     nodes[0].publish(
         "flow_large".to_string(),
         "chain/data".to_string(),
@@ -149,12 +154,12 @@ async fn main() {
     ).await.unwrap();
 
     // Wait and verify final delivery on node_39
-    println!("Awaiting delivery at node_39...");
+    info!("Awaiting delivery at node_39...");
     let received = tokio::time::timeout(Duration::from_secs(10), rx.recv()).await;
     
     match received {
         Ok(Some(msg)) => {
-            println!("SUCCESS: Message successfully routed across the complex mesh: '{}'", msg);
+            info!("SUCCESS: Message successfully routed across the complex mesh: '{}'", msg);
             assert_eq!(msg, "Hello from node_0 to node_39 across the mesh!");
         }
         _ => {

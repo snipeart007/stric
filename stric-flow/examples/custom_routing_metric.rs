@@ -1,9 +1,13 @@
+#[path = "common/mod.rs"]
+mod common;
+
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 use stric_core::NodeConfig;
 use stric_flow::node::{FlowNode, RoutingMetric};
 use stric_flow::registry::MessageRegistry;
+use tracing::info;
 
 /// A custom routing metric that estimates costs based on link latency (RTT).
 /// It penalizes high-latency paths by scaling the RTT contribution.
@@ -16,7 +20,7 @@ impl RoutingMetric for LatencyRoutingMetric {
         let rtt_ms = rtt_micros as f64 / 1000.0;
         let penalty = (rtt_ms * self.latency_penalty_factor) as u32;
         let estimated = base_hop_cost + penalty;
-        println!(
+        info!(
             "[Metric] Estimating cost between {} and {}: base={}, RTT={}us -> cost={}",
             node_a, node_b, base_hop_cost, rtt_micros, estimated
         );
@@ -54,9 +58,10 @@ fn make_node_config(port: u16, cert_der: &[u8], key_der: &[u8]) -> NodeConfig {
 
 #[tokio::main]
 async fn main() {
+    common::init_logging();
     let _ = quinn::rustls::crypto::ring::default_provider().install_default();
 
-    println!("Generating self-signed TLS certificates...");
+    info!("Generating self-signed TLS certificates...");
     let cert = rcgen::generate_simple_self_signed(vec!["localhost".to_string()]).unwrap();
     let cert_der = cert.cert.der().to_vec();
     let key_der = cert.signing_key.serialize_der();
@@ -66,7 +71,7 @@ async fn main() {
         latency_penalty_factor: 1.5,
     });
 
-    println!("Starting node_a with custom LatencyRoutingMetric...");
+    info!("Starting node_a with custom LatencyRoutingMetric...");
     let config_a = make_node_config(0, &cert_der, &key_der);
     let registry = Arc::new(MessageRegistry::new());
     let (node_a, mut error_rx_a) = FlowNode::new(
@@ -78,7 +83,7 @@ async fn main() {
     node_a.start().await;
     let addr_a = node_a.local_addr().unwrap();
 
-    println!("Starting node_b with custom LatencyRoutingMetric...");
+    info!("Starting node_b with custom LatencyRoutingMetric...");
     let config_b = make_node_config(0, &cert_der, &key_der);
     let (node_b, mut error_rx_b) = FlowNode::new(
         "node_b".to_string(),
@@ -95,7 +100,7 @@ async fn main() {
     tokio::time::sleep(Duration::from_millis(500)).await;
 
     // Connect node_b to node_a
-    println!("Connecting node_b to node_a...");
+    info!("Connecting node_b to node_a...");
     node_b.connect(addr_a, "localhost").await.unwrap();
 
     // Wait for handshake
@@ -108,7 +113,7 @@ async fn main() {
     // Evaluate the metric manually to show it computes estimated costs correctly
     let cost = custom_metric.estimate_cost("node_a", "node_b", 10, 2500);
     assert_eq!(cost, 10 + 3); // 2500us RTT = 2.5ms. 2.5 * 1.5 = 3.75 -> 3 as u32. Cost is 13.
-    println!("Estimated cost: {}", cost);
+    info!("Estimated cost: {}", cost);
 
-    println!("SUCCESS: Custom routing metric configured and evaluated successfully!");
+    info!("SUCCESS: Custom routing metric configured and evaluated successfully!");
 }

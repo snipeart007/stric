@@ -1,3 +1,6 @@
+#[path = "common/mod.rs"]
+mod common;
+
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -5,6 +8,7 @@ use std::time::Duration;
 use stric_core::NodeConfig;
 use stric_flow::node::{FlowNode, HopCountMetric};
 use stric_flow::registry::MessageRegistry;
+use tracing::info;
 
 fn make_node_config(port: u16, cert_der: &[u8], key_der: &[u8]) -> NodeConfig {
     let certs = vec![quinn::rustls::pki_types::CertificateDer::from(cert_der.to_vec())];
@@ -36,6 +40,7 @@ fn make_node_config(port: u16, cert_der: &[u8], key_der: &[u8]) -> NodeConfig {
 
 #[tokio::main]
 async fn main() {
+    common::init_logging();
     let _ = quinn::rustls::crypto::ring::default_provider().install_default();
 
     let cert = rcgen::generate_simple_self_signed(vec!["localhost".to_string()]).unwrap();
@@ -44,12 +49,12 @@ async fn main() {
 
     let registry = Arc::new(MessageRegistry::new());
 
-    println!("Starting node_a...");
+    info!("Starting node_a...");
     let config_a = make_node_config(0, &cert_der, &key_der);
     let (node_a, mut error_rx_a) = FlowNode::new("node_a".to_string(), config_a, Arc::new(HopCountMetric), registry.clone()).unwrap();
     node_a.start().await;
 
-    println!("Starting node_b...");
+    info!("Starting node_b...");
     let config_b = make_node_config(0, &cert_der, &key_der);
     let (node_b, mut error_rx_b) = FlowNode::new("node_b".to_string(), config_b, Arc::new(HopCountMetric), registry.clone()).unwrap();
     node_b.start().await;
@@ -65,7 +70,7 @@ async fn main() {
     tokio::time::sleep(Duration::from_millis(1500)).await;
 
     // 1. Create a session on node_a
-    println!("Creating shared session 'sess_lww' on node_a...");
+    info!("Creating shared session 'sess_lww' on node_a...");
     node_a.create_session("sess_lww".to_string(), vec!["flow1".to_string()], HashMap::new()).await.unwrap();
     tokio::time::sleep(Duration::from_millis(500)).await;
 
@@ -73,24 +78,24 @@ async fn main() {
     assert!(node_b.sessions().contains(&"sess_lww".to_string()));
 
     // 2. Sync state from node_a (Initial state)
-    println!("Syncing initial state from node_a: 'initial_value'...");
+    info!("Syncing initial state from node_a: 'initial_value'...");
     node_a.sync_session_state("sess_lww".to_string(), b"initial_value".to_vec()).await.unwrap();
     tokio::time::sleep(Duration::from_millis(500)).await;
 
     // Check node_b received state
     let state_b = node_b.get_session_state("sess_lww").unwrap();
     assert_eq!(state_b, b"initial_value".to_vec());
-    println!("node_b has state: '{}'", String::from_utf8_lossy(&state_b));
+    info!("node_b has state: '{}'", String::from_utf8_lossy(&state_b));
 
     // 3. Sync newer state from node_b (LWW resolution)
-    println!("Syncing newer state from node_b: 'updated_value'...");
+    info!("Syncing newer state from node_b: 'updated_value'...");
     node_b.sync_session_state("sess_lww".to_string(), b"updated_value".to_vec()).await.unwrap();
     tokio::time::sleep(Duration::from_millis(500)).await;
 
     // Verify state updated on node_a (LWW conflict resolution succeeded)
     let state_a = node_a.get_session_state("sess_lww").unwrap();
     assert_eq!(state_a, b"updated_value".to_vec());
-    println!("node_a has updated state: '{}'", String::from_utf8_lossy(&state_a));
+    info!("node_a has updated state: '{}'", String::from_utf8_lossy(&state_a));
 
-    println!("SUCCESS: Session LWW conflict resolution and state sync completed successfully!");
+    info!("SUCCESS: Session LWW conflict resolution and state sync completed successfully!");
 }

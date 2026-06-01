@@ -1,3 +1,6 @@
+#[path = "common/mod.rs"]
+mod common;
+
 use std::any::Any;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -9,6 +12,7 @@ use stric_core::NodeConfig;
 use stric_flow::node::{FlowNode, FlowHandler, HopCountMetric};
 use stric_flow::registry::MessageRegistry;
 use stric_flow::proto;
+use tracing::info;
 
 /// A custom stateful flow handler that records statistics about received messages.
 struct StatefulStatsHandler {
@@ -38,7 +42,7 @@ impl FlowHandler for StatefulStatsHandler {
                 *guard = Some(topic_id.to_string());
             }
 
-            println!(
+            info!(
                 "[StatsHandler] Received message (len={}). Count={}, TotalBytes={}, LastTopic={}",
                 len,
                 self.message_count.load(Ordering::SeqCst),
@@ -82,9 +86,10 @@ fn make_node_config(port: u16, cert_der: &[u8], key_der: &[u8]) -> NodeConfig {
 
 #[tokio::main]
 async fn main() {
+    common::init_logging();
     let _ = quinn::rustls::crypto::ring::default_provider().install_default();
 
-    println!("Generating self-signed TLS certificates...");
+    info!("Generating self-signed TLS certificates...");
     let cert = rcgen::generate_simple_self_signed(vec!["localhost".to_string()]).unwrap();
     let cert_der = cert.cert.der().to_vec();
     let key_der = cert.signing_key.serialize_der();
@@ -97,7 +102,7 @@ async fn main() {
         r
     });
 
-    println!("Starting node_a (Sender)...");
+    info!("Starting node_a (Sender)...");
     let config_a = make_node_config(0, &cert_der, &key_der);
     let (node_a, mut error_rx_a) = FlowNode::new(
         "node_a".to_string(),
@@ -107,7 +112,7 @@ async fn main() {
     ).unwrap();
     node_a.start().await;
 
-    println!("Starting node_b (Receiver)...");
+    info!("Starting node_b (Receiver)...");
     let config_b = make_node_config(0, &cert_der, &key_der);
     let (node_b, mut error_rx_b) = FlowNode::new(
         "node_b".to_string(),
@@ -125,7 +130,7 @@ async fn main() {
     tokio::time::sleep(Duration::from_millis(500)).await;
 
     // Connect node_a to node_b
-    println!("Connecting node_a to node_b...");
+    info!("Connecting node_a to node_b...");
     node_a.connect(addr_b, "localhost").await.unwrap();
     tokio::time::sleep(Duration::from_millis(1500)).await;
 
@@ -146,7 +151,7 @@ async fn main() {
     // 3. Publish a sequence of messages from node_a
     let messages = vec!["Danger: Overheating", "Warning: Battery low", "Info: Normal"];
     for (i, msg) in messages.iter().enumerate() {
-        println!("Publishing alert {}: '{}'", i + 1, msg);
+        info!("Publishing alert {}: '{}'", i + 1, msg);
         node_a.publish(
             "flow_alerts".to_string(),
             "sensors.alerts".to_string(),
@@ -165,14 +170,14 @@ async fn main() {
     let final_bytes = total_bytes.load(Ordering::SeqCst);
     let final_topic = last_topic.lock().unwrap().clone().unwrap();
 
-    println!("Final statistics recorded by handler:");
-    println!("  Total count: {}", final_count);
-    println!("  Total bytes: {}", final_bytes);
-    println!("  Last topic:  {}", final_topic);
+    info!("Final statistics recorded by handler:");
+    info!("  Total count: {}", final_count);
+    info!("  Total bytes: {}", final_bytes);
+    info!("  Last topic:  {}", final_topic);
 
     assert_eq!(final_count, 3);
     assert_eq!(final_bytes, 19 + 20 + 12); // length of the strings
     assert_eq!(final_topic, "sensors.alerts");
 
-    println!("SUCCESS: Custom stateful FlowHandler configured and executed successfully!");
+    info!("SUCCESS: Custom stateful FlowHandler configured and executed successfully!");
 }

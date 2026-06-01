@@ -1,5 +1,6 @@
 use std::net::SocketAddr;
 use sha2::{Sha256, Digest};
+use tracing::debug;
 
 const K: usize = 20;
 
@@ -65,6 +66,7 @@ impl RoutingTable {
             // Bucket is full. In a full Kademlia node, we would ping the head node.
             // For now, we keep the existing nodes and drop the new one, or can be eviction-based.
             // We will log a warning or simply drop the update.
+            debug!("KBucket full for node {}, dropping discovery update for {}", self.local_node_id, node_id);
         }
     }
 

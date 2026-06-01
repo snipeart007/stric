@@ -1,3 +1,6 @@
+#[path = "common/mod.rs"]
+mod common;
+
 use std::any::Any;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -8,6 +11,7 @@ use stric_flow::node::{FlowNode, FlowHandler, HopCountMetric};
 use stric_flow::registry::MessageRegistry;
 use stric_flow::proto;
 use tokio::sync::mpsc;
+use tracing::info;
 
 fn make_node_config(port: u16, cert_der: &[u8], key_der: &[u8]) -> NodeConfig {
     let certs = vec![quinn::rustls::pki_types::CertificateDer::from(cert_der.to_vec())];
@@ -58,7 +62,7 @@ impl FlowHandler for SimpleHandler {
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::fmt::init();
+    common::init_logging();
     let _ = quinn::rustls::crypto::ring::default_provider().install_default();
 
     let cert = rcgen::generate_simple_self_signed(vec!["localhost".to_string()]).unwrap();
@@ -73,12 +77,12 @@ async fn main() {
         r
     });
 
-    println!("Starting node_a (Sender)...");
+    info!("Starting node_a (Sender)...");
     let config_a = make_node_config(0, &cert_der, &key_der);
     let (node_a, mut error_rx_a) = FlowNode::new("node_a".to_string(), config_a, Arc::new(HopCountMetric), registry.clone()).unwrap();
     node_a.start().await;
 
-    println!("Starting node_b (Receiver)...");
+    info!("Starting node_b (Receiver)...");
     let config_b = make_node_config(0, &cert_der, &key_der);
     let (node_b, mut error_rx_b) = FlowNode::new("node_b".to_string(), config_b, Arc::new(HopCountMetric), registry.clone()).unwrap();
     node_b.start().await;
@@ -100,12 +104,12 @@ async fn main() {
     tokio::time::sleep(Duration::from_millis(1000)).await;
 
     // Send a backpressure PAUSE signal from node_b to node_a for flow "flow_1"
-    println!("Sending backpressure PAUSE from node_b to node_a...");
+    info!("Sending backpressure PAUSE from node_b to node_a...");
     node_b.send_backpressure("flow_1".to_string(), proto::BackpressureAction::Pause, 0).await.unwrap();
     tokio::time::sleep(Duration::from_millis(500)).await;
 
     // Try to publish a message from node_a (should be blocked / paused)
-    println!("Publishing message while paused (should not be received)...");
+    info!("Publishing message while paused (should not be received)...");
     node_a.publish(
         "flow_1".to_string(),
         "sensors.temp".to_string(),
@@ -117,16 +121,16 @@ async fn main() {
     // Verify no message is received during sleep
     let result = tokio::time::timeout(Duration::from_secs(2), rx.recv()).await;
     assert!(result.is_err(), "Message was received while flow was paused!");
-    println!("Confirmed: No message received while paused.");
+    info!("Confirmed: No message received while paused.");
 
     // Send a backpressure RESUME signal
-    println!("Sending backpressure RESUME from node_b to node_a...");
+    info!("Sending backpressure RESUME from node_b to node_a...");
     node_b.send_backpressure("flow_1".to_string(), proto::BackpressureAction::Resume, 0).await.unwrap();
 
     // Verify the paused message (or a new message) is delivered
     let result = tokio::time::timeout(Duration::from_secs(8), rx.recv()).await;
     assert!(result.is_ok(), "Message was not received after resume!");
-    println!("Confirmed: Message received successfully after resume: '{}'", result.unwrap().unwrap());
+    info!("Confirmed: Message received successfully after resume: '{}'", result.unwrap().unwrap());
 
-    println!("SUCCESS: Backpressure pause and resume functionality verified!");
+    info!("SUCCESS: Backpressure pause and resume functionality verified!");
 }

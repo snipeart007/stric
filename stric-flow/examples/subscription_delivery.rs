@@ -1,3 +1,6 @@
+#[path = "common/mod.rs"]
+mod common;
+
 use std::any::Any;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -8,6 +11,7 @@ use stric_flow::node::{FlowNode, FlowHandler, HopCountMetric};
 use stric_flow::registry::MessageRegistry;
 use stric_flow::proto;
 use tokio::sync::mpsc;
+use tracing::info;
 
 fn make_node_config(port: u16, cert_der: &[u8], key_der: &[u8]) -> NodeConfig {
     let certs = vec![quinn::rustls::pki_types::CertificateDer::from(cert_der.to_vec())];
@@ -51,7 +55,7 @@ impl FlowHandler for SimpleStringHandler {
         message: Box<dyn Any + Send + Sync>,
     ) -> Result<(), String> {
         if let Some(msg_str) = message.downcast_ref::<String>() {
-            println!("Handler received message: '{}' from flow '{}' on topic '{}'", msg_str, flow_id, topic_id);
+            info!("Handler received message: '{}' from flow '{}' on topic '{}'", msg_str, flow_id, topic_id);
             let _ = self.tx.send(msg_str.clone()).await;
             Ok(())
         } else {
@@ -62,6 +66,7 @@ impl FlowHandler for SimpleStringHandler {
 
 #[tokio::main]
 async fn main() {
+    common::init_logging();
     let _ = quinn::rustls::crypto::ring::default_provider().install_default();
 
     let cert = rcgen::generate_simple_self_signed(vec!["localhost".to_string()]).unwrap();
@@ -91,13 +96,13 @@ async fn main() {
     let (tx, mut rx) = mpsc::channel(10);
     let handler = Arc::new(SimpleStringHandler { tx });
 
-    println!("Subscribing to topic 'sensors.temp.#'...");
+    info!("Subscribing to topic 'sensors.temp.#'...");
     node.subscribe("sensors.temp.#".to_string(), handler);
 
     // Give the async subscription registration task time to run
     tokio::time::sleep(Duration::from_millis(200)).await;
 
-    println!("Publishing message to topic 'sensors.temp.room_1'...");
+    info!("Publishing message to topic 'sensors.temp.room_1'...");
     node.publish(
         "flow_001".to_string(),
         "sensors.temp.room_1".to_string(),
@@ -110,5 +115,5 @@ async fn main() {
     let received = tokio::time::timeout(Duration::from_secs(1), rx.recv()).await.unwrap().unwrap();
     assert_eq!(received, "Temperature: 22.5 C");
 
-    println!("SUCCESS: Message published and local handler delivery verified successfully!");
+    info!("SUCCESS: Message published and local handler delivery verified successfully!");
 }

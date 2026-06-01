@@ -1,3 +1,6 @@
+#[path = "common/mod.rs"]
+mod common;
+
 use std::any::Any;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -8,6 +11,7 @@ use stric_flow::node::{FlowNode, FlowHandler, HopCountMetric};
 use stric_flow::registry::MessageRegistry;
 use stric_flow::proto;
 use tokio::sync::mpsc;
+use tracing::info;
 
 /// A custom domain data structure.
 #[derive(Debug, Clone, PartialEq)]
@@ -51,7 +55,7 @@ impl FlowHandler for CustomReadingHandler {
     ) -> Result<(), String> {
         // Downcast to our custom struct
         if let Some(reading) = message.downcast_ref::<SensorReading>() {
-            println!("Handler received decoded SensorReading: {:?}", reading);
+            info!("Handler received decoded SensorReading: {:?}", reading);
             let _ = self.tx.send(reading.clone()).await;
             Ok(())
         } else {
@@ -90,9 +94,10 @@ fn make_node_config(port: u16, cert_der: &[u8], key_der: &[u8]) -> NodeConfig {
 
 #[tokio::main]
 async fn main() {
+    common::init_logging();
     let _ = quinn::rustls::crypto::ring::default_provider().install_default();
 
-    println!("Generating self-signed TLS certificates...");
+    info!("Generating self-signed TLS certificates...");
     let cert = rcgen::generate_simple_self_signed(vec!["localhost".to_string()]).unwrap();
     let cert_der = cert.cert.der().to_vec();
     let key_der = cert.signing_key.serialize_der();
@@ -106,7 +111,7 @@ async fn main() {
         r
     });
 
-    println!("Starting node_a (Sender)...");
+    info!("Starting node_a (Sender)...");
     let config_a = make_node_config(0, &cert_der, &key_der);
     let (node_a, mut error_rx_a) = FlowNode::new(
         "node_a".to_string(),
@@ -116,7 +121,7 @@ async fn main() {
     ).unwrap();
     node_a.start().await;
 
-    println!("Starting node_b (Receiver)...");
+    info!("Starting node_b (Receiver)...");
     let config_b = make_node_config(0, &cert_der, &key_der);
     let (node_b, mut error_rx_b) = FlowNode::new(
         "node_b".to_string(),
@@ -134,7 +139,7 @@ async fn main() {
     tokio::time::sleep(Duration::from_millis(500)).await;
 
     // Connect node_a to node_b
-    println!("Connecting node_a to node_b...");
+    info!("Connecting node_a to node_b...");
     node_a.connect(addr_b, "localhost").await.unwrap();
     tokio::time::sleep(Duration::from_millis(1500)).await;
 
@@ -148,7 +153,7 @@ async fn main() {
         device_id: 9942,
         temperature: 23.85,
     };
-    println!("Publishing SensorReading: {:?}", sent_reading);
+    info!("Publishing SensorReading: {:?}", sent_reading);
     
     node_a.publish(
         "flow_custom_msg".to_string(),
@@ -165,5 +170,5 @@ async fn main() {
     let received_reading = received.unwrap().unwrap();
     assert_eq!(received_reading, sent_reading);
     
-    println!("SUCCESS: MessageRegistry successfully encoded, decoded, and matched custom message type!");
+    info!("SUCCESS: MessageRegistry successfully encoded, decoded, and matched custom message type!");
 }

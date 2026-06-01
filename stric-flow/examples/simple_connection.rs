@@ -1,9 +1,13 @@
+#[path = "common/mod.rs"]
+mod common;
+
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 use stric_core::NodeConfig;
 use stric_flow::node::{FlowNode, HopCountMetric};
 use stric_flow::registry::MessageRegistry;
+use tracing::info;
 
 fn make_node_config(port: u16, cert_der: &[u8], key_der: &[u8]) -> NodeConfig {
     let certs = vec![quinn::rustls::pki_types::CertificateDer::from(cert_der.to_vec())];
@@ -35,14 +39,15 @@ fn make_node_config(port: u16, cert_der: &[u8], key_der: &[u8]) -> NodeConfig {
 
 #[tokio::main]
 async fn main() {
+    common::init_logging();
     let _ = quinn::rustls::crypto::ring::default_provider().install_default();
 
-    println!("Generating self-signed TLS certificates...");
+    info!("Generating self-signed TLS certificates...");
     let cert = rcgen::generate_simple_self_signed(vec!["localhost".to_string()]).unwrap();
     let cert_der = cert.cert.der().to_vec();
     let key_der = cert.signing_key.serialize_der();
 
-    println!("Starting node_a (listener)...");
+    info!("Starting node_a (listener)...");
     let config_a = make_node_config(0, &cert_der, &key_der);
     let registry = Arc::new(MessageRegistry::new());
     let (node_a, mut error_rx_a) = FlowNode::new(
@@ -53,9 +58,9 @@ async fn main() {
     ).unwrap();
     node_a.start().await;
     let addr_a = node_a.local_addr().unwrap();
-    println!("node_a is listening on {}", addr_a);
+    info!("node_a is listening on {}", addr_a);
 
-    println!("Starting node_b...");
+    info!("Starting node_b...");
     let config_b = make_node_config(0, &cert_der, &key_der);
     let (node_b, mut error_rx_b) = FlowNode::new(
         "node_b".to_string(),
@@ -71,15 +76,15 @@ async fn main() {
 
     tokio::time::sleep(Duration::from_millis(500)).await;
 
-    println!("Connecting node_b to node_a...");
+    info!("Connecting node_b to node_a...");
     node_b.connect(addr_a, "localhost").await.unwrap();
 
-    println!("Waiting for handshake to complete...");
+    info!("Waiting for handshake to complete...");
     tokio::time::sleep(Duration::from_millis(1500)).await;
 
     // Verify connections exist
     assert!(node_a.peer_connections().contains(&"node_b".to_string()));
     assert!(node_b.peer_connections().contains(&"node_a".to_string()));
 
-    println!("SUCCESS: Control stream connection and handshake established successfully!");
+    info!("SUCCESS: Control stream connection and handshake established successfully!");
 }

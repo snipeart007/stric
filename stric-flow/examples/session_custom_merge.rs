@@ -1,3 +1,6 @@
+#[path = "common/mod.rs"]
+mod common;
+
 use std::collections::HashMap;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -5,6 +8,7 @@ use std::time::Duration;
 use stric_core::NodeConfig;
 use stric_flow::node::{FlowNode, HopCountMetric};
 use stric_flow::registry::MessageRegistry;
+use tracing::info;
 
 fn make_node_config(port: u16, cert_der: &[u8], key_der: &[u8]) -> NodeConfig {
     let certs = vec![quinn::rustls::pki_types::CertificateDer::from(cert_der.to_vec())];
@@ -36,6 +40,7 @@ fn make_node_config(port: u16, cert_der: &[u8], key_der: &[u8]) -> NodeConfig {
 
 #[tokio::main]
 async fn main() {
+    common::init_logging();
     let _ = quinn::rustls::crypto::ring::default_provider().install_default();
 
     let cert = rcgen::generate_simple_self_signed(vec!["localhost".to_string()]).unwrap();
@@ -44,12 +49,12 @@ async fn main() {
 
     let registry = Arc::new(MessageRegistry::new());
 
-    println!("Starting node_a...");
+    info!("Starting node_a...");
     let config_a = make_node_config(0, &cert_der, &key_der);
     let (node_a, mut error_rx_a) = FlowNode::new("node_a".to_string(), config_a, Arc::new(HopCountMetric), registry.clone()).unwrap();
     node_a.start().await;
 
-    println!("Starting node_b...");
+    info!("Starting node_b...");
     let config_b = make_node_config(0, &cert_der, &key_der);
     let (node_b, mut error_rx_b) = FlowNode::new("node_b".to_string(), config_b, Arc::new(HopCountMetric), registry.clone()).unwrap();
     node_b.start().await;
@@ -65,7 +70,7 @@ async fn main() {
     tokio::time::sleep(Duration::from_millis(1500)).await;
 
     // 1. Create session
-    println!("Creating shared session 'sess_custom'...");
+    info!("Creating shared session 'sess_custom'...");
     node_a.create_session("sess_custom".to_string(), vec!["flow1".to_string()], HashMap::new()).await.unwrap();
     tokio::time::sleep(Duration::from_millis(500)).await;
 
@@ -75,17 +80,17 @@ async fn main() {
         merged.extend_from_slice(new_state);
         Ok(merged)
     });
-    println!("Registering custom merge function (appends bytes)...");
+    info!("Registering custom merge function (appends bytes)...");
     node_a.register_merge_fn("sess_custom".to_string(), merge_fn.clone());
     node_b.register_merge_fn("sess_custom".to_string(), merge_fn.clone());
 
     // 3. Sync initial state "A" from node_a
-    println!("Syncing state 'A' from node_a...");
+    info!("Syncing state 'A' from node_a...");
     node_a.sync_session_state("sess_custom".to_string(), b"A".to_vec()).await.unwrap();
     tokio::time::sleep(Duration::from_millis(500)).await;
 
     // 4. Sync additional state "B" from node_a
-    println!("Syncing state 'B' from node_a...");
+    info!("Syncing state 'B' from node_a...");
     node_a.sync_session_state("sess_custom".to_string(), b"B".to_vec()).await.unwrap();
     tokio::time::sleep(Duration::from_millis(500)).await;
 
@@ -93,11 +98,11 @@ async fn main() {
     let state_a = node_a.get_session_state("sess_custom").unwrap();
     let state_b = node_b.get_session_state("sess_custom").unwrap();
     
-    println!("node_a final state: '{}'", String::from_utf8_lossy(&state_a));
-    println!("node_b final state: '{}'", String::from_utf8_lossy(&state_b));
+    info!("node_a final state: '{}'", String::from_utf8_lossy(&state_a));
+    info!("node_b final state: '{}'", String::from_utf8_lossy(&state_b));
 
     assert_eq!(state_a, b"AB".to_vec());
     assert_eq!(state_b, b"AB".to_vec());
 
-    println!("SUCCESS: Custom state merge reconciliation verified successfully!");
+    info!("SUCCESS: Custom state merge reconciliation verified successfully!");
 }
