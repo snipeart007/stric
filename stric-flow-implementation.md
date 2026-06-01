@@ -128,6 +128,12 @@ impl MessageRegistry {
 }
 ```
 
+### 3.5. Session Conflict Merge Signature
+Allows users to register custom state conflict reconciliation logic for session-scoped data.
+```rust
+pub type StateMergeFn = Box<dyn Fn(&[u8], &[u8]) -> Result<Vec<u8>, String> + Send + Sync>;
+```
+
 ---
 
 ## 4. The FlowNode Instance & API
@@ -141,6 +147,7 @@ where C: NodeContext, M: Send + Sync + 'static
     core: QuicNode<C>,
     graph: Arc<RwLock<GlobalGraph>>,
     sessions: DashMap<String, Session>,
+    merge_fns: DashMap<String, StateMergeFn>, // Keyed by session payload schema names
     topic_handlers: DashMap<String, Arc<dyn FlowHandler<M>>>,
     metric: Arc<dyn RoutingMetric>,
     registry: Arc<MessageRegistry>,
@@ -154,9 +161,22 @@ These methods run on the local `FlowNode` to publish, subscribe, and manage traf
 impl<C, M> FlowNode<C, M> 
 where C: NodeContext, M: Send + Sync + 'static
 {
-    /// Starts the node, spawning the background connection listeners and control loop tasks.
+    /// Starts the node, binding to stric-core::QuicNode's incoming connections stream.
     pub async fn start(&self) -> Result<()> {
-        // Initialize QUIC stack and loop on incoming connection streams.
+        let mut connection_events = self.core.incoming_connections().await?;
+        
+        while let Some(conn) = connection_events.next().await {
+            let peer_id = conn.peer_node_id().to_string();
+            let graph = self.graph.clone();
+            let registry = self.registry.clone();
+            
+            // Spawn reader/writer tasks for each peer connection
+            tokio::spawn(async move {
+                if let Err(e) = Self::handle_connection(conn, graph, registry).await {
+                    log::error!("Connection error with peer {}: {}", peer_id, e);
+                }
+            });
+        }
         Ok(())
     }
 
@@ -249,6 +269,20 @@ Upon successful reconnection, delta gossips are bypassed in favor of a **Full Gr
   - Its current active sessions are pruned.
   - The remaining active nodes execute an automatic `SessionLeave` or garbage-collect outstanding stale state records.
   - A clean eviction notification is propagated across the surviving cluster members.
+
+### 6.4. Backpressure & Token-Bucket Rate Limiting
+Enforces traffic control policies dynamically when throttling is triggered:
+1. **PAUSE / RESUME:** If a `PAUSE` signal is received for a topic/flow, the writer task suspends transmission of matching `Envelope` frames by waiting on a tokio notification flag. Transmission resumes immediately upon receipt of `RESUME`.
+2. **THROTTLE:** When `THROTTLE` is received with a `max_rate` (messages/sec or bytes/sec):
+   - The outbound connection task initializes a Token-Bucket rate limiter (e.g. using `governor` or a native interval-based credit reload).
+   - Before writing each frame, the task must acquire tokens matching the packet size. If insufficient tokens are available, the task asynchronously yields (`tokio::time::sleep`) until enough tokens reload.
+
+### 6.5. Lightweight Kademlia DHT Node Discovery
+To discover nodes dynamically in a large mesh:
+1. **Bootstrap Seeds:** On startup, a node connects to a pre-configured seed list of static IP/port addresses.
+2. **Kademlia Routing Table:** Each node maintains a routing table split into $k$-buckets based on the XOR metric distance between Node IDs (SHA-256 hashes of the permanent `NodeID`).
+3. **Query Message Routing:** Nodes find peers by sending `FindNode` queries on the Control Flow. Intermediate nodes route these queries to peers closer to the target key.
+4. **Lightweight Execution:** Instead of importing a full external network stack, the discovery queries are packetized as specific control message variants over the `stric-core` control stream.
 
 ---
 
