@@ -197,6 +197,22 @@ impl GlobalGraph {
             })
             .collect()
     }
+
+    pub fn get_descriptors(&self) -> (Vec<NodeDescriptor>, Vec<LinkDescriptor>) {
+        let nodes = self.node_metadata.values().cloned().collect();
+        let mut links = Vec::new();
+        for edge in self.graph.edge_references() {
+            let u = &self.graph[edge.source()];
+            let v = &self.graph[edge.target()];
+            links.push(LinkDescriptor {
+                node_a: u.clone(),
+                node_b: v.clone(),
+                hop_cost: edge.weight().hop_cost,
+                rtt_micros: edge.weight().rtt_micros,
+            });
+        }
+        (nodes, links)
+    }
 }
 
 pub fn match_topic(pattern: &str, topic: &str) -> bool {

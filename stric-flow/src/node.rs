@@ -3,6 +3,7 @@ use std::collections::{HashMap, HashSet};
 use std::net::SocketAddr;
 use std::pin::Pin;
 use std::sync::Arc;
+use std::time::Duration;
 use async_trait::async_trait;
 use dashmap::DashMap;
 use prost::Message;
@@ -15,7 +16,8 @@ use crate::error::FlowError;
 use crate::frame::{read_frame, write_frame};
 use crate::proto::{
     self, ControlMessage, Envelope, FlowHandshake, HandshakeAck,
-    NodeDescriptor, NodeRole, Pong, SubscriptionEntry, SubscriptionUpdate,
+    NodeDescriptor, NodeRole, Ping, Pong, SubscriptionEntry, SubscriptionUpdate,
+    TopologyUpdate, LinkDescriptor,
 };
 use crate::routing::{match_topic, GlobalGraph};
 use crate::registry::MessageRegistry;
@@ -63,6 +65,7 @@ pub struct FlowNode {
     peer_writers: Arc<DashMap<String, mpsc::Sender<ControlMessage>>>,
     local_subscriptions: Arc<RwLock<HashSet<String>>>,
     control_tx: mpsc::Sender<ControlEvent>,
+    last_epochs: Arc<DashMap<String, u64>>,
 }
 
 enum ControlEvent {
@@ -134,6 +137,7 @@ impl FlowNode {
             peer_writers: Arc::new(DashMap::new()),
             local_subscriptions: Arc::new(RwLock::new(HashSet::new())),
             control_tx,
+            last_epochs: Arc::new(DashMap::new()),
         });
 
         // Spawn connection manager loop to process incoming connections
@@ -254,8 +258,58 @@ impl FlowNode {
         let (peer_control_tx, mut peer_control_rx) = mpsc::channel::<ControlMessage>(100);
         let _ = self.control_tx.send(ControlEvent::PeerConnected {
             node_id: peer_id.clone(),
-            tx: peer_control_tx,
+            tx: peer_control_tx.clone(),
         }).await;
+
+        // Task 2.2: Initial Topology Snapshot & Subscriptions Sync
+        let (nodes_added, links_added) = {
+            let graph = self.graph.read().await;
+            graph.get_descriptors()
+        };
+        let topo_sync = ControlMessage {
+            message: Some(proto::control_message::Message::TopologyUpdate(TopologyUpdate {
+                origin_node_id: self.node_id.clone(),
+                epoch: 1,
+                nodes_added,
+                nodes_removed: Vec::new(),
+                links_added,
+                links_removed: Vec::new(),
+            })),
+        };
+        let _ = peer_control_tx.send(topo_sync).await;
+
+        let subs = self.local_subscriptions.read().await;
+        let sub_sync = ControlMessage {
+            message: Some(proto::control_message::Message::SubscriptionUpdate(SubscriptionUpdate {
+                node_id: self.node_id.clone(),
+                entries: subs.iter().map(|pattern| SubscriptionEntry {
+                    flow_id: String::new(),
+                    pattern: pattern.clone(),
+                    action: proto::SubscriptionAction::Subscribe as i32,
+                }).collect(),
+            })),
+        };
+        let _ = peer_control_tx.send(sub_sync).await;
+
+        // Task 2.1: Spawn control Ping/Pong loop
+        let ping_tx = peer_control_tx.clone();
+        tokio::spawn(async move {
+            let mut interval = tokio::time::interval(Duration::from_secs(5));
+            loop {
+                interval.tick().await;
+                let ping = ControlMessage {
+                    message: Some(proto::control_message::Message::Ping(Ping {
+                        sent_at: std::time::SystemTime::now()
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .unwrap_or_default()
+                            .as_millis() as u64,
+                    })),
+                };
+                if ping_tx.send(ping).await.is_err() {
+                    break;
+                }
+            }
+        });
 
         // Spawn writer loop
         tokio::spawn(async move {
@@ -455,26 +509,52 @@ impl FlowNode {
                     if let Some(payload) = msg.message {
                         match payload {
                             proto::control_message::Message::TopologyUpdate(update) => {
-                                let mut graph = self.graph.write().await;
-                                graph.apply_update(update);
-                            }
-                            proto::control_message::Message::SubscriptionUpdate(update) => {
-                                let mut graph = self.graph.write().await;
-                                let mut capabilities = HashMap::new();
-                                for entry in update.entries {
-                                    if entry.action == proto::SubscriptionAction::Subscribe as i32 {
-                                        capabilities.insert(format!("sub:{}", entry.pattern), String::new());
+                                let current_epoch = self.last_epochs.get(&update.origin_node_id).map(|r| *r).unwrap_or(0);
+                                if update.epoch > current_epoch {
+                                    self.last_epochs.insert(update.origin_node_id.clone(), update.epoch);
+                                    {
+                                        let mut graph = self.graph.write().await;
+                                        graph.apply_update(update.clone());
+                                    }
+                                    let gossip = ControlMessage {
+                                        message: Some(proto::control_message::Message::TopologyUpdate(update.clone())),
+                                    };
+                                    for entry in self.peer_writers.iter() {
+                                        let peer = entry.key();
+                                        if peer != &from && peer != &update.origin_node_id {
+                                            let _ = entry.value().send(gossip.clone()).await;
+                                        }
                                     }
                                 }
-                                graph.add_node(NodeDescriptor {
-                                    node_id: update.node_id.clone(),
-                                    role: NodeRole::Flow as i32,
-                                    capabilities,
-                                    last_seen: std::time::SystemTime::now()
-                                        .duration_since(std::time::UNIX_EPOCH)
-                                        .unwrap_or_default()
-                                        .as_millis() as u64,
-                                });
+                            }
+                            proto::control_message::Message::SubscriptionUpdate(update) => {
+                                {
+                                    let mut graph = self.graph.write().await;
+                                    let mut capabilities = HashMap::new();
+                                    for entry in &update.entries {
+                                        if entry.action == proto::SubscriptionAction::Subscribe as i32 {
+                                            capabilities.insert(format!("sub:{}", entry.pattern), String::new());
+                                        }
+                                    }
+                                    graph.add_node(NodeDescriptor {
+                                        node_id: update.node_id.clone(),
+                                        role: NodeRole::Flow as i32,
+                                        capabilities,
+                                        last_seen: std::time::SystemTime::now()
+                                            .duration_since(std::time::UNIX_EPOCH)
+                                            .unwrap_or_default()
+                                            .as_millis() as u64,
+                                    });
+                                }
+                                let gossip = ControlMessage {
+                                    message: Some(proto::control_message::Message::SubscriptionUpdate(update.clone())),
+                                };
+                                for entry in self.peer_writers.iter() {
+                                    let peer = entry.key();
+                                    if peer != &from && peer != &update.node_id {
+                                        let _ = entry.value().send(gossip.clone()).await;
+                                    }
+                                }
                             }
                             proto::control_message::Message::Ping(ping) => {
                                 if let Some(tx) = self.peer_writers.get(&from) {
@@ -489,6 +569,20 @@ impl FlowNode {
                                     };
                                     let _ = tx.send(pong).await;
                                 }
+                            }
+                            proto::control_message::Message::Pong(pong) => {
+                                let now = std::time::SystemTime::now()
+                                    .duration_since(std::time::UNIX_EPOCH)
+                                    .unwrap_or_default()
+                                    .as_millis() as u64;
+                                let rtt = now.saturating_sub(pong.ping_sent_at);
+                                let mut graph = self.graph.write().await;
+                                graph.add_link(LinkDescriptor {
+                                    node_a: self.node_id.clone(),
+                                    node_b: from.clone(),
+                                    hop_cost: 1,
+                                    rtt_micros: rtt * 1000,
+                                });
                             }
                             _ => {}
                         }
