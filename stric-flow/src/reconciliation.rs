@@ -5,8 +5,13 @@ use rand::Rng;
 use dashmap::DashMap;
 use tracing::info;
 
+/// A closure type used to resolve and merge conflicting state updates for a session.
+///
+/// It accepts the current local state data and the incoming remote state data,
+/// returning the successfully merged state data, or a string describing the merge error.
 pub type StateMergeFn = Arc<dyn Fn(&[u8], &[u8]) -> Result<Vec<u8>, String> + Send + Sync>;
 
+/// Utility to calculate exponential backoff intervals with random jitter.
 pub struct ExponentialBackoff {
     base: Duration,
     max: Duration,
@@ -14,6 +19,12 @@ pub struct ExponentialBackoff {
 }
 
 impl ExponentialBackoff {
+    /// Creates a new `ExponentialBackoff` configuration.
+    ///
+    /// # Arguments
+    ///
+    /// * `base` - The initial backoff duration.
+    /// * `max` - The maximum cap on the backoff duration.
     pub fn new(base: Duration, max: Duration) -> Self {
         Self {
             base,
@@ -22,6 +33,11 @@ impl ExponentialBackoff {
         }
     }
 
+    /// Computes the next backoff duration.
+    ///
+    /// Each call increments the internal attempts counter and calculates the duration as:
+    /// `base * 2^(attempts-1)` up to a limit of `max`. A random jitter of ±10% is applied
+    /// to the final calculated duration.
     pub fn next_backoff(&mut self) -> Duration {
         self.attempts += 1;
         
@@ -42,24 +58,45 @@ impl ExponentialBackoff {
         Duration::from_secs_f64(final_secs)
     }
 
+    /// Resets the internal attempt count to zero, restarting the backoff sequence.
     pub fn reset(&mut self) {
         self.attempts = 0;
     }
 }
 
+/// Represents a synchronized logical application session inside the flow mesh.
 pub struct Session {
+    /// The unique identifier of the session.
     pub session_id: String,
+    /// The identifier of the node that created this session.
     pub creator_node: String,
+    /// The list of logical flows associated with this session.
     pub flow_ids: Vec<String>,
+    /// The creation timestamp in milliseconds since Unix epoch.
     pub created_at: u64,
+    /// Key-value metadata associated with the session.
     pub metadata: HashMap<String, String>,
+    /// The synchronized application state payload.
     pub state_data: Vec<u8>,
+    /// The version number of the current session state.
     pub state_version: u64,
+    /// The timestamp in milliseconds of the last state update.
     pub state_timestamp: u64,
 }
 
-/// Dynamic garbage collection of inactive sessions.
-/// Returns a list of evicted session IDs that should propagate to the rest of the mesh.
+/// Performs dynamic garbage collection of inactive sessions.
+///
+/// Evicts sessions where the creator node has not been heard from for longer than `session_ttl`.
+///
+/// # Arguments
+///
+/// * `sessions` - The active sessions map.
+/// * `node_last_seen` - Map of node identifiers to their last seen times.
+/// * `session_ttl` - The maximum allowed duration of inactivity for a creator node before eviction.
+///
+/// # Returns
+///
+/// A vector of evicted session IDs that should be propagated to delete the sessions across the mesh.
 pub fn gc_inactive_sessions(
     sessions: &DashMap<String, Session>,
     node_last_seen: &DashMap<String, Instant>,

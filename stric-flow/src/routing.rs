@@ -5,15 +5,24 @@ use petgraph::stable_graph::NodeIndex;
 use petgraph::visit::EdgeRef;
 use crate::proto::{TopologyUpdate, NodeDescriptor, LinkDescriptor, NodeRole, ForwardingTargets};
 
+/// Represents routing weights associated with a communication link between two nodes.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct LinkWeight {
+    /// The logical cost of traversing the link (representing hops or static configurations).
     pub hop_cost: u32,
+    /// The measured round-trip time of the link in microseconds.
     pub rtt_micros: u64,
 }
 
+/// Represents the global view of the mesh network topology as a directed graph.
+///
+/// It is used to run shortest-path calculations to build forwarding trees for pub/sub messaging.
 pub struct GlobalGraph {
+    /// The underlying directed graph representing the nodes and their link weights.
     pub graph: DiGraph<String, LinkWeight>,
+    /// Map from node string identifiers to their respective node indices in the graph.
     pub node_indices: HashMap<String, NodeIndex>,
+    /// Map storing metadata (role, capabilities, etc.) for each node.
     pub node_metadata: HashMap<String, NodeDescriptor>,
 }
 
@@ -36,6 +45,7 @@ impl PartialOrd for DijkstraState {
 }
 
 impl GlobalGraph {
+    /// Creates a new, empty `GlobalGraph`.
     pub fn new() -> Self {
         Self {
             graph: DiGraph::new(),
@@ -44,6 +54,11 @@ impl GlobalGraph {
         }
     }
 
+    /// Adds a new node to the graph or updates the metadata for an existing node.
+    ///
+    /// # Arguments
+    ///
+    /// * `descriptor` - The descriptor of the node to add or update.
     pub fn add_node(&mut self, descriptor: NodeDescriptor) {
         let node_id = descriptor.node_id.clone();
         if !self.node_indices.contains_key(&node_id) {
@@ -53,6 +68,13 @@ impl GlobalGraph {
         self.node_metadata.insert(node_id, descriptor);
     }
 
+    /// Removes a node and all of its associated links from the graph.
+    ///
+    /// Re-maps all internal node indices to remain consistent with petgraph storage.
+    ///
+    /// # Arguments
+    ///
+    /// * `node_id` - The identifier of the node to remove.
     pub fn remove_node(&mut self, node_id: &str) {
         if let Some(idx) = self.node_indices.remove(node_id) {
             self.graph.remove_node(idx);
@@ -66,6 +88,13 @@ impl GlobalGraph {
         }
     }
 
+    /// Adds or updates a symmetric link between two nodes in the graph.
+    ///
+    /// This updates directed edges in both directions between `node_a` and `node_b`.
+    ///
+    /// # Arguments
+    ///
+    /// * `link` - The descriptor of the link to add or update.
     pub fn add_link(&mut self, link: LinkDescriptor) {
         let idx_a = *self.node_indices.entry(link.node_a.clone()).or_insert_with(|| {
             self.graph.add_node(link.node_a.clone())
@@ -84,6 +113,12 @@ impl GlobalGraph {
         self.graph.update_edge(idx_b, idx_a, weight);
     }
 
+    /// Removes the link between two nodes in the graph.
+    ///
+    /// # Arguments
+    ///
+    /// * `node_a` - The identifier of the first node.
+    /// * `node_b` - The identifier of the second node.
     pub fn remove_link(&mut self, node_a: &str, node_b: &str) {
         if let (Some(&idx_a), Some(&idx_b)) = (self.node_indices.get(node_a), self.node_indices.get(node_b)) {
             if let Some(edge) = self.graph.find_edge(idx_a, idx_b) {
@@ -95,6 +130,11 @@ impl GlobalGraph {
         }
     }
 
+    /// Applies a batch of updates to the graph, adding/removing nodes and links.
+    ///
+    /// # Arguments
+    ///
+    /// * `update` - The topology update received from the network.
     pub fn apply_update(&mut self, update: TopologyUpdate) {
         for node in update.nodes_added {
             self.add_node(node);
@@ -110,6 +150,14 @@ impl GlobalGraph {
         }
     }
 
+    /// Computes the shortest-path forwarding table from a source node to a set of subscribers.
+    ///
+    /// Returns a map associating each relay node along the forwarding tree with its downstream targets.
+    ///
+    /// # Arguments
+    ///
+    /// * `source` - The ID of the node initiating the publication.
+    /// * `subscribers` - The set of node IDs that are subscribed to the topic.
     pub fn compute_forwarding_table(
         &self,
         source: &str,
@@ -198,6 +246,9 @@ impl GlobalGraph {
             .collect()
     }
 
+    /// Serializes the graph's nodes and edges into lists of descriptors.
+    ///
+    /// Used for initial state synchronization when connecting to new peers.
     pub fn get_descriptors(&self) -> (Vec<NodeDescriptor>, Vec<LinkDescriptor>) {
         let nodes = self.node_metadata.values().cloned().collect();
         let mut links = Vec::new();
@@ -215,6 +266,16 @@ impl GlobalGraph {
     }
 }
 
+/// Matches a hierarchical topic ID against a subscription topic pattern.
+///
+/// Supports MQTT-style wildcards:
+/// - `*` matches a single hierarchy level (e.g., `sensor.*` matches `sensor.temp` but not `sensor.temp.celsius`).
+/// - `#` matches all remaining levels at the end (e.g., `sensor.#` matches `sensor.temp` and `sensor.temp.celsius`).
+///
+/// # Arguments
+///
+/// * `pattern` - The subscription topic pattern containing optional wildcards.
+/// * `topic` - The concrete topic ID to match.
 pub fn match_topic(pattern: &str, topic: &str) -> bool {
     let p_parts: Vec<&str> = pattern.split('.').collect();
     let t_parts: Vec<&str> = topic.split('.').collect();

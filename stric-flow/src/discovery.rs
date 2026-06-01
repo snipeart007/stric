@@ -4,22 +4,32 @@ use tracing::debug;
 
 const K: usize = 20;
 
+/// Information about a node discovered in the network, including its ID and network address.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct NodeInfo {
+    /// The unique identifier of the discovered node.
     pub node_id: String,
+    /// The physical socket address of the node.
     pub addr: SocketAddr,
 }
 
+/// A bucket that holds discovered nodes, used for XOR-distance-based routing.
 pub struct KBucket {
+    /// The list of discovered nodes stored in this bucket.
     pub nodes: Vec<NodeInfo>,
 }
 
 impl KBucket {
+    /// Creates a new, empty `KBucket`.
     pub fn new() -> Self {
         Self { nodes: Vec::new() }
     }
 }
 
+/// A routing table that manages node discovery information using a Kademlia-like structure.
+///
+/// It organizes peer nodes into multiple buckets based on the XOR distance from the local
+/// node's ID hash.
 pub struct RoutingTable {
     local_node_id: String,
     local_hash: [u8; 32],
@@ -27,6 +37,13 @@ pub struct RoutingTable {
 }
 
 impl RoutingTable {
+    /// Creates a new `RoutingTable` for the specified local node identifier.
+    ///
+    /// It initializes the routing table with 256 empty `KBucket`s.
+    ///
+    /// # Arguments
+    ///
+    /// * `local_node_id` - The unique identifier of the local node.
     pub fn new(local_node_id: String) -> Self {
         let local_hash = sha256_hash(&local_node_id);
         let mut buckets = Vec::with_capacity(256);
@@ -40,6 +57,16 @@ impl RoutingTable {
         }
     }
 
+    /// Updates the routing table with a node's contact details.
+    ///
+    /// If the node is already present in its corresponding bucket, it is moved to the
+    /// end of the list (indicating it was recently seen). If it is not present and the
+    /// bucket is not full, it is added. If the bucket is full, the update is ignored.
+    ///
+    /// # Arguments
+    ///
+    /// * `node_id` - The unique identifier of the node being updated.
+    /// * `addr` - The socket address of the node.
     pub fn update(&mut self, node_id: String, addr: SocketAddr) {
         if node_id == self.local_node_id {
             return;
@@ -70,6 +97,11 @@ impl RoutingTable {
         }
     }
 
+    /// Removes a node from the routing table.
+    ///
+    /// # Arguments
+    ///
+    /// * `node_id` - The identifier of the node to remove.
     pub fn remove(&mut self, node_id: &str) {
         let hash = sha256_hash(node_id);
         let dist = xor_distance(&self.local_hash, &hash);
@@ -80,6 +112,15 @@ impl RoutingTable {
         bucket.nodes.retain(|n| n.node_id != node_id);
     }
 
+    /// Finds the closest known nodes to a given target identifier based on XOR distance.
+    ///
+    /// Returns a list of `NodeInfo` representing the closest nodes, sorted in ascending
+    /// order of their XOR distance to `target_id`.
+    ///
+    /// # Arguments
+    ///
+    /// * `target_id` - The identifier of the target node or key we want to find closest nodes to.
+    /// * `count` - The maximum number of closest nodes to return.
     pub fn find_closest_nodes(&self, target_id: &str, count: usize) -> Vec<NodeInfo> {
         let target_hash = sha256_hash(target_id);
         let mut candidates = Vec::new();

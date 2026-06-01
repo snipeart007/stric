@@ -6,7 +6,7 @@ Stric is a modern networking ecosystem for Rust, built on top of QUIC. It provid
 
 - **`stric-core`**: A symmetric P2P wrapper over `quinn`. Handles connection lifecycles, heartbeats, and raw stream management with role-agnostic terminology (Initiator/Responder).
 - **`stric-tower`**: An `axum`-like request-response framework built on `stric-core`, supporting Tower middleware and Axum extractors.
-- **`stric-flow`** (Upcoming): A generic, mesh-routed overlay network for stateful, coordinated data flows with exact-once delivery and Dijkstra-based pathfinding.
+- **`stric-flow`**: A modular, peer-to-peer mesh routing and topic-based messaging engine with Dijkstra shortest-path calculations, stateless packet forwarding, dynamic backpressure, and conflict-free session state reconciliation.
 
 ## Getting Started
 
@@ -14,6 +14,7 @@ To explore the ecosystem, check out the individual crates:
 
 - [stric-core](./stric-core/README.md): Low-level symmetric QUIC transport.
 - [stric-tower](./stric-tower/README.md): High-level request/response framework.
+- [stric-flow](./stric-flow/README.md): Peer-to-peer mesh routing and state sync engine.
 
 To see Stric in action, run the examples:
 
@@ -43,7 +44,11 @@ Stric aims to solve the mismatch between local async task models and network com
 
 ## Status
 
-`stric-core` has been recently refactored to support symmetric node architectures, enabling true peer-to-peer communication. `stric-tower` is being re-wired to leverage this new core.
+`stric-core`, `stric-tower`, and `stric-flow` are all fully implemented, integrated, and verified to build and test successfully. 
+
+- **`stric-core`** provides the symmetric peer-to-peer QUIC node architecture.
+- **`stric-tower`** layers request-response routing, extractors, and Tower middleware support on top of the symmetric transport.
+- **`stric-flow`** implements dynamic mesh topology discovery, stateless packet forwarding, flow backpressure, and conflict-free session state reconciliation.
 
 ---
 

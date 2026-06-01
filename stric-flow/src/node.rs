@@ -44,6 +44,7 @@ pub trait RoutingMetric: Send + Sync + 'static {
     fn estimate_cost(&self, node_a: &str, node_b: &str, base_hop_cost: u32, rtt_micros: u64) -> u32;
 }
 
+/// A routing metric that estimates costs solely based on the number of network hops.
 pub struct HopCountMetric;
 
 impl RoutingMetric for HopCountMetric {
@@ -96,7 +97,22 @@ where
 }
 
 impl FlowNode {
-    /// Creates a new `FlowNode` instance and begins listening/handshaking logic.
+    /// Creates a new `FlowNode` instance and starts its background coordination tasks.
+    ///
+    /// This initializes the underlying QUIC node, configures default protocols,
+    /// and sets up control loop handlers. It returns a tuple containing the constructed `FlowNode`
+    /// wrapped in an `Arc`, and a receiver for asynchronous connection/transport errors.
+    ///
+    /// # Arguments
+    ///
+    /// * `node_id` - The unique string identifier for this node in the network.
+    /// * `config` - The configuration options for the underlying QUIC transport.
+    /// * `metric` - The pluggable routing metric used to estimate cost in the topology graph.
+    /// * `registry` - The registry containing message parser functions for application message types.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `FlowError` if initializing the network socket or setup of credentials fails.
     pub fn new(
         node_id: String,
         mut config: NodeConfig,
@@ -202,7 +218,9 @@ impl FlowNode {
         Ok((node, error_rx))
     }
 
-    /// Starts the node's underlying listener.
+    /// Starts the node's underlying network listener to accept incoming connections.
+    ///
+    /// This launches an asynchronous background listening task on the configured socket address.
     pub async fn start(&self) {
         let core = self.core.clone();
         tokio::spawn(async move {
@@ -211,6 +229,18 @@ impl FlowNode {
     }
 
     /// Connects to a remote peer node.
+    ///
+    /// This initiates a network connection to the specified socket address, performs TLS
+    /// validation using the provided SNI server name, and negotiates the control stream.
+    ///
+    /// # Arguments
+    ///
+    /// * `addr` - The remote physical socket address to connect to.
+    /// * `server_name` - The expected TLS server name (SNI) of the remote peer.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `FlowError` if connection establishment, TLS handshake, or control protocol negotiation fails.
     pub async fn connect(&self, addr: SocketAddr, server_name: &str) -> Result<u64, FlowError> {
         self.pending_connects.insert(addr, server_name.to_string());
         match self.core.connect(addr, server_name).await {
@@ -480,7 +510,15 @@ impl FlowNode {
         Ok(())
     }
 
-    /// Registers a handler for a topic.
+    /// Subscribes to a topic pattern and registers a handler to process matching incoming messages.
+    ///
+    /// The subscription is registered locally and also broadcasted as a control update
+    /// to all connected peers, allowing them to route published messages correctly to this node.
+    ///
+    /// # Arguments
+    ///
+    /// * `topic_pattern` - A topic pattern string (supporting wildcards like `*` or `#`).
+    /// * `handler` - An implementation of the `FlowHandler` trait to handle the messages.
     pub fn subscribe(&self, topic_pattern: String, handler: Arc<dyn FlowHandler>) {
         info!("Registering handler for subscription pattern: {}", topic_pattern);
         self.topic_handlers.insert(topic_pattern.clone(), handler);
@@ -517,7 +555,23 @@ impl FlowNode {
         });
     }
 
-    /// Publishes a message to a topic.
+    /// Publishes an application message to a specific topic within a logical flow.
+    ///
+    /// This resolves subscribers across the topology, computes a shortest-path forwarding
+    /// tree, wraps the payload in a data envelope, and distributes it to the next-hop
+    /// peers. If the local node matches the topic, the message is delivered locally.
+    ///
+    /// # Arguments
+    ///
+    /// * `flow_id` - The logical flow identifier.
+    /// * `topic_id` - The hierarchical destination topic identifier.
+    /// * `message_type` - The registered string identifier of the message type.
+    /// * `codec` - The serialization format used to encode the payload.
+    /// * `payload` - The serialized raw bytes of the message.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `FlowError` if message propagation or network stream allocation fails.
     pub async fn publish(
         &self,
         flow_id: String,
@@ -989,10 +1043,34 @@ impl FlowNode {
         }
     }
 
+    /// Registers a custom state merge function for a specific session.
+    ///
+    /// When conflicting state updates are received from peers, this function will be invoked
+    /// to merge the states together, resolving conflicts dynamically instead of relying on
+    /// the default Last-Write-Wins (LWW) mechanism.
+    ///
+    /// # Arguments
+    ///
+    /// * `session_id` - The identifier of the session.
+    /// * `merge_fn` - The custom state merging callback.
     pub fn register_merge_fn(&self, session_id: String, merge_fn: crate::reconciliation::StateMergeFn) {
         self.merge_fns.insert(session_id, merge_fn);
     }
 
+    /// Creates a new logical session and propagates the creation event to the mesh.
+    ///
+    /// A session coordinates logical flow subscriptions and synchronizes versioned state
+    /// data across all joining nodes in the network.
+    ///
+    /// # Arguments
+    ///
+    /// * `session_id` - A unique string identifier for the session.
+    /// * `flow_ids` - The list of logical flows associated with the session.
+    /// * `metadata` - Initial metadata key-value pairs associated with the session.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `FlowError` if communication with the local control loop fails.
     pub async fn create_session(
         &self,
         session_id: String,
@@ -1032,6 +1110,15 @@ impl FlowNode {
         Ok(())
     }
 
+    /// Joins an existing logical session, broadcasting the join event to all peers.
+    ///
+    /// # Arguments
+    ///
+    /// * `session_id` - The identifier of the session to join.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `FlowError` if communication with the local control loop fails.
     pub async fn join_session(&self, session_id: String) -> Result<(), FlowError> {
         let msg = ControlMessage {
             message: Some(proto::control_message::Message::SessionControl(proto::SessionControl {
@@ -1045,6 +1132,15 @@ impl FlowNode {
         Ok(())
     }
 
+    /// Leaves a logical session, broadcasting the leave event to all peers.
+    ///
+    /// # Arguments
+    ///
+    /// * `session_id` - The identifier of the session to leave.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `FlowError` if communication with the local control loop fails.
     pub async fn leave_session(&self, session_id: String) -> Result<(), FlowError> {
         let msg = ControlMessage {
             message: Some(proto::control_message::Message::SessionControl(proto::SessionControl {
@@ -1058,6 +1154,16 @@ impl FlowNode {
         Ok(())
     }
 
+    /// Closes a logical session, evicting it locally and broadcasting the close event to all peers.
+    ///
+    /// # Arguments
+    ///
+    /// * `session_id` - The identifier of the session to close.
+    /// * `reason` - The rationale for closing the session.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `FlowError::Session` if the session does not exist or communication fails.
     pub async fn close_session(&self, session_id: String, reason: String) -> Result<(), FlowError> {
         if self.sessions.remove(&session_id).is_some() {
             let msg = ControlMessage {
@@ -1076,6 +1182,20 @@ impl FlowNode {
         }
     }
 
+    /// Synchronizes updated state for a session by merging it locally and broadcasting to peers.
+    ///
+    /// If a custom merge function is registered for the session, it is executed to combine
+    /// the new state with the current local state. Otherwise, the local state is overwritten
+    /// and version information is updated.
+    ///
+    /// # Arguments
+    ///
+    /// * `session_id` - The identifier of the session.
+    /// * `data` - The updated state payload.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `FlowError` if the session is not found or the state merge function fails.
     pub async fn sync_session_state(&self, session_id: String, data: Vec<u8>) -> Result<(), FlowError> {
         if let Some(mut session) = self.sessions.get_mut(&session_id) {
             session.state_version += 1;
@@ -1118,16 +1238,24 @@ impl FlowNode {
         }
     }
 
+    /// Retrieves the current synchronized state data for a session, if it exists locally.
+    ///
+    /// # Arguments
+    ///
+    /// * `session_id` - The identifier of the session.
     pub fn get_session_state(&self, session_id: &str) -> Option<Vec<u8>> {
         self.sessions.get(session_id).map(|s| s.state_data.clone())
     }
 
+    /// Returns a list of active peer node identifiers currently connected to this node.
     pub fn peer_connections(&self) -> Vec<String> {
         self.core.connection_manager().store.iter()
             .filter_map(|entry| entry.value().metadata.peer_node_id.clone())
             .collect()
     }
 
+    /// Prints detailed diagnostic information about the node's routing state, active peer connections,
+    /// and graph metadata to the log at the `debug` level.
     pub async fn print_debug_info(&self) {
         use petgraph::visit::EdgeRef;
         let graph = self.graph.read().await;
@@ -1147,14 +1275,31 @@ impl FlowNode {
         debug!("- Subscription capabilities in graph: {:?}", subs);
     }
 
+    /// Returns a list of logical session identifiers currently known by this node.
     pub fn sessions(&self) -> Vec<String> {
         self.sessions.iter().map(|entry| entry.key().clone()).collect()
     }
 
+    /// Returns the local physical network socket address this node is listening on.
+    ///
+    /// # Errors
+    ///
+    /// Returns a `std::io::Error` if retrieving the local bound address fails.
     pub fn local_addr(&self) -> Result<SocketAddr, std::io::Error> {
         self.core.local_addr()
     }
 
+    /// Broadcasts a backpressure control signal for a specific flow to all connected peers.
+    ///
+    /// # Arguments
+    ///
+    /// * `flow_id` - The identifier of the logical flow to apply backpressure on.
+    /// * `action` - The backpressure action to perform (e.g. PAUSE, RESUME, THROTTLE).
+    /// * `max_rate` - The maximum rate limit in bytes per second (only used for THROTTLE action).
+    ///
+    /// # Errors
+    ///
+    /// Returns a `FlowError` if broadcasting the backpressure signal fails.
     pub async fn send_backpressure(
         &self,
         flow_id: String,

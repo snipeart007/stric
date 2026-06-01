@@ -16,6 +16,10 @@ pub struct TokenBucketRateLimiter {
 }
 
 impl TokenBucketRateLimiter {
+    /// Creates a new `TokenBucketRateLimiter` with the given `max_rate` limit in bytes per second.
+    ///
+    /// If `max_rate` is `0`, rate limiting is disabled, and byte consumption can proceed
+    /// without delay (the inner rate limit is set to maximum capacity).
     pub fn new(max_rate: u32) -> Self {
         let rate = if max_rate == 0 { u32::MAX } else { max_rate };
         let quota = Quota::per_second(NonZeroU32::new(rate).unwrap_or(NonZeroU32::new(1).unwrap()));
@@ -29,6 +33,10 @@ impl TokenBucketRateLimiter {
         }
     }
 
+    /// Updates the maximum rate limit in bytes per second.
+    ///
+    /// If `max_rate` is `0`, rate limiting is disabled. Any pending or new calls to
+    /// `wait_for_bytes` will not experience rate-limiting delays.
     pub async fn set_rate(&self, max_rate: u32) {
         self.max_rate.store(max_rate, Ordering::SeqCst);
         let rate = if max_rate == 0 { u32::MAX } else { max_rate };
@@ -37,15 +45,26 @@ impl TokenBucketRateLimiter {
         *limiter = RateLimiter::direct(quota);
     }
 
+    /// Returns the current configured maximum rate limit in bytes per second.
+    ///
+    /// A return value of `0` indicates that rate limiting is disabled.
     pub async fn get_rate(&self) -> u32 {
         self.max_rate.load(Ordering::SeqCst)
     }
 
+    /// Pauses the rate limiter.
+    ///
+    /// While paused, any calls to `wait_for_bytes` will block asynchronously until
+    /// `resume` is called.
     pub async fn pause(&self) {
         let mut paused = self.paused.write().await;
         *paused = true;
     }
 
+    /// Resumes the rate limiter, allowing any pending or new requests to proceed.
+    ///
+    /// Resuming notifies all waiting tasks that were blocked due to the pause state,
+    /// allowing them to continue and acquire tokens.
     pub async fn resume(&self) {
         {
             let mut paused = self.paused.write().await;
@@ -54,10 +73,20 @@ impl TokenBucketRateLimiter {
         self.notify.notify_waiters();
     }
 
+    /// Checks if the rate limiter is currently paused.
     pub async fn is_paused(&self) -> bool {
         *self.paused.read().await
     }
 
+    /// Asynchronously blocks until the specified number of bytes can be processed.
+    ///
+    /// If the rate limiter is paused, this method blocks until it is resumed.
+    /// If the configured maximum rate is `0` (disabled) or `bytes` is `0`, the method
+    /// returns immediately.
+    ///
+    /// # Arguments
+    ///
+    /// * `bytes` - The number of bytes/tokens to acquire from the token bucket.
     pub async fn wait_for_bytes(&self, bytes: u32) {
         loop {
             if !self.is_paused().await {
