@@ -1,0 +1,24 @@
+[package]
+name = "stric-flow"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+stric-core = { path = "../stric-core" }
+tokio = { version = "1.52.1", features = ["full"] }
+prost = "0.14.3"
+thiserror = "2.0.18"
+anyhow = "1.0.102"
+dashmap = "6.1.0"
+futures = "0.3.31"
+tracing = "0.1.44"
+async-trait = "0.1.88"
+bytes = "1.11.1"
+serde = { version = "1.0", features = ["derive"] }
+sha2 = "0.10.8"
+rand = "0.8.5"
+petgraph = "0.6.5"
+governor = "0.6.3"
+
+[build-dependencies]
+prost-build = "0.14.3"

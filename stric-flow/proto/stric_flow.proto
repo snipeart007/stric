@@ -1,0 +1,222 @@
+syntax = "proto3";
+
+package stric.flow;
+
+// ─── Enums & Shared Types ───
+
+enum Codec {
+  CODEC_PROTOBUF = 0;    // Default. Payload is a serialized Protobuf message.
+  CODEC_JSON     = 1;    // Payload is UTF-8 JSON.
+  CODEC_BINCODE  = 2;    // Payload is Rust bincode.
+  CODEC_RAW      = 3;    // Payload is opaque application bytes (no schema).
+}
+
+enum DeliveryMode {
+  DELIVERY_GUARANTEED      = 0;  // Ordered, reliable QUIC stream. Default.
+  DELIVERY_BEST_EFFORT     = 1;  // QUIC datagram or aggressive stream reset.
+  DELIVERY_DELAY_TOLERANT  = 2;  // Local buffer; retry when connection returns.
+}
+
+enum NodeRole {
+  NODE_ROLE_FLOW       = 0;  // Standard participant (produce, consume, forward).
+  NODE_ROLE_AGGREGATOR = 1;  // Storage-biased; routing avoids using as transit.
+}
+
+enum IdentityMode {
+  IDENTITY_TLS_DERIVED          = 0;  // NodeID comes from TLS cert. No extra messages.
+  IDENTITY_CHALLENGE_RESPONSE   = 1;  // Explicit challenge-response on control stream.
+}
+
+enum SubscriptionAction {
+  SUBSCRIBE   = 0;
+  UNSUBSCRIBE = 1;
+}
+
+enum BackpressureAction {
+  PAUSE    = 0;  // Stop sending data for this flow/topic.
+  RESUME   = 1;  // Resume sending data.
+  THROTTLE = 2;  // Reduce send rate. Paired with `max_rate` if applicable.
+}
+
+enum SyncMode {
+  SNAPSHOT = 0;  // Full state replacement.
+  DIFF     = 1;  // Incremental delta to apply.
+}
+
+// ─── Data Envelope ───
+
+message Envelope {
+  RoutingHeader header       = 1;
+  string        message_type = 2;  // e.g. "myapp.SensorReading"
+  Codec         codec        = 3;  // How `payload` is encoded.
+  bytes         payload      = 4;  // The serialized user message.
+}
+
+message RoutingHeader {
+  string                         source_node_id   = 1;   // Permanent ID of the originating node.
+  string                         flow_id          = 2;   // Logical Flow this message belongs to.
+  string                         topic_id         = 3;   // Topic within the Flow.
+  string                         session_id       = 4;   // Optional. Empty if not session-scoped.
+  string                         nonce            = 5;   // UUID for duplicate detection (always present).
+  uint64                         timestamp        = 6;   // Unix epoch milliseconds at send time.
+  uint64                         deadline         = 7;   // Unix epoch ms. 0 = no deadline.
+  DeliveryMode                   delivery_mode    = 8;   // How this envelope should be transported.
+  map<string, ForwardingTargets> forwarding_table = 9;   // Pre-computed forwarding table. Key is forwarder node ID.
+}
+
+message ForwardingTargets {
+  repeated string send_to = 1;  // The direct neighbors to forward the envelope to.
+}
+
+// ─── Control Message Wrapper ───
+
+message ControlMessage {
+  oneof message {
+    FlowHandshake      handshake           = 1;
+    HandshakeAck       handshake_ack       = 2;
+    IdentityProof      identity_proof      = 3;
+    IdentityChallenge  identity_challenge  = 4;
+    TopologyUpdate     topology_update     = 5;
+    SubscriptionUpdate subscription_update = 6;
+    BackpressureSignal backpressure        = 7;
+    SessionControl     session_control     = 8;
+    Ping               ping                = 9;
+    Pong               pong                = 10;
+  }
+}
+
+// ─── Control Heartbeats ───
+
+message Ping {
+  uint64 sent_at = 1;  // Unix epoch ms when sender dispatched this ping.
+}
+
+message Pong {
+  uint64 ping_sent_at = 1;  // Echoed from the Ping.
+  uint64 pong_sent_at = 2;  // Unix epoch ms when responder dispatched this pong.
+}
+
+// ─── Handshake & Identity ───
+
+message FlowHandshake {
+  uint32              protocol_version  = 1;  // Current: 1. Reject if unsupported.
+  string              node_id           = 2;  // Permanent, stable node identifier.
+  NodeRole            role              = 3;  // FLOW or AGGREGATOR.
+  map<string, string> capabilities      = 4;  // User-defined NodeContext key-value pairs.
+  repeated string     supported_codecs  = 5;  // e.g. ["protobuf", "json", "bincode"]
+  repeated string     subscribed_topics = 6;  // Topics this node is currently subscribed to.
+  IdentityMode        identity_mode     = 7;  // How this node wants to verify identity.
+}
+
+message HandshakeAck {
+  bool   accepted         = 1;
+  string reject_reason    = 2;  // Non-empty only when accepted == false.
+  uint32 protocol_version = 3;  // The version the responder will use.
+}
+
+message IdentityChallenge {
+  bytes challenge_nonce = 1;  // Random bytes the prover must sign.
+}
+
+message IdentityProof {
+  string node_id    = 1;  // The NodeID being proven.
+  bytes  signature  = 2;  // Signature over the challenge_nonce using the node's private key.
+  bytes  public_key = 3;  // The public key corresponding to the node's identity.
+}
+
+// ─── Topology Gossiping ───
+
+message TopologyUpdate {
+  string                  origin_node_id = 1;  // Who generated this update.
+  uint64                  epoch          = 2;  // Monotonically increasing version counter.
+  repeated NodeDescriptor nodes_added   = 3;
+  repeated string         nodes_removed  = 4;  // Node IDs that left the network.
+  repeated LinkDescriptor links_added   = 5;
+  repeated LinkRemoved    links_removed  = 6;
+}
+
+message NodeDescriptor {
+  string              node_id      = 1;
+  NodeRole            role         = 2;
+  map<string, string> capabilities = 3;  // User-defined NodeContext metadata.
+  uint64              last_seen    = 4;  // Unix epoch ms of last heartbeat.
+}
+
+message LinkDescriptor {
+  string node_a     = 1;
+  string node_b     = 2;
+  uint32 hop_cost   = 3;  // Base cost for Dijkstra (default: 1).
+  uint64 rtt_micros = 4;  // Optional. Round-trip time in microseconds (0 = unknown).
+}
+
+message LinkRemoved {
+  string node_a = 1;
+  string node_b = 2;
+}
+
+// ─── Subscription Management ───
+
+message SubscriptionUpdate {
+  string                     node_id = 1;  // The node changing its subscriptions.
+  repeated SubscriptionEntry entries = 2;
+}
+
+message SubscriptionEntry {
+  string             flow_id = 1;
+  string             pattern = 2;  // Topic pattern. Supports wildcards: "*" (one level), "#" (multi-level).
+  SubscriptionAction action  = 3;
+}
+
+// ─── Backpressure Signals ───
+
+message BackpressureSignal {
+  string             flow_id  = 1;  // The logical Flow being throttled.
+  string             topic_id = 2;  // Optional. Empty = entire flow. Non-empty = specific topic.
+  BackpressureAction action   = 3;
+}
+
+// ─── Session Lifecycle & State Sync ───
+
+message SessionControl {
+  oneof message {
+    SessionCreate    create     = 1;
+    SessionJoin      join       = 2;
+    SessionLeave     leave      = 3;
+    SessionClose     close      = 4;
+    SessionStateSync state_sync = 5;
+  }
+}
+
+message SessionCreate {
+  string              session_id   = 1;  // Globally unique session identifier.
+  string              creator_node = 2;  // Node that initiated the session.
+  repeated string     flow_ids     = 3;  // Flows grouped under this session.
+  uint64              created_at   = 4;  // Unix epoch ms.
+  map<string, string> metadata     = 5;  // User-defined session metadata.
+}
+
+message SessionJoin {
+  string session_id = 1;
+  string node_id    = 2;  // Node requesting to join.
+}
+
+message SessionLeave {
+  string session_id = 1;
+  string node_id    = 2;
+}
+
+message SessionClose {
+  string session_id = 1;
+  string closed_by  = 2;  // Node that initiated the close.
+  string reason     = 3;  // Optional human-readable reason.
+}
+
+message SessionStateSync {
+  string   session_id = 1;
+  string   sender     = 2;  // Node sending this state.
+  SyncMode mode       = 3;
+  uint64   timestamp  = 4;  // Used for LWW conflict resolution.
+  uint64   version    = 5;  // Monotonic state version counter.
+  bytes    data       = 6;  // Serialized state (snapshot or diff).
+  Codec    codec      = 7;  // How `data` is encoded.
+}
