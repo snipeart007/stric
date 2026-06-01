@@ -1551,6 +1551,7 @@ dependencies = [
  "petgraph 0.6.5",
  "prost",
  "prost-build",
+ "quinn",
  "rand 0.8.6",
  "serde",
  "sha2",

@@ -66,6 +66,8 @@ pub struct FlowNode {
     local_subscriptions: Arc<RwLock<HashSet<String>>>,
     control_tx: mpsc::Sender<ControlEvent>,
     last_epochs: Arc<DashMap<String, u64>>,
+    peer_connections: Arc<DashMap<String, quinn::Connection>>,
+    flow_limiters: Arc<DashMap<String, crate::backpressure::TokenBucketRateLimiter>>,
 }
 
 enum ControlEvent {
@@ -138,6 +140,8 @@ impl FlowNode {
             local_subscriptions: Arc::new(RwLock::new(HashSet::new())),
             control_tx,
             last_epochs: Arc::new(DashMap::new()),
+            peer_connections: Arc::new(DashMap::new()),
+            flow_limiters: Arc::new(DashMap::new()),
         });
 
         // Spawn connection manager loop to process incoming connections
@@ -254,6 +258,9 @@ impl FlowNode {
 
         info!("Control stream successfully negotiated with peer {}", peer_id);
 
+        // Task 3.1: Register active peer connection
+        self.peer_connections.insert(peer_id.clone(), conn.conn.clone());
+
         // Register peer writer
         let (peer_control_tx, mut peer_control_rx) = mpsc::channel::<ControlMessage>(100);
         let _ = self.control_tx.send(ControlEvent::PeerConnected {
@@ -324,6 +331,7 @@ impl FlowNode {
         // Spawn reader loop
         let control_tx_clone = self.control_tx.clone();
         let peer_id_clone = peer_id.clone();
+        let peer_conns_clone = self.peer_connections.clone();
         tokio::spawn(async move {
             loop {
                 match read_frame(&mut recv_stream).await {
@@ -337,6 +345,7 @@ impl FlowNode {
                     }
                     Err(e) => {
                         warn!("Control stream closed for peer {}: {}", peer_id_clone, e);
+                        peer_conns_clone.remove(&peer_id_clone); // Cleanup connection
                         let _ = control_tx_clone.send(ControlEvent::PeerDisconnected {
                             node_id: peer_id_clone.clone(),
                         }).await;
@@ -346,29 +355,62 @@ impl FlowNode {
             }
         });
 
-        // Spawn incoming data streams listener task
+        // Task 3.1 & 3.2: Spawn incoming data streams listener task
         let conn_clone = conn.conn.clone();
         let registry = self.registry.clone();
         let handlers = self.topic_handlers.clone();
+        let node_id_clone = self.node_id.clone();
+        let peer_conns = self.peer_connections.clone();
+        let flow_limiters = self.flow_limiters.clone();
         tokio::spawn(async move {
             while let Ok(mut recv) = conn_clone.accept_uni().await {
                 let registry_ref = registry.clone();
                 let handlers_ref = handlers.clone();
+                let node_id_ref = node_id_clone.clone();
+                let peer_conns_ref = peer_conns.clone();
+                let flow_limiters_ref = flow_limiters.clone();
+                
                 tokio::spawn(async move {
                     if let Ok(bytes) = read_frame(&mut recv).await {
                         if let Ok(envelope) = Envelope::decode(&bytes[..]) {
                             if let Some(header) = &envelope.header {
-                                // Dynamic decoding for local delivery
+                                let flow_id = &header.flow_id;
+                                let topic_id = &header.topic_id;
+
+                                // Task 3.2: Stateless Forwarding Lookup
+                                if let Some(targets) = header.forwarding_table.get(&node_id_ref) {
+                                    for next_hop in &targets.send_to {
+                                        if let Some(conn) = peer_conns_ref.get(next_hop) {
+                                            let conn = conn.clone();
+                                            let envelope_clone = envelope.clone();
+                                            let flow_limiters_clone = flow_limiters_ref.clone();
+                                            let flow_id_clone = flow_id.clone();
+                                            
+                                            tokio::spawn(async move {
+                                                // Task 3.3: Apply outbound backpressure
+                                                if let Some(limiter) = flow_limiters_clone.get(&flow_id_clone) {
+                                                    let size = envelope_clone.encoded_len() as u32;
+                                                    limiter.wait_for_bytes(size).await;
+                                                }
+                                                if let Ok(mut send) = conn.open_uni().await {
+                                                    let _ = write_frame(&mut send, &envelope_clone).await;
+                                                }
+                                            });
+                                        }
+                                    }
+                                }
+
+                                // Local Delivery if matching subscription
                                 if let Ok(decoded) = registry_ref.decode(&envelope.message_type, &envelope.payload) {
                                     let mut matched_handler = None;
                                     for entry in handlers_ref.iter() {
-                                        if match_topic(entry.key(), &header.topic_id) {
+                                        if match_topic(entry.key(), topic_id) {
                                             matched_handler = Some(entry.value().clone());
                                             break;
                                         }
                                     }
                                     if let Some(handler) = matched_handler {
-                                        let _ = handler.handle_message(&header.flow_id, &header.topic_id, decoded).await;
+                                        let _ = handler.handle_message(flow_id, topic_id, decoded).await;
                                     }
                                 }
                             }
@@ -463,8 +505,8 @@ impl FlowNode {
 
         let routing_header = proto::RoutingHeader {
             source_node_id: self.node_id.clone(),
-            flow_id,
-            topic_id,
+            flow_id: flow_id.clone(),
+            topic_id: topic_id.clone(),
             session_id: String::new(),
             nonce: rand::random::<u128>().to_string(),
             timestamp: std::time::SystemTime::now()
@@ -486,7 +528,22 @@ impl FlowNode {
         if let Some(header) = &envelope.header {
             if let Some(targets) = header.forwarding_table.get(&self.node_id) {
                 for next_hop in &targets.send_to {
-                    debug!("Forwarding data envelope to next hop: {}", next_hop);
+                    if let Some(conn) = self.peer_connections.get(next_hop) {
+                        let conn = conn.clone();
+                        let envelope_clone = envelope.clone();
+                        let flow_limiters = self.flow_limiters.clone();
+                        let flow_id_clone = flow_id.clone();
+                        
+                        tokio::spawn(async move {
+                            if let Some(limiter) = flow_limiters.get(&flow_id_clone) {
+                                let size = envelope_clone.encoded_len() as u32;
+                                limiter.wait_for_bytes(size).await;
+                            }
+                            if let Ok(mut send) = conn.open_uni().await {
+                                let _ = write_frame(&mut send, &envelope_clone).await;
+                            }
+                        });
+                    }
                 }
             }
         }
@@ -583,6 +640,27 @@ impl FlowNode {
                                     hop_cost: 1,
                                     rtt_micros: rtt * 1000,
                                 });
+                            }
+                            proto::control_message::Message::Backpressure(signal) => {
+                                let limiter = self.flow_limiters.entry(signal.flow_id.clone()).or_insert_with(|| {
+                                    crate::backpressure::TokenBucketRateLimiter::new(0)
+                                });
+                                match signal.action {
+                                    0 => { // PAUSE
+                                        limiter.pause().await;
+                                        info!("Backpressure PAUSED flow: {}", signal.flow_id);
+                                    }
+                                    1 => { // RESUME
+                                        limiter.resume().await;
+                                        info!("Backpressure RESUMED flow: {}", signal.flow_id);
+                                    }
+                                    2 => { // THROTTLE
+                                        limiter.resume().await;
+                                        limiter.set_rate(signal.max_rate).await;
+                                        info!("Backpressure THROTTLED flow: {} to {} B/s", signal.flow_id, signal.max_rate);
+                                    }
+                                    _ => {}
+                                }
                             }
                             _ => {}
                         }

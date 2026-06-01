@@ -173,6 +173,7 @@ message BackpressureSignal {
   string             flow_id  = 1;  // The logical Flow being throttled.
   string             topic_id = 2;  // Optional. Empty = entire flow. Non-empty = specific topic.
   BackpressureAction action   = 3;
+  uint32             max_rate = 4;  // Optional. Limit in bytes/sec when action == THROTTLE.
 }
 
 // ─── Session Lifecycle & State Sync ───
