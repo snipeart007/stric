@@ -22,6 +22,21 @@ To see Stric in action, run the examples:
 cargo run -p stric-tower --example server
 ```
 
+## Specifications & Design RFCs
+
+The entire system's design and protocols are fully specified under the [rfcs](./rfcs) directory:
+
+* **Transport & Core:**
+  * [RFC 2026-0001: stric-core Symmetric Node Architecture](./rfcs/2026-0001-symmetric-node-architecture.md)
+  * [RFC 2026-0002: stric-core Automated Heartbeat and Keep-Alive System](./rfcs/2026-0002-automated-heartbeat-keepalive.md)
+* **Services & Middleware:**
+  * [RFC 2026-0003: stric-tower Request-Response Service Framework](./rfcs/2026-0003-stric-tower-request-response.md)
+  * [RFC 2026-0004: stric-tower HTTP Sandwich and Middleware Adapter](./rfcs/2026-0004-stric-tower-sandwich-model.md)
+* **Mesh & Flow Routing (stric-flow):**
+  * [RFC 2026-0005: stric-flow Mesh Routing and Dijkstra Spanning Tree forwarding](./rfcs/2026-0005-stric-flow-spanning-tree-routing.md)
+  * [RFC 2026-0006: stric-flow Wire Schema and Protocol Specifications](./rfcs/2026-0006-stric-flow-wire-schema-specifications.md)
+  * [RFC 2026-0007: stric-flow Engine Concurrency and Mesh Reconciliation](./rfcs/2026-0007-stric-flow-engine-reconciliation.md)
+
 ## Project Vision
 
 Stric aims to solve the mismatch between local async task models and network communication by treating data as continuous, stateful **flows** rather than discrete, stateless requests.
